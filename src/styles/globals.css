@@ -1,0 +1,203 @@
+@import "tailwindcss";
+@import 'remixicon/fonts/remixicon.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================
+   ⚙️ CSS Variables (Light)
+   ========================= */
+:root {
+  --primary: #293dce; /* xanh */
+  --accent:  #f97316; /* cam */
+  --background: #ffffff;
+  --foreground: #171717;
+  --brand-primary: #1D3B72; /* Xanh AHH (navy) */
+  --brand-accent:  #F15A24; /* Đỏ cam chữ Tr */
+
+  /* Brand */
+  --primary: #307afd;
+  --secondary: #ffb226;
+
+  /* State */
+  --info: #2f80ed;
+  --success: #27ae60;
+  --warning: #f2b93b;
+  --error: #eb5757;
+
+  /* Black */
+  --black-1: #000000;
+  --black-2: #1d1d1d;
+  --black-3: #282828;
+  --white: #ffffff;
+
+  /* Grey */
+  --gray-1: #333333;
+  --gray-2: #4f4f4f;
+  --gray-3: #828282;
+  --gray-4: #bdbdbd;
+  --gray-5: #e0e0e0;
+  --gray-6: #f7f7fa;
+}
+
+/* =========================
+   🌙 Dark Mode Support
+   ========================= */
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    --primary: #60a5fa;
+    --primary-dark: #3b82f6;
+    --primary-light: #bfdbfe;
+  }
+} */
+
+/* =========================
+   🧠 CSS to Tailwind Mapping
+   ========================= */
+@theme inline {
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+
+  --color-info: var(--info);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+
+  --color-black-1: var(--black-1);
+  --color-black-2: var(--black-2);
+  --color-black-3: var(--black-3);
+  --color-white: var(--white);
+
+  --color-gray-1: var(--gray-1);
+  --color-gray-2: var(--gray-2);
+  --color-gray-3: var(--gray-3);
+  --color-gray-4: var(--gray-4);
+  --color-gray-5: var(--gray-5);
+  --color-gray-6: var(--gray-6);
+}
+
+/* =========================
+   🌍 Global Style
+   ========================= */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter, Arial), sans-serif;
+}
+
+/* =========================
+   💼 Layer: Utilities
+   ========================= */
+@layer utilities {
+  /* Font weight utilities */
+  .font-light {
+    font-weight: 300;
+  }
+  .font-regular {
+    font-weight: 400;
+  }
+  .font-medium {
+    font-weight: 500;
+  }
+  .font-bold {
+    font-weight: 700;
+  }
+  .font-black {
+    font-weight: 900;
+  }
+
+  /* Heading sizes */
+  .heading-1 {
+    font-size: 2.5rem;
+    line-height: 1.2;
+  }
+  .heading-2 {
+    font-size: 2rem;
+  }
+  .heading-3 {
+    font-size: 1.5rem;
+  }
+  .heading-4 {
+    font-size: 1.25rem;
+  }
+  .heading-5 {
+    font-size: 1rem;
+  }
+  .heading-6 {
+    font-size: 0.875rem;
+  }
+}
+
+/* =========================
+   🧩 Layer: Components
+   ========================= */
+@layer components {
+  /* ====== BUTTON ====== */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full font-medium transition duration-200 cursor-pointer;
+  }
+
+  .btn-small {
+    @apply text-sm;
+  }
+
+  .btn-large {
+    @apply text-lg;
+  }
+
+  .btn-primary {
+    @apply bg-[var(--primary)] text-white hover:bg-blue-600;
+  }
+
+  .btn-secondary {
+    @apply bg-[var(--secondary)] text-white hover:bg-yellow-500;
+  }
+
+  .btn-outline-primary {
+    @apply border border-[var(--primary)] text-[var(--primary)] bg-transparent hover:bg-[var(--primary)] hover:text-white;
+  }
+
+  .btn-outline-secondary {
+    @apply border border-[var(--secondary)] text-[var(--secondary)] bg-transparent hover:bg-[var(--secondary)] hover:text-white;
+  }
+
+  /* ====== INPUT ====== */
+.input {
+  @apply w-full px-3 pt-5 pb-2 rounded-md border focus:outline-none focus:ring-2 transition;
+}
+
+
+  .input-default {
+    @apply border-gray-300 focus:ring-gray-400;
+  }
+
+  .input-success {
+    @apply border-[var(--success)] text-[var(--success)] focus:ring-[var(--success)];
+  }
+
+  .input-error {
+    @apply border-[var(--error)] text-[var(--error)] focus:ring-[var(--error)];
+  }
+  
+  .floating-label {
+    @apply absolute left-3 px-1 rounded-md transition-all duration-200 pointer-events-none z-10;
+    @apply text-[var(--gray-2)] ;
+    @apply top-1/2 -translate-y-1/2 text-base;
+    @apply peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-sm peer-focus:text-[var(--foreground)];
+    @apply peer-not-placeholder-shown:top-0 peer-not-placeholder-shown:-translate-y-1/2 peer-not-placeholder-shown:text-sm peer-not-placeholder-shown:text-[var(--foreground)];
+  }
+  /*  */
+  .clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;  
+  }
+
+  .slick-prev, .slick-next {
+    display: none !important;
+  }
+}

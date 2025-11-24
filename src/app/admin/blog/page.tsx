@@ -1,0 +1,309 @@
+"use client";
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getAdminBlogs, deleteBlog } from '@/lib/admin/adminBlogApi';
+import { Toast, useToast } from '@/components/ui/Toast';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+
+const Page = () => {
+  const queryClient = useQueryClient()
+  const [page, setPage] = useState(1)
+  const [statusFilter, setStatusFilter] = useState<string>('')
+  const [searchTerm, setSearchTerm] = useState('')
+  const { toast, showSuccess, showError, hideToast } = useToast()
+  const [confirmDelete, setConfirmDelete] = useState<{
+    isOpen: boolean;
+    blogId: string;
+    blogTitle: string;
+  }>({ isOpen: false, blogId: '', blogTitle: '' })
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["adminBlogs", page, statusFilter],
+    queryFn: () => getAdminBlogs({ page, limit: 20, status: statusFilter as any || undefined }),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteBlog,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminBlogs'] })
+      showSuccess('Xóa bài viết thành công!')
+      setConfirmDelete({ isOpen: false, blogId: '', blogTitle: '' })
+    },
+    onError: (error: any) => {
+      showError(error.response?.data?.message || 'Không thể xóa bài viết')
+      setConfirmDelete({ isOpen: false, blogId: '', blogTitle: '' })
+    }
+  })
+
+  const handleDelete = (id: string, title: string) => {
+    setConfirmDelete({
+      isOpen: true,
+      blogId: id,
+      blogTitle: title || 'bài viết này'
+    })
+  }
+
+  const confirmDeleteAction = () => {
+    if (confirmDelete.blogId) {
+      deleteMutation.mutate(confirmDelete.blogId)
+    }
+  }
+
+  const filteredData = data?.data?.filter(blog => 
+    blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (blog.summary?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+  ) || []
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "—"
+    const date = new Date(dateString)
+    const day = date.getDate().toString().padStart(2, "0")
+    const month = (date.getMonth() + 1).toString().padStart(2, "0")
+    const year = date.getFullYear()
+    return `${day}/${month}/${year}`
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
+          Quản Lý Bài Viết
+        </h1>
+        <p className="text-slate-600">Quản lý nội dung blog và bài viết của website</p>
+      </div>
+
+      {/* Create Button */}
+      <div className="mb-6">
+        <Link
+          href="/admin/blog/create"
+          className="inline-block rounded-lg bg-emerald-600 px-6 py-3 text-white font-semibold hover:bg-emerald-700 transition"
+        >
+          + Tạo Bài Viết Mới
+        </Link>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-6">
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Search Input */}
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo tiêu đề, tóm tắt..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
+          </div>
+          {/* Status Filter */}
+          <div className="md:w-48">
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value)
+                setPage(1)
+              }}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="draft">Nháp</option>
+              <option value="published">Đã xuất bản</option>
+              <option value="archived">Đã lưu trữ</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      {isLoading ? (
+        <div className="flex justify-center items-center min-h-96">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <p className="text-red-800 font-medium">Lỗi khi tải dữ liệu bài viết</p>
+          <p className="text-red-600 text-sm mt-2">{(error as any).message}</p>
+        </div>
+      ) : !filteredData || filteredData.length === 0 ? (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+          <p className="text-yellow-800">Không tìm thấy bài viết nào</p>
+        </div>
+      ) : (
+        <>
+          {/* Table */}
+          <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-100 border-b border-slate-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                      Tiêu đề
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                      Tóm tắt
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                      Trạng thái
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                      Ngày tạo
+                    </th>
+                    <th className="px-4 py-3 text-center font-semibold text-slate-700">
+                      Hành động
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredData.map((blog, index) => (
+                    <tr
+                      key={blog._id}
+                      className={`border-b border-slate-200 hover:bg-slate-50 transition ${
+                        index % 2 === 0 ? "bg-white" : "bg-slate-50"
+                      }`}
+                    >
+                      <td className="px-4 py-3">
+                        <div className="flex items-start gap-2">
+                          {blog.coverImageUrl && (
+                            <img
+                              src={blog.coverImageUrl}
+                              alt="cover"
+                              className="h-10 w-10 rounded object-cover flex-shrink-0"
+                            />
+                          )}
+                          <div>
+                            <span className="font-medium text-slate-900 line-clamp-2 block">
+                              {blog.title}
+                            </span>
+                            {blog.tags && blog.tags.length > 0 && (
+                              <div className="flex gap-1 mt-1">
+                                {blog.tags.slice(0, 2).map((tag, i) => (
+                                  <span
+                                    key={i}
+                                    className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded"
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                                {blog.tags.length > 2 && (
+                                  <span className="text-xs text-slate-500">+{blog.tags.length - 2}</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">
+                        <span className="line-clamp-2">{blog.summary || "—"}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            blog.status === "published"
+                              ? "bg-emerald-100 text-emerald-800"
+                              : blog.status === "draft"
+                              ? "bg-slate-100 text-slate-800"
+                              : "bg-orange-100 text-orange-800"
+                          }`}
+                        >
+                          {blog.status === "published"
+                            ? "Đã xuất bản"
+                            : blog.status === "draft"
+                            ? "Nháp"
+                            : "Đã lưu trữ"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-600 text-xs">
+                        {formatDate(blog.createdAt || "")}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2 justify-center">
+                          <Link
+                            href={`/admin/blog/${blog._id}`}
+                            title="Chỉnh sửa"
+                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
+                          >
+                            <i className="ri-pencil-line text-lg"></i>
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(blog._id, blog.title)}
+                            disabled={deleteMutation.isPending}
+                            title="Xóa"
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
+                          >
+                            <i className="ri-delete-bin-6-line text-lg"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Footer Info & Pagination */}
+          <div className="flex flex-col md:flex-row items-center justify-between bg-white rounded-lg shadow-md p-4">
+            <p className="text-slate-600 mb-4 md:mb-0">
+              Tổng cộng: <span className="font-bold text-slate-900">{data?.total}</span> bài
+              viết | Trang{" "}
+              <span className="font-bold text-emerald-600">{page}</span> of{" "}
+              <span className="font-bold">{Math.ceil((data?.total || 0) / 20)}</span>
+            </p>
+
+            {/* Pagination Controls */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                ← Trước
+              </button>
+
+              {/* Page Numbers */}
+              {[...Array(Math.ceil((data?.total || 0) / 20))].map((_, i) => (
+                <button
+                  key={i + 1}
+                  onClick={() => setPage(i + 1)}
+                  className={`px-3 py-2 rounded-lg transition ${
+                    page === i + 1
+                      ? "bg-emerald-600 text-white"
+                      : "bg-slate-200 text-slate-700 hover:bg-slate-300"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+
+              <button
+                onClick={() => setPage((p) => Math.min(Math.ceil((data?.total || 0) / 20), p + 1))}
+                disabled={page >= Math.ceil((data?.total || 0) / 20)}
+                className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                Sau →
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+      
+      <Toast {...toast} onClose={hideToast} />
+      
+      <ConfirmDialog
+        isOpen={confirmDelete.isOpen}
+        title="Xác nhận xóa"
+        message={`Bạn có chắc chắn muốn xóa "${confirmDelete.blogTitle}" không? Hành động này không thể hoàn tác.`}
+        confirmText="Xóa"
+        cancelText="Hủy"
+        type="danger"
+        onConfirm={confirmDeleteAction}
+        onCancel={() => setConfirmDelete({ isOpen: false, blogId: '', blogTitle: '' })}
+      />
+    </div>
+  )
+}
+
+export default Page
