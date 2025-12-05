@@ -1,22 +1,40 @@
+// /lib/checkout/checkoutApi.ts
 import axiosInstance from "@/lib/axiosInstance";
 
-/** ================= Types (khớp BE) ================= */
-export type PaymentMethod = "office-payment" | "paypal-payment" | "momo-payment" | "deposit";
+/* ================= Types ================= */
+export type PaymentMethod =
+  | "office-payment"
+  | "vnpay-payment"
+  | "sepay-payment";
 
 export type CreateBookingBody = {
   tourId: string;
-  contact: { fullName: string; phone: string; email: string; address?: string };
+  contact: {
+    fullName: string;
+    phone: string;
+    email: string;
+    address?: string;
+  };
   guests: { adults: number; children: number };
   pricing: { priceAdult: number; priceChild: number; total?: number };
   couponCode?: string | null;
   paymentMethod: PaymentMethod;
+  paymentType: "full" | "deposit" | "office";
 };
 
 export type CreateBookingResponse = {
-  code: string;                       // booking code (BKxxxxxx)
+  code: string;
   status: "p" | "c" | "x" | "f";
   payment?: { redirectUrl?: string | null } | null;
   total?: number;
+};
+
+export type PaymentRef = {
+  provider: string;
+  ref: string;
+  amount: number;
+  at: string;
+  note?: string;
 };
 
 export type MyBookingItem = {
@@ -38,8 +56,17 @@ export type MyBookingItem = {
   depositPaid: boolean;
   requireFullPayment?: boolean;
 
+  fullName?: string;
+  email?: string;
+  phoneNumber?: string;
+  address?: string;
+
+  paymentMethod?: string;
+  paymentRefs?: PaymentRef[];
+
   bookingStatus: "p" | "c" | "x" | "f";
   createdAt?: string;
+  updatedAt?: string;
 };
 
 export type MyBookingList = {
@@ -49,13 +76,17 @@ export type MyBookingList = {
   data: MyBookingItem[];
 };
 
-/** =============== Adapters ================= */
+/* ================= Adapters ================= */
 function adaptCreateBooking(res: any): CreateBookingResponse {
   return {
     code: String(res?.booking?.code ?? res?.code ?? ""),
-    status: (res?.booking?.bookingStatus ?? res?.status ?? "p") as any,
+    status: (res?.booking?.bookingStatus ?? res?.status ?? "p") as
+      | "p"
+      | "c"
+      | "x"
+      | "f",
     payment:
-      (res?.payUrl || res?.deeplink)
+      res?.payUrl || res?.deeplink
         ? { redirectUrl: res?.payUrl ?? res?.deeplink }
         : res?.payment ?? null,
     total: Number(res?.booking?.totalPrice ?? res?.total ?? 0),
@@ -64,28 +95,45 @@ function adaptCreateBooking(res: any): CreateBookingResponse {
 
 function adaptMyBookings(res: any): MyBookingList {
   const rows = Array.isArray(res?.data) ? res.data : [];
-  const mapped = rows.map((b: any): MyBookingItem => ({
-    code: b.code,
-    tourId: String(b.tourId),
-    tourTitle: b.tour?.title ?? b.tourTitle,
-    tourImage: b.tour?.cover ?? b.tour?.images?.[0] ?? b.tourImage ?? null,
-    tourDestination: b.tour?.destination ?? b.destination ?? null,
-    time: b.tour?.time ?? null,
-    startDate: b.tour?.startDate ?? null,
-    endDate: b.tour?.endDate ?? null,
 
-    numAdults: Number(b.numAdults ?? 0),
-    numChildren: Number(b.numChildren ?? 0),
+  const mapped = rows.map((b: any): MyBookingItem => {
+    const tour = b.tourId && typeof b.tourId === "object" ? b.tourId : null;
 
-    totalPrice: Number(b.totalPrice ?? 0),
-    paidAmount: Number(b.paidAmount ?? 0),
-    depositAmount: Number(b.depositAmount ?? 0),
-    depositPaid: Boolean(b.depositPaid),
-    requireFullPayment: Boolean(b.requireFullPayment),
+    return {
+      code: String(b.code ?? ""),
+      tourId: String(tour?._id ?? b.tourId ?? ""),
 
-    bookingStatus: b.bookingStatus ?? "p",
-    createdAt: b.createdAt,
-  }));
+      tourTitle: tour?.title ?? b.tourTitle,
+      tourImage: tour?.cover ?? tour?.images?.[0] ?? b.tourImage ?? null,
+      tourDestination: tour?.destination ?? b.destination ?? null,
+      time: tour?.time ?? b.time ?? null,
+      startDate: tour?.startDate ?? b.startDate ?? null,
+      endDate: tour?.endDate ?? b.endDate ?? null,
+
+      numAdults: Number(b.numAdults ?? 0),
+      numChildren: Number(b.numChildren ?? 0),
+
+      totalPrice: Number(b.totalPrice ?? 0),
+      paidAmount: Number(b.paidAmount ?? 0),
+      depositAmount: Number(b.depositAmount ?? 0),
+      depositPaid: Boolean(b.depositPaid),
+      requireFullPayment:
+        "requireFullPayment" in b ? Boolean(b.requireFullPayment) : undefined,
+
+      fullName: b.fullName,
+      email: b.email,
+      phoneNumber: b.phoneNumber,
+      address: b.address,
+
+      paymentMethod: b.paymentMethod,
+      paymentRefs: Array.isArray(b.paymentRefs) ? b.paymentRefs : [],
+
+      bookingStatus: (b.bookingStatus ?? "p") as MyBookingItem["bookingStatus"],
+      createdAt: b.createdAt,
+      updatedAt: b.updatedAt,
+    };
+  });
+
   return {
     total: Number(res?.total ?? mapped.length),
     page: Number(res?.page ?? 1),
@@ -94,7 +142,7 @@ function adaptMyBookings(res: any): MyBookingList {
   };
 }
 
-/** ================= Public ================= */
+/* ================= Quote ================= */
 export async function getCheckoutQuote(payload: {
   tourId: string;
   guests: { adults: number; children: number };
@@ -105,23 +153,40 @@ export async function getCheckoutQuote(payload: {
   return data;
 }
 
-/** ================= User APIs ================= */
-export async function createBooking(body: CreateBookingBody): Promise<CreateBookingResponse> {
-  const { data } = await axiosInstance.post("/bookings", body, { timeout: 20000 });
+/* ================= User APIs ================= */
+export async function createBooking(
+  body: CreateBookingBody
+): Promise<CreateBookingResponse> {
+  const { data } = await axiosInstance.post("/bookings", body, {
+    timeout: 20000,
+  });
   return adaptCreateBooking(data);
 }
 
-export async function getMyBookings(page = 1, limit = 10): Promise<MyBookingList> {
-  const { data } = await axiosInstance.get("/bookings/me", { params: { page, limit } });
+export async function getMyBookings(
+  page = 1,
+  limit = 10
+): Promise<MyBookingList> {
+  const { data } = await axiosInstance.get("/bookings/me", {
+    params: { page, limit },
+  });
   return adaptMyBookings(data);
 }
 
 export async function cancelBooking(code: string): Promise<{ ok: boolean }> {
-  const { data } = await axiosInstance.put(`/bookings/${encodeURIComponent(code)}/cancel`);
-  return { ok: Boolean(data?.message === "Canceled" || data?.ok || true) };
+  const { data } = await axiosInstance.put(
+    `/bookings/${encodeURIComponent(code)}/cancel`
+  );
+  return {
+    ok: Boolean(
+      data?.message === "Canceled" ||
+        data?.ok === true ||
+        data?.success === true
+    ),
+  };
 }
 
-/** Re-init payment cho 1 booking (cọc/remaining) */
+/* ================= Re-init Payment ================= */
 export async function createPaymentForBooking(
   code: string,
   type: "deposit" | "remaining"
@@ -132,7 +197,35 @@ export async function createPaymentForBooking(
   );
   return data || {};
 }
-export async function initBookingPayment(code: string): Promise<{ payUrl?: string; deeplink?: string }> {
-  const { data } = await axiosInstance.post(`/bookings/${encodeURIComponent(code)}/pay`, {});
+export async function initSepayPayment(
+  bookingCode: string,
+  totalPrice: number
+) {
+  console.log("initSepayPayment called with:", bookingCode, totalPrice);
+  // Thay thế "/payment/sepay/create" bằng endpoint API thực tế của bạn cho Sepay
+  const { data } = await axiosInstance.post("/payment/sepay/create", {
+    code: bookingCode,
+    amount: totalPrice,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  console.log("initSepayPayment response data:", data);
+  return data;
+}
+// đảm bảo axiosInstance đã set Content-Type: application/json
+export async function initBookingPayment(
+  bookingCode: string,
+  totalPrice: number
+) {
+  console.log("initBookingPayment called with:", bookingCode, totalPrice);
+  const { data } = await axiosInstance.post("/payment/vnpay/create", {
+    code: bookingCode,
+    amount: totalPrice,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  console.log("initBookingPayment response data:", data);
   return data;
 }

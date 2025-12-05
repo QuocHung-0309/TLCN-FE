@@ -16,7 +16,8 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const accessToken = useAuthStore((s) => s.token.accessToken) || getUserToken() || "";
+  const accessToken =
+    useAuthStore((s) => s.token.accessToken) || getUserToken() || "";
   const user = useAuthStore((s) => s.user);
   const resetAuth = useAuthStore((s) => s.resetAuth);
   const setUserId = useAuthStore((s) => s.setUserId);
@@ -83,7 +84,7 @@ export default function Header() {
       userId: null,
       isLoggedIn,
     });
-    
+
     // Nếu có user info trong store thì dùng luôn
     if (user && accessToken) {
       setFullName(user.fullName || "User");
@@ -93,7 +94,7 @@ export default function Header() {
       setPoints(user.points || 0);
       setUserId(user.id);
       debugTokenAndUser.logUserInfoDisplay("Header.useEffect[fromStore]", user);
-    } 
+    }
     // Nếu không có user info nhưng có token thì fetch từ API
     else if (accessToken && !user) {
       loadProfile(accessToken);
@@ -111,14 +112,18 @@ export default function Header() {
   // Click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (avatarRef.current && !avatarRef.current.contains(event.target as Node)) {
+      if (
+        avatarRef.current &&
+        !avatarRef.current.contains(event.target as Node)
+      ) {
         setAvatarOpen(false);
       }
     };
 
     if (avatarOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [avatarOpen]);
 
@@ -127,6 +132,7 @@ export default function Header() {
     { label: "Tour", href: "/user/tours" },
     { label: "Điểm đến", href: "/user/destination" },
     { label: "Bài viết", href: "/user/blog" },
+    { label: "Giới thiệu", href: "/user/about" },
   ];
 
   const isActive = (href: string) =>
@@ -194,7 +200,9 @@ export default function Header() {
                 height={32}
                 className="rounded-full object-cover"
               />
-              <span className="text-gray-800 font-medium text-sm truncate max-w-[120px]">{fullName}</span>
+              <span className="text-gray-800 font-medium text-sm truncate max-w-[120px]">
+                {fullName}
+              </span>
               <ChevronDown size={16} className="text-gray-500" />
 
               {avatarOpen && (

@@ -132,6 +132,32 @@ export const getTours = async (
   });
   return res.data;
 };
+export const searchTours = async (
+  page = 1,
+  limit = 9,
+  query?: ToursQuery
+): Promise<ToursResponse> => {
+  const params: Record<string, any> = { page, limit };
+
+  if (query?.search) {
+    // BE sử dụng 'q' cho keyword
+    params.q = query.search;
+  }
+  if (query?.destination) {
+    params.destination = query.destination;
+  }
+  if (typeof query?.minPrice === "number") {
+    params.budgetMin = query.minPrice;
+  }
+  if (typeof query?.maxPrice === "number") {
+    params.budgetMax = query.maxPrice;
+  }
+
+  const res = await axiosInstance.get<ToursResponse>("/tours/search", {
+    params,
+  });
+  return res.data;
+};
 
 export const getTourById = async (id: string | number): Promise<TourDetail> => {
   const res = await axiosInstance.get<TourDetail>(`/tours/${id}`);

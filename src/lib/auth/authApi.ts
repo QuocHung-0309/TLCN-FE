@@ -2,7 +2,10 @@
 import axios from "axios";
 
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://localhost:4000/api";
+  (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").replace(
+    /\/$/,
+    ""
+  );
 
 const api = axios.create({
   baseURL: API_URL,
@@ -17,7 +20,6 @@ export const authApi = {
   // BE nhận identifier (email/username) + password
   async login(identifier: string, password: string) {
     const res = await api.post("/auth/login", { identifier, password });
-    // Chuẩn hoá shape trả về
     const d = res.data ?? {};
     return {
       accessToken: d.accessToken ?? d.token ?? d.data?.accessToken ?? null,
@@ -54,7 +56,10 @@ export const authApi = {
   },
 
   async changePassword(oldPassword: string, newPassword: string) {
-    const res = await api.put("/auth/change-password", { oldPassword, newPassword });
+    const res = await api.put("/auth/change-password", {
+      oldPassword,
+      newPassword,
+    });
     return res.data;
   },
 
@@ -74,47 +79,77 @@ export const authApi = {
     const res = await api.post("/auth/verify-otp", payload);
     return res.data;
   },
-// /lib/auth/authApi.ts
-  // /lib/auth/authApi.ts
-async getProfile(token: string) {
-  const res = await api.get("/auth/me", {
-    headers: { Authorization: `Bearer ${token}` },
-    // tránh 304: luôn đổi URL bằng tham số thời gian
-    params: { _ts: Date.now() },
-    // tuỳ chọn: không throw nếu nhận 304
-    validateStatus: (s) => (s >= 200 && s < 300) || s === 304,
-  });
 
-  // Nếu 304 và lib không trả body -> cố lấy từ axios cache, nếu không được thì fallback rỗng
-  const raw = (res.data && res.data !== "") ? res.data : {};
-  const u: any = raw?.user ?? raw ?? {};
+  // ===== Lấy profile user hiện tại =====
+    async getProfile(token: string) {
+    const res = await api.get("/auth/me", {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { _ts: Date.now() },
+      validateStatus: (s) => (s >= 200 && s < 300) || s === 304,
+    });
 
-  const first = u.firstName ?? u.given_name ?? u.givenName ?? "";
-  const last  = u.lastName  ?? u.family_name ?? u.familyName ?? "";
-  const fallbackFromEmail = (u.email && String(u.email).split("@")[0]) || "";
+    const raw = res.data && res.data !== "" ? res.data : {};
+    const u: any = raw?.user ?? raw ?? {};
 
-  // tách riêng để tránh lỗi mixing ?? và ||
-  let fullName =
-    u.fullName ??
-    u.name ??
-    u.displayName ??
-    `${first} ${last}`.trim();
-  if (!fullName) fullName = u.username || fallbackFromEmail || "User";
+    const first = u.firstName ?? u.given_name ?? u.givenName ?? "";
+    const last  = u.lastName  ?? u.family_name ?? u.familyName ?? "";
+    const fallbackFromEmail =
+      (u.email && String(u.email).split("@")[0]) || "";
 
-  const avatar =
-    u.avatar ?? u.photoURL ?? u.photoUrl ?? u.picture ?? u.image ?? "/Image.svg";
+    let fullName =
+      u.fullName ??
+      u.name ??
+      u.displayName ??
+      `${first} ${last}`.trim();
+    if (!fullName) fullName = u.username || fallbackFromEmail || "User";
 
-  return {
-    id: u._id ?? u.id ?? null,
-    fullName,
-    email: u.email ?? "",
-    phone: u.phone ?? u.phoneNumber ?? "",
-    avatar,
-    points: u.points ?? 0,
-    memberStatus: u.memberStatus ?? "Thành viên",
-  };
+    // chọn avatar từ các field BE trả
+    const avatarUrl =
+      u.avatarUrl ??
+      u.avatar ??
+      u.photoURL ??
+      u.photoUrl ??
+      u.picture ??
+      u.image ??
+      "/Image.svg";
+
+    return {
+      id: u._id ?? u.id ?? null,
+      fullName,
+      email: u.email ?? "",
+      phone: u.phone ?? u.phoneNumber ?? "",
+      gender: u.gender ?? undefined,
+      dob: u.dob ?? u.dateOfBirth ?? undefined,
+      city: u.city ?? u.address?.city ?? undefined,
+      emails: u.emails ?? undefined,
+      phoneNumbers: u.phoneNumbers ?? undefined,
+
+      // 🔥 giữ tương thích cũ
+      avatar: avatarUrl,   // layout.tsx cần field này
+      avatarUrl,           // chỗ mới dùng field này
+
+      points: u.points ?? 0,
+      memberStatus: u.memberStatus ?? "Thành viên",
+    };
+  },
+async uploadAvatar(file: File, token: string) {
+  const form = new FormData();
+  form.append("avatar", file);
+
+  const res = await axios.post(
+    `${API_URL}/users/me/avatar`,
+    form,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+
+  return res.data;
 }
-
+  // ===== Upload avatar cho user hiện tại =====
 };
 
 export default authApi;

@@ -1,192 +1,187 @@
-'use client';
+// src/app/user/blog/page.tsx
+"use client";
 
-import { useEffect, useState } from 'react';
-import { dataBlogPosts } from '@/data/data';
-import FeaturedPost from './FeaturedPost';
-import SearchBox from '@/components/ui/SearchBox';
-import CategorySection from './CategorySection';
-import BlogListSection from './BlogListSection';
-import RecentPosts from './RecentPosts';
-import FeaturedBloggers from './FeaturedBloggers';
-import Image from 'next/image';
-import { getBlogs } from '@/lib/blog/blogApi';
-import { mapBlogToPost } from '@/lib/blog/mapBlogToPost';
-import { Search, Filter, Plus } from 'lucide-react';
-import Link from 'next/link';
-import { useAuthStore } from '#/stores/auth';
-import { getUserToken } from '@/lib/auth/tokenManager';
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useGetBlogs } from "#/hooks/blogs-hook/useBlogs"; // đổi path cho đúng alias
 
-export default function BlogPage() {
-  const [featuredPosts, setFeaturedPosts] = useState<any[]>([]);
-  const [activeCategoryKey, setActiveCategoryKey] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("-createdAt");
-  const [loading, setLoading] = useState(false);
+export default function BlogListPage() {
+  const [page, setPage] = useState(1);
+  const limit = 9; // 3 cột x 3 hàng
 
-  const accessToken = useAuthStore((s) => s.token.accessToken) || getUserToken();
-  const user = useAuthStore((s) => s.user);
+  const { data, isLoading, isError } = useGetBlogs(page, limit);
 
-  useEffect(() => {
-    fetchBlogs();
-  }, [activeCategoryKey, sortBy, searchQuery]);
+  const blogs = data?.data ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = data
+    ? Math.max(1, Math.ceil(total / (data.limit || limit)))
+    : 1;
 
-  const fetchBlogs = async () => {
-    try {
-      setLoading(true);
-      const params: any = { 
-        limit: activeCategoryKey === "all" ? 20 : 10, 
-        sort: sortBy 
-      };
-      
-      if (searchQuery.trim()) {
-        params.search = searchQuery.trim();
-      }
-      
-      if (activeCategoryKey !== "all") {
-        params.category = activeCategoryKey;
-      }
-
-      const res = await getBlogs(params);
-      const publishedBlogs = res.data
-        .filter((blog: any) => blog.status === "published")
-        .map(mapBlogToPost);
-      
-      setFeaturedPosts(publishedBlogs);
-    } catch (err) {
-      console.error("Lỗi khi lấy featured posts:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
-  
   return (
-    <main className="relative overflow-hidden">
-      {/* blur */}
-      <div className="absolute w-[500px] h-[500px] bg-[var(--secondary)] opacity-50 blur-[250px] pointer-events-none z-0" style={{ top: '270px', left: '-240px' }} />
-      <div className="absolute w-[500px] h-[500px] bg-[var(--primary)] opacity-50 blur-[250px] pointer-events-none z-0" style={{ top: '600px', left: '1200px' }} />
-      <div className="absolute w-[500px] h-[500px] bg-[var(--primary)] opacity-50 blur-[250px] pointer-events-none z-0" style={{ top: '1100px', left: '-60px' }} />
-      <div className="absolute w-[500px] h-[500px] bg-[var(--secondary)] opacity-50 blur-[250px] pointer-events-none z-0" style={{ top: '2000px', left: '1300px' }} />
-      <div className="absolute w-[500px] h-[500px] bg-[var(--primary)] opacity-50 blur-[250px] pointer-events-none z-0" style={{ top: '2500px', left: '-60px' }} />
-      
-      <Image
-        src="/city-bg.svg"
-        alt="city-bg"
-        width={355}
-        height={216}
-        className="absolute left-[-100px] top-[535px] z-0 pointer-events-none
-             w-[200px] sm:w-[250px] md:w-[300px] lg:w-[355px] h-auto"
-      />
-      <Image
-        src="/Graphic_Elements.svg"
-        alt="Graphic_Elements"
-        width={192}
-        height={176}
-        className="absolute left-[1420px] top-[875px] z-0 pointer-events-none
-             w-[100px] sm:w-[140px] md:w-[160px] lg:w-[192px] h-auto"
-      />
-
-      {/* Header Section with Search & Actions */}
-      <div className="relative z-10 bg-white/80 backdrop-blur-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Blog du lịch</h1>
-              <p className="text-gray-600">Chia sẻ những trải nghiệm du lịch tuyệt vời</p>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4 lg:w-auto w-full">
-              {/* Enhanced Search */}
-              <div className="relative flex-1 lg:w-80">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm bài viết..."
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              
-              {/* Sort Filter */}
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-              >
-                <option value="-createdAt">Mới nhất</option>
-                <option value="createdAt">Cũ nhất</option>
-                <option value="-views">Nhiều lượt xem</option>
-                <option value="title">A - Z</option>
-              </select>
-              
-              {/* Create Post Button */}
-              {accessToken && (
-                <Link
-                  href="/user/post-blog"
-                  className="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors gap-2 whitespace-nowrap"
-                >
-                  <Plus className="w-4 h-4" />
-                  Viết bài
-                </Link>
-              )}
-            </div>
-          </div>
-          
-          {/* User Status */}
-          {user && (
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-blue-800 text-sm">
-                👋 Chào {user.fullName}! Bạn có {user.points || 0} điểm. Hãy chia sẻ những trải nghiệm du lịch tuyệt vời của bạn!
-              </p>
-            </div>
-          )}
-        </div>
+    <main className="relative min-h-screen bg-[#fff7ec]">
+      {/* nền mờ nhẹ, muốn thì chỉnh/bỏ */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-40 top-10 h-72 w-72 rounded-full bg-orange-200/40 blur-3xl" />
+        <div className="absolute right-0 top-40 h-72 w-72 rounded-full bg-sky-300/30 blur-3xl" />
       </div>
 
-      {/* Main Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg shadow-sm p-6 animate-pulse">
-                <div className="h-48 bg-gray-200 rounded-lg mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+      <div className="relative z-10 mx-auto max-w-6xl px-4 py-10 lg:px-0">
+        {/* header */}
+        <header className="mb-6 text-center">
+          <h1 className="text-3xl font-bold uppercase tracking-wide text-slate-900">
+            Bài viết du lịch
+          </h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Những kinh nghiệm, cẩm nang và review tour thực tế cho chuyến đi của
+            bạn.
+          </p>
+        </header>
+
+        {/* STATE: loading / error / empty */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: limit }).map((_, i) => (
+              <div
+                key={i}
+                className="flex flex-col overflow-hidden rounded-3xl bg-white shadow-md animate-pulse"
+              >
+                <div className="h-52 bg-slate-200" />
+                <div className="space-y-2 p-4">
+                  <div className="h-4 w-3/4 rounded bg-slate-200" />
+                  <div className="h-3 w-full rounded bg-slate-200" />
+                  <div className="h-3 w-2/3 rounded bg-slate-200" />
+                  <div className="mt-4 h-9 w-28 rounded-full bg-slate-200" />
+                </div>
               </div>
             ))}
           </div>
+        ) : isError ? (
+          <div className="py-10 text-center text-red-600">
+            Không tải được danh sách bài viết. Vui lòng thử lại.
+          </div>
+        ) : blogs.length === 0 ? (
+          <div className="py-10 text-center text-slate-600">
+            Hiện chưa có bài viết nào. Hãy đăng bài để hiển thị tại đây.
+          </div>
         ) : (
           <>
-            {featuredPosts.length > 0 && (
-              <FeaturedPost featuredPost={featuredPosts[0]} />
-            )}
-            
-            <div className="mt-8">
-              <CategorySection 
-                activeCategoryKey={activeCategoryKey}
-                onCategoryChange={setActiveCategoryKey}
-              />
-            </div>
+            {/* GRID 3 CỘT: layout giống ảnh bạn gửi */}
+            <section className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {blogs.map((post) => {
+                const href = `/user/blog/${post.slug}`;
+                const img = post.cover || post.thumbnail || "/hot1.jpg";
+                const created =
+                  post.createdAt &&
+                  new Date(post.createdAt).toLocaleDateString("vi-VN");
 
-            <div className="mt-8 grid lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2">
-                <BlogListSection 
-                  posts={featuredPosts}
-                  loading={loading}
-                  searchQuery={searchQuery}
-                  category={activeCategoryKey}
-                />
+                return (
+                  <article
+                    key={post.slug}
+                    className="flex h-full flex-col overflow-hidden rounded-[32px] bg-white shadow-md shadow-black/5 transition hover:-translate-y-1 hover:shadow-lg"
+                  >
+                    {/* Image */}
+                    <div className="relative h-56 w-full">
+                      <Image
+                        src={post.cover || post.thumbnail || "/hot1.jpg"}
+                        alt={post.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width:768px) 100vw, (max-width:1024px) 50vw, 33vw"
+                      />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex flex-1 flex-col px-6 pb-6 pt-5">
+                      {/* Categories */}
+                      {(() => {
+                        const categories = post.categories ?? [];
+                        if (!categories.length) return null;
+                        return (
+                          <div className="mb-2 flex flex-wrap gap-2">
+                            {categories.map((c) => (
+                              <span
+                                key={c}
+                                className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700"
+                              >
+                                {c}
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      })()}
+
+                      {/* Title */}
+                      <h2 className="mb-2 text-lg font-extrabold uppercase leading-snug text-slate-900 line-clamp-3">
+                        {post.title}
+                      </h2>
+
+                      {/* Date */}
+                      <div className="mb-3 flex items-center gap-2 text-sm text-slate-500">
+                        <span className="text-[18px]">📅</span>
+                        {post.createdAt &&
+                          new Date(post.createdAt).toLocaleDateString("vi-VN")}
+                      </div>
+
+                      {/* Excerpt */}
+                      <p className="mb-4 text-[15px] leading-relaxed text-slate-700 line-clamp-3">
+                        {post.excerpt ||
+                          "Bài viết chia sẻ kinh nghiệm, mẹo du lịch, lịch trình và những điều thú vị trong chuyến đi của bạn."}
+                      </p>
+
+                      {/* Button */}
+                      <div className="mt-auto">
+                        <Link
+                          href={`/user/blog/${post.slug}`}
+                          className="inline-flex items-center justify-center rounded-full border border-slate-900 px-6 py-2 text-sm font-semibold uppercase tracking-wide text-slate-900 hover:bg-slate-900 hover:text-white transition"
+                        >
+                          Xem thêm
+                        </Link>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </section>
+
+            {/* PAGINATION dưới lưới */}
+            {totalPages > 1 && (
+              <div className="mt-10 flex justify-center gap-2">
+                <button
+                  type="button"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 shadow-sm disabled:opacity-40"
+                >
+                  &lt;
+                </button>
+                {Array.from({ length: totalPages }).map((_, i) => {
+                  const num = i + 1;
+                  const active = num === page;
+                  return (
+                    <button
+                      key={num}
+                      onClick={() => setPage(num)}
+                      className={`rounded-full px-3 py-1.5 text-xs font-medium ${
+                        active
+                          ? "bg-orange-500 text-white shadow"
+                          : "border border-slate-200 bg-white text-slate-700 hover:border-orange-500"
+                      }`}
+                    >
+                      {num}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 shadow-sm disabled:opacity-40"
+                >
+                  &gt;
+                </button>
               </div>
-              
-              <div className="space-y-8">
-                <RecentPosts limit={5} />
-                <FeaturedBloggers limit={5} />
-              </div>
-            </div>
+            )}
           </>
         )}
       </div>

@@ -1,56 +1,74 @@
-// DestinationCard.tsx
-'use client';
+"use client";
 
-import React from 'react';
-import Image from 'next/image';
-import Button from '@/components/ui/Button';
+import Image from "next/image";
+import Link from "next/link"; // 👈 Import Link
+import React from "react";
+import { Clock, Tag } from "lucide-react"; // Ví dụ icon nếu bạn dùng
 
-type DestinationCardProps = {
+export type DestinationCardProps = {
+  image: string;
   title: string;
   duration: string;
   price: string;
-  image: string;
+  href?: string; // 👈 Thêm prop href (optional)
 };
 
-const DestinationCard: React.FC<DestinationCardProps> = ({ title, duration, price, image }) => {
+const DestinationCard: React.FC<DestinationCardProps> = ({
+  image,
+  title,
+  duration,
+  price,
+  href = "#", // Default nếu không truyền
+}) => {
   return (
-    <div className="group relative rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition">
-      <div className="relative w-full h-[400px]"> {/* cao hơn */}
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-md transition-all hover:-translate-y-1 hover:shadow-xl border border-slate-100">
+      {/* Image Area */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden">
         <Image
           src={image}
           alt={title}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 pointer-events-none">
-        <h3 className="text-base sm:text-lg font-extrabold uppercase text-orange-400 leading-tight">
-          {title}
+      {/* Content Area */}
+      <div className="flex flex-1 flex-col p-4">
+        {/* Title */}
+        <h3 className="mb-2 line-clamp-2 text-lg font-bold leading-tight text-slate-800 group-hover:text-emerald-600 transition-colors">
+          <Link href={href} title={title}>
+            {title}
+          </Link>
         </h3>
 
-        <div className="mt-1 sm:mt-2 space-y-1 text-white">
-          <p className="text-sm font-bold leading-tight">{duration}</p>
-          <p className="text-sm">
-            Giá: <span className="font-semibold">{price}</span>
-          </p>
+        {/* Info */}
+        <div className="mb-4 flex items-center gap-4 text-sm text-slate-500">
+          <div className="flex items-center gap-1.5">
+            <Clock size={16} />
+            <span>{duration}</span>
+          </div>
         </div>
 
-        <div className="mt-3 sm:mt-4">
-          <Button
-            className="
-              pointer-events-auto
-              rounded-full px-5 py-2
-              bg-white text-black font-bold text-xs
-              shadow-md hover:bg-white/90 transition
-            "
+        {/* Price & Action */}
+        <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-4">
+          <div>
+            <p className="text-xs font-medium text-slate-400">Giá chỉ từ</p>
+            <p className="text-lg font-bold text-rose-600">{price}</p>
+          </div>
+
+          {/* 👇 Nút Đặt Tour chuyển hướng theo href */}
+          <Link
+            href={href}
+            className="rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 shadow-sm shadow-emerald-200"
           >
-            ĐẶT NGAY
-          </Button>
+            Đặt Tour
+          </Link>
         </div>
       </div>
-    </div>
+    </article>
   );
 };
 

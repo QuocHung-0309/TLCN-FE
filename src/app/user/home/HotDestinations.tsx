@@ -1,29 +1,42 @@
-'use client';
+"use client";
 
-import React, { useMemo } from 'react';
-import DestinationCard from '@/components/cards/DestinationCard';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay } from 'swiper/modules';
-import { useGetTours } from '#/hooks/tours-hook/useTours';
+import React, { useMemo } from "react";
+import DestinationCard from "@/components/cards/DestinationCard";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay } from "swiper/modules";
+import { useGetTours } from "#/hooks/tours-hook/useTours";
 
-import 'swiper/css';
-import 'swiper/css/autoplay';
+import "swiper/css";
+import "swiper/css/autoplay";
 
 /* === helpers === */
 const toNum = (v?: number | string) => {
-  if (typeof v === 'number') return v;
-  if (typeof v === 'string') {
-    const n = Number(v.replace(/[^\d]/g, ''));
+  if (typeof v === "number") return v;
+  if (typeof v === "string") {
+    const n = Number(v.replace(/[^\d]/g, ""));
     return Number.isNaN(n) ? undefined : n;
   }
 };
 
 const vnd = (n?: number) =>
-  typeof n === 'number'
-    ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 })
+  typeof n === "number"
+    ? new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+        maximumFractionDigits: 0,
+      })
         .format(n)
-        .replace(/\s?₫$/, 'VNĐ')
-    : '—';
+        .replace(/\s?₫$/, " VNĐ")
+    : "—";
+
+// Hàm tạo slug an toàn cho URL (Ví dụ: "Tour Cần Thơ" -> "tour-can-tho")
+const slugify = (s = "") =>
+  s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 
 /* === skeleton card === */
 function SkeletonCard() {
@@ -38,17 +51,14 @@ function SkeletonCard() {
 }
 
 const HotDestinations = () => {
-  // gọi API tour
   const { data, isLoading, isError } = useGetTours();
 
-  // Chuẩn hoá list do hook của bạn có thể trả {data: Tour[]} hoặc trực tiếp Tour[]
   const list: any[] = useMemo(() => {
     if (Array.isArray((data as any)?.data)) return (data as any).data as any[];
-    if (Array.isArray(data as any)) return (data as any) as any[];
+    if (Array.isArray(data as any)) return data as any as any[];
     return [];
   }, [data]);
 
-  // Map về props cho DestinationCard
   const cards = useMemo(
     () =>
       list.slice(0, 12).map((t) => {
@@ -57,14 +67,19 @@ const HotDestinations = () => {
           (Array.isArray(t.images) && t.images[0]) ||
           t.image ||
           t.cover ||
-          '/hot1.jpg';
+          "/hot1.jpg";
+
+        // Tạo slug và id
+        const slug = t.destinationSlug || slugify(t.title);
+        const id = t._id || t.id;
+
         return {
           title: t.title,
-          duration: t.time ?? '—',
+          duration: t.time ?? "—",
           price: vnd(price),
           image,
-          // nếu DestinationCard có prop href, có thể truyền:
-          // href: `/user/destination/${t.destinationSlug ?? (t.title || '').toLowerCase().replace(/\s+/g, '-')}/${t._id ?? t.id ?? ''}`,
+          // 👇 Tạo đường dẫn chi tiết tại đây
+          href: `/user/destination/${slug}/${id}`,
         };
       }),
     [list]
@@ -79,15 +94,15 @@ const HotDestinations = () => {
 
         <Swiper
           modules={[Autoplay]}
-          autoplay={{ delay: 4000, disableOnInteraction: false }}
+          autoplay={{ delay: 1000, disableOnInteraction: false }}
           loop
           grabCursor
           spaceBetween={16}
           breakpoints={{
-            0:   { slidesPerView: 1.1, spaceBetween: 12 },
-            640: { slidesPerView: 2,   spaceBetween: 16 },
-            1024:{ slidesPerView: 3,   spaceBetween: 18 },
-            1280:{ slidesPerView: 4,   spaceBetween: 20 },
+            0: { slidesPerView: 1.1, spaceBetween: 12 },
+            640: { slidesPerView: 2, spaceBetween: 16 },
+            1024: { slidesPerView: 3, spaceBetween: 18 },
+            1280: { slidesPerView: 4, spaceBetween: 20 },
           }}
           className="!pb-8"
         >

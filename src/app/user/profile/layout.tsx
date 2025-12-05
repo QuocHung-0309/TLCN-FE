@@ -42,12 +42,7 @@ function UserSidebar({ user }: { user: UserProfile | null }) {
 
   // Các link trong sidebar
   const navItems = [
-    { name: "0 Điểm", href: "/user/points", icon: Star },
-    { name: "Thẻ của tôi", href: "/user/cards", icon: CreditCard },
-    { name: "Đặt chỗ của tôi", href: "/user/bookings", icon: List },
-    { name: "Danh sách giao dịch", href: "/user/transactions", icon: List },
-    { name: "Refunds (Hoàn tiền)", href: "/user/refunds", icon: RefreshCcw },
-    { name: "Thông báo giá vé", href: "/user/alerts", icon: Bell },
+    { name: "Đặt chỗ của tôi", href: "/user/history", icon: List },
     { name: "Thông tin hành khách", href: "/user/passengers", icon: Users },
     { name: "Cài đặt thông báo", href: "/user/notifications", icon: Bell },
     { name: "Tài khoản", href: "/user/profile", icon: Settings },
@@ -67,26 +62,13 @@ function UserSidebar({ user }: { user: UserProfile | null }) {
           <h4 className="font-semibold text-gray-900">
             {user?.fullName || "User"}
           </h4>
-          <span className="text-sm text-gray-500">Facebook</span>
+         {/* <span className="text-sm text-gray-500">Facebook</span> */}
         </div>
       </div>
 
       {/* Thẻ thành viên */}
       <div className="p-4">
-        <Link href="/user/membership">
-          <div
-            className="p-3 rounded-lg flex justify-between items-center cursor-pointer"
-            style={{ backgroundColor: "#f0e6d6" }} // Màu Bronze
-          >
-            <span
-              className="text-sm font-semibold"
-              style={{ color: "#8c6d3f" }}
-            >
-              Bạn là thành viên Bronze Priority
-            </span>
-            <span style={{ color: "#8c6d3f" }}>{">"}</span>
-          </div>
-        </Link>
+        
       </div>
 
       {/* Menu Navigation */}

@@ -1,124 +1,156 @@
-// src/lib/blog/blogApi.ts
-import axios from "axios";
-import axiosInstance from "../axiosInstance";
+// /lib/blog/blogApi.ts
+import axiosInstance from "@/lib/axiosInstance";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+/* ===== Types ===== */
 
-// 1. Blog interface khớp với backend
-export interface Blog {
-  _id: string;
+export type BlogSummary = {
+  slug: string;
   title: string;
-  slug?: string;
-  summary?: string;
-  content: string;
-  tags?: string[];
+  excerpt?: string;
+  cover?: string;
   coverImageUrl?: string;
-  authorId?: string;
-  status: "draft" | "published" | "archived";
-  publishedAt?: string;
+  thumbnail?: string;
+  categories?: string[];
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+  author?: {
+    id?: string | number;
+    name?: string;
+    avatar?: string;
+  };
+  rating?: number;        // trung bình
+  commentsCount?: number;
+};
+export type BlogContentBlock = {
+  type: "text" | "image" | "video" | "html";
+  value: string;
+};
+
+export type BlogDetail = BlogSummary & {
+  // BE hiện tại đang trả content là HTML string
+  // nhưng mình vẫn cho phép mảng block để sau này dễ nâng cấp
+  content?: string | BlogContentBlock[];
+
+  summary?: string;
+  coverImageUrl?: string;
   ratingAvg?: number;
   ratingCount?: number;
-  createdAt: string;
-  updatedAt?: string;
-}
+  mediaUrls?: string[];
+  wardName?: string;
+  ward?: string;
+  locationDetail?: string;
+};
 
-// 2. (Giả định) Định nghĩa kiểu Response cho danh sách Blogs
-export interface BlogsResponse {
-  data: Blog[];
+
+// ✅ Đổi tên cho thống nhất: BlogsResponse
+export type BlogsResponse = {
+  data: BlogSummary[];
   total: number;
   page: number;
   limit: number;
-  totalPages: number;
-}
+};
 
-// 3. Sửa lại: Không export 'blogApi' nữa, mà export trực tiếp
-//    (Hoặc vẫn giữ 'blogApi' và sửa file 'useBlogs.ts' - Cả 2 cách đều được)
-//    Cách 1: Export trực tiếp (dễ cho react-query)
+export const getBlogBySlug = async (slug: string): Promise<BlogDetail> => {
+  const res = await axiosInstance.get<BlogDetail>(`/blog/${slug}`);
+  return res.data;
+};
 
-// Lấy danh sách blog (có phân trang + lọc theo query)
-export const getBlogs = async (query?: Record<string, any>): Promise<BlogsResponse> => { //không token
-  const res = await axios.get(`${API_URL}/blog`, {
-    params: query
+export type BlogComment = {
+  id: string;
+  userId?: string;
+  userName?: string;
+  userAvatar?: string;
+  rating?: number;
+  content: string;
+  createdAt?: string;
+  updatedAt?: string;
+  isOwner?: boolean;
+};
+
+export type BlogCommentsResponse = {
+  ratingAvg?: number;
+  ratingCount?: number;
+  comments: BlogComment[];
+};
+
+/* ===== API ===== */
+
+// ✅ getBlogs dùng đúng kiểu BlogsResponse
+export const getBlogs = async (
+  page = 1,
+  limit = 9,
+  q?: string
+): Promise<BlogsResponse> => {
+  const res = await axiosInstance.get<BlogsResponse>("/blog", {
+    params: {
+      page,
+      limit,
+      q: q?.trim() || undefined,
+    },
   });
-  return res.data; // Giả định res.data có dạng BlogsResponse
+
+  const raw = res.data;
+
+  return {
+    ...raw,
+    data: raw.data.map((b: any) => ({
+      ...b,
+      // chuẩn hoá cho FE
+      excerpt: b.excerpt ?? b.summary ?? "",
+      cover: b.cover ?? b.coverImageUrl ?? b.thumbnail,
+    })),
+  };
 };
 
-// Lấy chi tiết blog theo id
-export const getBlogById = async (id: string): Promise<Blog> => {
-  const res = await axios.get(`${API_URL}/blog/${id}`);
+export const getComments = async (slug: string): Promise<BlogCommentsResponse> => {
+  const res = await axiosInstance.get<BlogCommentsResponse>(
+    `/blog/${slug}/comments`
+  );
+  return res.data;
+  
+};
+
+const createComment = async (
+  slug: string,
+  body: { rating: number; content: string }
+): Promise<BlogComment> => {
+  const res = await axiosInstance.post<BlogComment>(
+    `/blog/${slug}/comments`,
+    body
+  );
   return res.data;
 };
 
-// Lấy chi tiết blog theo slug
-export const getBlogBySlug = async (slug: string): Promise<Blog> => {
-  const res = await axios.get(`${API_URL}/blog/${slug}`);
+const updateComment = async (
+  slug: string,
+  commentId: string,
+  body: { rating?: number; content?: string }
+): Promise<BlogComment> => {
+  const res = await axiosInstance.patch<BlogComment>(
+    `/blog/${slug}/comments/${commentId}`,
+    body
+  );
   return res.data;
 };
 
-// Tạo blog mới
-export const createBlog = async (formData: FormData) => {
-  const res = await axiosInstance.post("/blogs", formData, {
-    headers: { "Content-Type": "multipart/form-data" }
+const deleteComment = async (slug: string, commentId: string): Promise<void> => {
+  await axiosInstance.delete(`/blog/${slug}/comments/${commentId}`);
+};
+
+const createBlog = async (formData: FormData) => {
+  const res = await axiosInstance.post("/blog", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data;
 };
 
-// Cập nhật blog
-export const updateBlog = async (id: string, formData: FormData) => {
-  const res = await axiosInstance.put(`/blogs/${id}`, formData, {
-    headers: { "Content-Type": "multipart/form-data" }
-  });
-  return res.data;
-};
-
-// Xóa blog
-export const deleteBlog = async (id: string) => {
-  const res = await axiosInstance.delete(`/blogs/${id}`);
-  return res.data;
-};
-
-// Like hoặc bỏ like blog
-export const likeBlog = async (id: string) => {
-  const res = await axiosInstance.patch(`/blogs/${id}/like`);
-  return res.data.data;
-};
-
-// Chia sẻ blog
-export const shareBlog = async (id: string) => {
-  const res = await axiosInstance.post(`/blogs/${id}/share`);
-  return res.data;
-};
-
-// Cập nhật quyền riêng tư blog
-export const updateBlogPrivacy = async (id: string, privacy: "public" | "private") => {
-  const res = await axiosInstance.patch(`/blogs/${id}/privacy`, { privacy });
-  return res.data;
-};
-
-// Cập nhật trạng thái blog (vd: draft/published)
-export const updateBlogStatus = async (id: string, status: string) => {
-  const res = await axiosInstance.patch(`/blogs/${id}/status`, { status });
-  return res.data;
-};
-
-// Lấy danh sách blog theo tác giả
-export const getBlogsByAuthor = async (authorId: string) => {
-  const res = await axiosInstance.get(`/blog/author/${authorId}`);
-  return res.data;
-};
-
-// Export object for backward compatibility
 export const blogApi = {
   getBlogs,
-  getBlogById,
   getBlogBySlug,
+  getComments,
+  createComment,
+  updateComment,
+  deleteComment,
   createBlog,
-  updateBlog,
-  deleteBlog,
-  likeBlog,
-  shareBlog,
-  updateBlogPrivacy,
-  updateBlogStatus,
-  getBlogsByAuthor,
 };
-
