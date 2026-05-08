@@ -98,11 +98,18 @@ export type MyBookingList = {
 function adaptCreateBooking(res: any): CreateBookingResponse {
   return {
     code: String(res?.booking?.code ?? res?.code ?? ""),
-    status: (res?.booking?.bookingStatus ?? res?.status ?? "p") as
-      | "p"
-      | "c"
-      | "x"
-      | "f",
+    status: (() => {
+      const s = res?.booking?.bookingStatus ?? res?.status ?? "pending";
+      if (s === "p") return "pending";
+      if (s === "c") return "confirmed";
+      if (s === "f") return "completed";
+      if (s === "x") return "cancelled";
+      return s;
+    })() as
+      | "pending"
+      | "confirmed"
+      | "completed"
+      | "cancelled",
     payment:
       res?.payUrl || res?.deeplink
         ? { redirectUrl: res?.payUrl ?? res?.deeplink }
@@ -146,7 +153,14 @@ function adaptMyBookings(res: any): MyBookingList {
       paymentMethod: b.paymentMethod,
       paymentRefs: Array.isArray(b.paymentRefs) ? b.paymentRefs : [],
 
-      bookingStatus: (b.bookingStatus ?? "p") as MyBookingItem["bookingStatus"],
+      bookingStatus: (() => {
+        const s = b.bookingStatus ?? "pending";
+        if (s === "p") return "pending";
+        if (s === "c") return "confirmed";
+        if (s === "f") return "completed";
+        if (s === "x") return "cancelled";
+        return s;
+      })() as MyBookingItem["bookingStatus"],
       createdAt: b.createdAt,
       updatedAt: b.updatedAt,
     };
@@ -183,10 +197,12 @@ export async function createBooking(
 
 export async function getMyBookings(
   page = 1,
-  limit = 10
+  limit = 10,
+  status?: string,
+  search?: string
 ): Promise<MyBookingList> {
   const { data } = await axiosInstance.get("/bookings/me", {
-    params: { page, limit },
+    params: { page, limit, status, search },
   });
   return adaptMyBookings(data);
 }
@@ -246,8 +262,14 @@ export async function getBookingByCode(code: string): Promise<MyBookingItem> {
       ? bookingData.paymentRefs
       : [],
 
-    bookingStatus: (bookingData.bookingStatus ??
-      "p") as MyBookingItem["bookingStatus"],
+    bookingStatus: (() => {
+      const s = bookingData.bookingStatus ?? "pending";
+      if (s === "p") return "pending";
+      if (s === "c") return "confirmed";
+      if (s === "f") return "completed";
+      if (s === "x") return "cancelled";
+      return s;
+    })() as MyBookingItem["bookingStatus"],
     createdAt: bookingData.createdAt,
     updatedAt: bookingData.updatedAt,
   };

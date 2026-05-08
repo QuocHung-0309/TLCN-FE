@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { VoucherData } from "@/lib/admin/adminVoucherApi";
 import { format } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { getAllToursAdmin } from "@/lib/admin/adminApi";
 
 interface VoucherFormProps {
   initialData?: Partial<VoucherData>;
@@ -29,8 +31,16 @@ export default function VoucherForm({ initialData, onSubmit, isPending, title }:
     usageLimit: undefined,
     userUsageLimit: 1,
     status: "active",
+    applicableTours: [],
     ...initialData,
   });
+
+  const { data: toursData } = useQuery({
+    queryKey: ["adminToursAll"],
+    queryFn: () => getAllToursAdmin({ limit: 100 }),
+  });
+
+  const allTours = toursData?.data || [];
 
   useEffect(() => {
     if (initialData) {
@@ -39,6 +49,7 @@ export default function VoucherForm({ initialData, onSubmit, isPending, title }:
         ...initialData,
         validFrom: initialData.validFrom ? new Date(initialData.validFrom).toISOString().slice(0, 16) : prev.validFrom,
         validUntil: initialData.validUntil ? new Date(initialData.validUntil).toISOString().slice(0, 16) : prev.validUntil,
+        applicableTours: initialData.applicableTours || [],
       }));
     }
   }, [initialData]);
@@ -57,8 +68,22 @@ export default function VoucherForm({ initialData, onSubmit, isPending, title }:
     }));
   };
 
+  const handleTourToggle = (tour: { _id: string; title: string }) => {
+    setFormData(prev => {
+      const current = prev.applicableTours || [];
+      const exists = current.find(t => t._id === tour._id);
+      if (exists) {
+        return { ...prev, applicableTours: current.filter(t => t._id !== tour._id) };
+      } else {
+        return { ...prev, applicableTours: [...current, { _id: tour._id, title: tour.title }] };
+      }
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Chuyển mảng object applicableTours thành mảng ID để gửi lên BE nếu cần, 
+    // hoặc BE có thể nhận object và lấy _id. voucher.controller.js lấy .toString() nên nhận cả 2 đều ok.
     onSubmit(formData);
   };
 
@@ -282,6 +307,48 @@ export default function VoucherForm({ initialData, onSubmit, isPending, title }:
                 </select>
               </div>
             </div>
+
+            {/* Applicable Tours Selection */}
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Áp dụng cho các Tours cụ thể (Để trống nếu áp dụng cho tất cả)
+              </label>
+              <div className="border border-slate-200 rounded-lg p-4 max-h-60 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-2">
+                {allTours.map((tour: any) => {
+                  const isSelected = formData.applicableTours?.some(t => t._id === tour._id);
+                  return (
+                    <div 
+                      key={tour._id}
+                      onClick={() => handleTourToggle(tour)}
+                      className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition ${
+                        isSelected ? "bg-orange-50 border border-orange-200" : "hover:bg-slate-50 border border-transparent"
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center ${
+                        isSelected ? "bg-orange-600 border-orange-600" : "border-slate-300 bg-white"
+                      }`}>
+                        {isSelected && <i className="ri-check-line text-white text-[10px]"></i>}
+                      </div>
+                      <span className="text-sm text-slate-700 line-clamp-1">{tour.title}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {formData.applicableTours?.map(t => (
+                  <span key={t._id} className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
+                    {t.title}
+                    <i 
+                      className="ri-close-line cursor-pointer" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTourToggle(t);
+                      }}
+                    ></i>
+                  </span>
+                ))}
+              </div>
+            </div>
           </section>
 
         </div>
@@ -307,3 +374,4 @@ export default function VoucherForm({ initialData, onSubmit, isPending, title }:
     </div>
   );
 }
+

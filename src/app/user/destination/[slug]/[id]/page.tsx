@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useChatStore } from "#/stores/chatStore";
@@ -19,6 +19,8 @@ import CardHot from "@/components/cards/CardHot";
 import CompareTourDialog from "@/components/ui/CompareTourDialog";
 import TourRecommendations from "@/components/TourRecommendations";
 import { toast } from "react-hot-toast";
+import { getRelatedBlogsForTour, type BlogSummary } from "@/lib/blog/blogApi";
+import FavoriteButton from "@/components/ui/FavoriteButton";
 
 const toNum = (v?: number | string) => {
   if (typeof v === "number") return v;
@@ -414,6 +416,15 @@ export default function TourDetailPage() {
   const [reviewComment, setReviewComment] = React.useState("");
   const [submittingReview, setSubmittingReview] = React.useState(false);
 
+  // Related Blogs
+  const [relatedBlogs, setRelatedBlogs] = useState<BlogSummary[]>([]);
+  useEffect(() => {
+    if (!id) return;
+    getRelatedBlogsForTour(id)
+      .then(res => setRelatedBlogs(res.data || []))
+      .catch(() => setRelatedBlogs([]));
+  }, [id]);
+
   // So sánh Tour
   const [isCompareOpen, setIsCompareOpen] = React.useState(false);
 
@@ -705,10 +716,15 @@ export default function TourDetailPage() {
                 )}
               </div>
 
-              {/* title */}
-              <h1 className="mt-3 text-3xl font-extrabold leading-tight sm:text-4xl lg:text-5xl">
-                {tour.title}
-              </h1>
+              {/* title & favorite */}
+              <div className="mt-3 flex items-start gap-4">
+                <h1 className="flex-1 text-3xl font-extrabold leading-tight sm:text-4xl lg:text-5xl">
+                  {tour.title}
+                </h1>
+                <div className="pt-2">
+                  <FavoriteButton tourId={tour._id} className="scale-110 md:scale-125" />
+                </div>
+              </div>
 
               {/* rating + meta */}
               <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-blue-100">
@@ -995,6 +1011,61 @@ export default function TourDetailPage() {
                 </p>
                 <DaysAccordion items={itineraryItems} />
               </div>
+
+              {/* Related Blog Articles */}
+              {relatedBlogs.length > 0 && (
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-slate-900">Tìm hiểu thêm về điểm đến</h3>
+                      <p className="text-sm text-slate-500">Những bài viết hữu ích giúp bạn khám phá trước chuyến đi</p>
+                    </div>
+                  </div>
+
+                  <div className={`grid gap-4 ${relatedBlogs.length === 1 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
+                    {relatedBlogs.map((blog) => (
+                      <Link
+                        key={blog._id || blog.slug}
+                        href={`/user/blog/${blog.slug}`}
+                        className="group flex gap-4 rounded-2xl border border-slate-100 bg-slate-50/50 p-3 transition-all hover:border-orange-200 hover:bg-orange-50/30 hover:shadow-md"
+                      >
+                        {(blog.coverImageUrl || blog.cover || blog.thumbnail) && (
+                          <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-xl">
+                            <Image
+                              src={blog.coverImageUrl || blog.cover || blog.thumbnail || ''}
+                              alt={blog.title}
+                              fill
+                              className="object-cover transition-transform duration-300 group-hover:scale-105"
+                              unoptimized
+                            />
+                          </div>
+                        )}
+                        <div className="flex flex-1 flex-col justify-center min-w-0">
+                          <h4 className="font-bold text-slate-800 line-clamp-2 text-sm leading-snug group-hover:text-orange-600 transition-colors">
+                            {blog.title}
+                          </h4>
+                          {(blog.excerpt || (blog as any).summary) && (
+                            <p className="mt-1 text-xs text-slate-500 line-clamp-2">
+                              {blog.excerpt || (blog as any).summary}
+                            </p>
+                          )}
+                          <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-orange-500 group-hover:text-orange-600">
+                            Xem thêm
+                            <svg className="h-3 w-3 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5-5 5M6 12h12" />
+                            </svg>
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Reviews list */}
               <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">

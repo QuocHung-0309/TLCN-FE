@@ -18,6 +18,8 @@ import {
   LogOut,
   Star,
   Wallet,
+  Ticket,
+  Award,
 } from "lucide-react"; // Dùng icon của lucide-react
 
 // Kiểu dữ liệu
@@ -43,6 +45,8 @@ function UserSidebar({ user }: { user: UserProfile | null }) {
   // Các link trong sidebar
   const navItems = [
     { name: "Đặt chỗ của tôi", href: "/user/history", icon: List },
+    { name: "Mã giảm giá", href: "/user/vouchers", icon: Ticket },
+    { name: "Điểm tích lũy", href: "/user/score", icon: Award },
     { name: "Thông tin hành khách", href: "/user/passengers", icon: Users },
     { name: "Cài đặt thông báo", href: "/user/notifications", icon: Bell },
     { name: "Tài khoản", href: "/user/profile", icon: Settings },
@@ -147,14 +151,21 @@ export default function UserDashboardLayout({
   }, [mounted, accessToken, router]);
 
   if (!mounted || loading) {
-    return <div>Đang tải dashboard...</div>; // Màn hình loading
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
+          <p className="text-slate-500 font-medium animate-pulse">Đang tải dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <UserSidebar user={user} />
       <main className="flex-1 p-8 overflow-y-auto">
-        {children} {}
+        {children}
       </main>
     </div>
   );

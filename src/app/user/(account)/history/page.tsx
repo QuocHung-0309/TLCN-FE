@@ -8,18 +8,18 @@ import {
   type MyBookingItem,
   cancelBooking,
 } from "@/lib/checkout/checkoutApi";
+import { createReview } from "@/lib/reviews/reviewApi";
+import toast from "react-hot-toast";
 import {
   Calendar,
   MapPin,
   Users,
   CreditCard,
-  ChevronRight,
-  Filter,
-  Info,
   XCircle,
   Clock,
   CheckCircle2,
   AlertCircle,
+  Star,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -126,9 +126,11 @@ const containerVariants: Variants = {
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
+
+import ReviewModal from "@/components/ReviewModal";
+
 
 export default function HistoryPage() {
   const [bookings, setBookings] = useState<MyBookingItem[]>([]);
@@ -140,31 +142,46 @@ export default function HistoryPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>(
     "all"
   );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const [cancelingCode, setCancelingCode] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<MyBookingItem | null>(null);
+  const [reviewTarget, setReviewTarget] = useState<{ id: string; title: string } | null>(null);
 
   const accessToken =
     useAuthStore((s) => s.token.accessToken) || getUserToken();
   const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
-    if (!accessToken) {
-      window.location.href = "/auth/login";
-      return;
+    setPage(1);
+  }, [statusFilter, debouncedSearch]);
+
+  useEffect(() => {
+    if (accessToken) {
+      fetchBookings();
     }
-    fetchBookings();
-  }, [accessToken, page]);
+  }, [accessToken, page, statusFilter, debouncedSearch]);
 
   const fetchBookings = async () => {
     try {
       setLoading(true);
       setError("");
-
-      const response = await getMyBookings(page, 10);
-      if (response?.data) {
+      console.log("Fetching bookings with token:", accessToken?.slice(0, 10) + "...");
+      const response = await getMyBookings(page, 10, statusFilter, debouncedSearch);
+      console.log("Bookings response:", response);
+      if (response && Array.isArray(response.data)) {
         setBookings(response.data);
         setTotalPages(Math.ceil(response.total / response.limit) || 1);
+      } else {
+        console.warn("Unexpected bookings response format:", response);
       }
     } catch (err: any) {
       console.error("Error fetching bookings:", err);
@@ -201,16 +218,16 @@ export default function HistoryPage() {
   };
 
   const filteredBookings = useMemo(() => {
-    const list =
-      statusFilter === "all"
-        ? bookings
-        : bookings.filter((b) => b.bookingStatus === statusFilter);
-    return [...list].sort((a, b) => {
-      const da = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const db = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return db - da;
+    return [...bookings].sort((a, b) => {
+      try {
+        const da = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const db = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return (isNaN(db) ? 0 : db) - (isNaN(da) ? 0 : da);
+      } catch (e) {
+        return 0;
+      }
     });
-  }, [bookings, statusFilter]);
+  }, [bookings]);
 
   const stats = useMemo(() => {
     const total = bookings.length;
@@ -226,48 +243,26 @@ export default function HistoryPage() {
     return { total, upcoming, totalPaid };
   }, [bookings]);
 
-  if (loading) {
+  if (loading && bookings.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-50 py-10 px-4">
-        <div className="max-w-5xl mx-auto space-y-6">
-          <div className="h-20 bg-slate-200 rounded-xl animate-pulse" />
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="h-40 bg-white rounded-2xl animate-pulse"
-              />
-            ))}
-          </div>
+      <div className="flex h-96 items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-orange-500"></div>
+          <p className="text-slate-400 font-medium">Đang tải lịch sử...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-600">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-600 animate-in fade-in duration-500">
       {/* HEADER SECTION */}
-      <div className="bg-blue-950 pt-10 pb-20 px-4">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-white">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Image
-                src={user?.avatar || "/default-avatar.png"}
-                alt="Avatar"
-                width={64}
-                height={64}
-                className="rounded-full object-cover border-2 border-orange-500 shadow-lg"
-              />
-              <div className="absolute -bottom-1 -right-1 bg-emerald-500 w-4 h-4 rounded-full border-2 border-blue-950" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">
-                Chào, {user?.fullName || "Bạn"}!
-              </h1>
-              <p className="text-blue-200 text-sm">Thành viên AHH Travel</p>
-            </div>
+      <div className="bg-blue-950 pt-10 pb-20 px-6 rounded-3xl mx-4 mt-4 shadow-2xl">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-white">
+          <div>
+            <h1 className="text-2xl font-bold">Lịch sử đặt chỗ</h1>
+            <p className="text-blue-200 text-sm">Quản lý và theo dõi các chuyến đi của bạn</p>
           </div>
-
           {/* Stats Cards Small */}
           <div className="flex gap-4">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 px-5 border border-white/10 text-center">
@@ -289,22 +284,40 @@ export default function HistoryPage() {
       </div>
 
       {/* CONTENT SECTION (Negative Margin to pull up) */}
-      <div className="max-w-6xl mx-auto px-4 -mt-10 pb-20">
-        {/* Filter Tabs */}
-        <div className="bg-white p-2 rounded-2xl shadow-lg border border-slate-100 flex flex-wrap gap-2 mb-8 overflow-x-auto no-scrollbar">
-          {statusFilters.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setStatusFilter(f.key)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
-                statusFilter === f.key
-                  ? "bg-blue-950 text-white shadow-md"
-                  : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+      <div className="max-w-5xl mx-auto px-4 -mt-10 pb-20">
+        {/* Filter & Search Bar */}
+        <div className="bg-white p-4 rounded-2xl shadow-xl border border-slate-100 flex flex-col md:flex-row gap-4 mb-8">
+          {/* Tabs */}
+          <div className="flex flex-wrap gap-2 overflow-x-auto no-scrollbar flex-1">
+            {statusFilters.map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setStatusFilter(f.key)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
+                  statusFilter === f.key
+                    ? "bg-blue-950 text-white shadow-md"
+                    : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Search Input */}
+          <div className="relative w-full md:w-64">
+            <Filter
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              size={16}
+            />
+            <input
+              type="text"
+              placeholder="Tìm mã hoặc tên tour..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-sm focus:bg-white focus:border-blue-400 outline-none transition-all"
+            />
+          </div>
         </div>
 
         {/* Notifications */}
@@ -326,8 +339,16 @@ export default function HistoryPage() {
           )}
         </AnimatePresence>
 
-        {/* Booking List */}
-        {filteredBookings.length === 0 ? (
+        {/* Loading Indicator for updates */}
+        {loading && bookings.length > 0 && (
+          <div className="mb-4 flex items-center gap-2 text-orange-500 animate-pulse">
+            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs font-bold">Đang cập nhật dữ liệu mới...</span>
+          </div>
+        )}
+
+        <div className="min-h-[200px]">
+          {filteredBookings.length === 0 && !loading ? (
           <div className="bg-white rounded-3xl p-10 text-center shadow-sm border border-slate-100">
             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
               <Calendar size={32} />
@@ -346,21 +367,15 @@ export default function HistoryPage() {
             </Link>
           </div>
         ) : (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="space-y-6"
-          >
+          <div className="space-y-6">
             {filteredBookings.map((booking) => {
-              const statusMeta = statusMap[booking.bookingStatus];
+              const statusMeta = statusMap[booking.bookingStatus] || statusMap.pending;
               const StatusIcon = statusMeta.icon;
               const isCanceling = cancelingCode === booking.code;
 
               return (
-                <motion.div
+                <div
                   key={booking.code}
-                  variants={itemVariants}
                   className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all overflow-hidden group"
                 >
                   <div className="flex flex-col md:flex-row">
@@ -374,9 +389,9 @@ export default function HistoryPage() {
                       />
                       <div className="absolute top-3 left-3">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border shadow-sm ${statusMeta.bg} ${statusMeta.color}`}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border shadow-sm ${statusMeta?.bg || "bg-slate-100"} ${statusMeta?.color || "text-slate-600"}`}
                         >
-                          <StatusIcon size={12} /> {statusMeta.label}
+                          <StatusIcon size={12} /> {statusMeta?.label || booking.bookingStatus}
                         </span>
                       </div>
                     </div>
@@ -453,15 +468,24 @@ export default function HistoryPage() {
                           >
                             Chi tiết
                           </Link>
+                          {booking.bookingStatus === "completed" && (
+                            <button
+                              onClick={() => setReviewTarget({ id: booking.tourId, title: booking.tourTitle })}
+                              className="px-5 py-2 rounded-lg bg-orange-600 text-white text-sm font-bold hover:bg-orange-700 transition-colors"
+                            >
+                              Đánh giá
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
-          </motion.div>
+          </div>
         )}
+      </div>
 
         {/* Pagination */}
         {totalPages > 1 && (
@@ -541,6 +565,17 @@ export default function HistoryPage() {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* REVIEW MODAL */}
+      <AnimatePresence>
+        {reviewTarget && (
+          <ReviewModal
+            tour={reviewTarget}
+            onClose={() => setReviewTarget(null)}
+            onSuccess={() => setReviewTarget(null)}
+          />
         )}
       </AnimatePresence>
     </div>

@@ -55,3 +55,10 @@ export async function getMyReviews(): Promise<{ total: number; data: Review[] }>
     data: Array.isArray(data?.data) ? data.data : [],
   };
 }
+
+// Xóa review của chính mình
+export async function deleteReview(id: string): Promise<{ message: string }> {
+  const { data } = await axiosInstance.delete(`/reviews/${id}`);
+  return data;
+}
+

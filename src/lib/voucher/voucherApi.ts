@@ -55,7 +55,8 @@ export const voucherApi = {
   // Kiểm tra voucher có hợp lệ không
   validateVoucher: async (
     code: string,
-    orderValue: number
+    totalPrice: number,
+    tourId?: string
   ): Promise<{
     valid: boolean;
     voucher?: Voucher;
@@ -66,7 +67,7 @@ export const voucherApi = {
 
     const res = await axios.post(
       `${API_URL}/vouchers/validate`,
-      { code, orderValue },
+      { code, totalPrice, tourId },
       {
         headers: {
           "Content-Type": "application/json",
@@ -75,7 +76,11 @@ export const voucherApi = {
       }
     );
 
-    return res.data;
+    // BE trả về { discountAmount, voucher, message } trực tiếp
+    return {
+      valid: true,
+      ...res.data
+    };
   },
 
   // Lưu voucher check-in vào localStorage (để hiển thị ở Kho Voucher trước khi sync với server)

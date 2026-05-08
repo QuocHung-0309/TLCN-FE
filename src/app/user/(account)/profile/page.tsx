@@ -19,13 +19,15 @@ import {
   Edit,
   Trash2,
   Globe,
-  Clock,
-  Ban,
   MessageSquare,
-  AlertCircle
+  AlertCircle,
+  Star,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { blogApi, BlogSummary } from "@/lib/blog/blogApi";
+import { getMyReviews, deleteReview } from "@/lib/reviews/reviewApi";
+import FavoritesTab from "@/components/profile/FavoritesTab";
+import { Heart } from "lucide-react";
 
 // URL BE
 const API_BASE = (
@@ -678,12 +680,128 @@ function MyPostsTab() {
   );
 }
 
+import ReviewModal from "@/components/ReviewModal";
+
+// --- 4. Reviews Tab ---
+function ReviewsTab() {
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingReview, setEditingReview] = useState<any | null>(null);
+
+  const fetchReviews = async () => {
+    try {
+      setLoading(true);
+      const res = await getMyReviews();
+      setReviews(res.data || []);
+    } catch (error) {
+      console.error("Lỗi tải đánh giá:", error);
+      toast.error("Không tải được danh sách đánh giá");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+
+  const handleDeleteReview = async (id: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa đánh giá này?")) return;
+    try {
+      await deleteReview(id);
+      toast.success("Đã xóa đánh giá");
+      fetchReviews();
+    } catch (err) {
+      toast.error("Lỗi khi xóa đánh giá");
+    }
+  };
+
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
+          <h2 className="text-lg font-bold text-slate-800">Đánh giá của tôi</h2>
+          <p className="text-sm text-slate-500">Xem và quản lý các đánh giá tour của bạn.</p>
+        </div>
+
+        <div className="p-6">
+          {loading ? (
+            <div className="text-center py-10 text-slate-500">
+              <div className="animate-spin h-8 w-8 border-2 border-orange-500 border-t-transparent flex rounded-full mx-auto mb-3"></div>
+              Đang tải đánh giá...
+            </div>
+          ) : reviews.length === 0 ? (
+            <div className="text-center py-10">
+              <Star className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 font-medium">Bạn chưa có đánh giá nào.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {reviews.map((review) => (
+                <div key={review._id} className="p-4 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-bold text-slate-800">{review.tourId?.title || "Tour đã xóa"}</h3>
+                      <div className="flex items-center gap-1 my-1">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star
+                            key={s}
+                            size={14}
+                            className={s <= review.rating ? "fill-orange-400 text-orange-400" : "text-slate-200"}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-sm text-slate-600 mt-2 italic">"{review.comment}"</p>
+                      <p className="text-[10px] text-slate-400 mt-2">
+                        Ngày đánh giá: {new Date(review.createdAt).toLocaleDateString("vi-VN")}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => setEditingReview(review)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Sửa đánh giá"
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteReview(review._id)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Xóa đánh giá"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {editingReview && (
+        <ReviewModal
+          tour={{ id: editingReview.tourId?._id, title: editingReview.tourId?.title }}
+          initialData={{ rating: editingReview.rating, comment: editingReview.comment }}
+          onClose={() => setEditingReview(null)}
+          onSuccess={() => {
+            setEditingReview(null);
+            fetchReviews();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+
 // --- MAIN PAGE ---
 function ProfileContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState<"info" | "password" | "posts">(
-    tabParam === "posts" ? "posts" : tabParam === "password" ? "password" : "info"
+  const [activeTab, setActiveTab] = useState<"info" | "password" | "posts" | "reviews">(
+    tabParam === "reviews" ? "reviews" : tabParam === "posts" ? "posts" : tabParam === "password" ? "password" : "info"
   );
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -856,12 +974,26 @@ function ProfileContent() {
             icon={Lock}
             label="Mật khẩu & Bảo mật"
           />
+          <TabButton
+            active={activeTab === "reviews"}
+            onClick={() => setActiveTab("reviews")}
+            icon={Star}
+            label="Đánh giá của tôi"
+          />
+          <TabButton
+            active={activeTab === "favorites"}
+            onClick={() => setActiveTab("favorites")}
+            icon={Heart}
+            label="Tour yêu thích"
+          />
         </div>
 
         {/* --- Tab Content --- */}
         <div className="min-h-[400px]">
           {activeTab === "info" && <InfoTab user={user} token={accessToken} onSuccess={() => fetchUser(false)} />}
           {activeTab === "posts" && <MyPostsTab />}
+          {activeTab === "reviews" && <ReviewsTab />}
+          {activeTab === "favorites" && <FavoritesTab />}
           {activeTab === "password" && <PasswordTab user={user} />}
         </div>
       </div>

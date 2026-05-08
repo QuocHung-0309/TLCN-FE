@@ -236,14 +236,7 @@ function CheckoutContent() {
     setVoucherError(null);
 
     try {
-      const res = await voucherApi.validateVoucher(code.trim(), listed || 0);
-
-      if (!res.valid) {
-        setVoucher(null);
-        setDiscountAmount(0);
-        setVoucherError(res.message || "Voucher không hợp lệ.");
-        return;
-      }
+      const res = await voucherApi.validateVoucher(code.trim(), listed || 0, tour?._id);
 
       setVoucher(res.voucher || null);
       setDiscountAmount(res.discountAmount || 0);
@@ -252,7 +245,7 @@ function CheckoutContent() {
     } catch (err: any) {
       console.error(err);
       setVoucherError(
-        err?.response?.data?.message || "Không thể kiểm tra voucher."
+        err?.response?.data?.message || err?.message || "Không thể kiểm tra voucher."
       );
     } finally {
       setLoadingVoucher(false);

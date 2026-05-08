@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { Clock3, Plane, CalendarDays, Users2 } from "lucide-react";
+import FavoriteButton from "../ui/FavoriteButton";
 
 export type CardHotProps = {
   image: string;
@@ -34,6 +35,7 @@ export type CardHotProps = {
     priceAdult: number;
   }>;
   onClick?: () => void;
+  id?: string;
 };
 
 /* ============== helpers ============== */
@@ -144,6 +146,13 @@ export default function CardHot(props: CardHotProps) {
             {badgeText}
           </div>
         ) : null}
+
+        {/* Nút yêu thích */}
+        {props.id && (
+          <div className="absolute right-3 top-3 z-20">
+            <FavoriteButton tourId={props.id} />
+          </div>
+        )}
       </div>
 
       {/* body */}

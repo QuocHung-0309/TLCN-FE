@@ -259,6 +259,12 @@ const togglePrivacy = async (id: string, privacy: "public" | "private"): Promise
   return res.data;
 };
 
+// Lấy blog liên quan đến tour (tự động tìm theo keyword)
+export const getRelatedBlogsForTour = async (tourId: string): Promise<{ data: BlogSummary[] }> => {
+  const res = await axiosInstance.get<{ data: BlogSummary[] }>(`/blog/related-to-tour/${tourId}`);
+  return res.data;
+};
+
 export const blogApi = {
   getBlogs,
   getBlogBySlug,
@@ -273,4 +279,5 @@ export const blogApi = {
   getOwnPostById,
   previewOwnPost,
   togglePrivacy,
+  getRelatedBlogsForTour,
 };
