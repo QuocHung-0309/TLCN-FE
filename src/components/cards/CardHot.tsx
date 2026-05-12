@@ -166,7 +166,7 @@ export default function CardHot(props: CardHotProps) {
         )}
 
         {/* tour info */}
-        {(durationText || destinationTxt || scheduleText || seatsText) && (
+        {(durationText || destinationTxt || scheduleText || seatsText || (props.upcomingDepartures && props.upcomingDepartures.length > 0)) && (
           <ul className="mt-1.5 space-y-1.5 text-[13px] sm:text-[14px] leading-snug text-slate-700">
             {durationText && (
               <li className="flex items-start gap-2">
