@@ -102,7 +102,7 @@ const TopPlacesBarChart: React.FC<TopPlaceChartProps> = ({ data }) => {
         grid: { display: false },
         ticks: {
           color: "#334155",
-          font: { size: 12, weight: "500" },
+          font: { size: 12, weight: 500 },
         },
       },
     },

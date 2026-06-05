@@ -274,7 +274,7 @@ function CheckoutContent() {
     const newErrors: typeof errors = {};
     let hasError = false;
     (Object.keys(formData) as Array<keyof typeof formData>).forEach((k) => {
-      if (k === "address") return;
+      if (k === "address" || k === "note") return;
       const msg = validateField(k, formData[k]);
       if (msg) {
         newErrors[k] = msg;
@@ -366,6 +366,8 @@ function CheckoutContent() {
 
   /* ---------- Loading / Error ---------- */
   // ... các đoạn logic phía trên giữ nguyên
+
+  if (isLoading) return <CheckoutLoading />;
 
   if (isError || !tour)
     return (

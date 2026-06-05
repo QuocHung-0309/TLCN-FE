@@ -781,7 +781,7 @@ export default function UserChatPage() {
 
                         // Trong tour chat: xác định tin nhắn của mình dựa trên fromId
                         const isMyMessage = isTourChat
-                          ? msg.fromId === user?.id || msg.fromId === user?._id
+                          ? msg.fromId === user?.id
                           : !isStaff;
 
                         // System message

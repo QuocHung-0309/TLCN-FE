@@ -310,3 +310,15 @@ export async function initBookingPayment(
   );
   return data;
 }
+
+export async function initSepayPayment(
+  bookingCode: string,
+  amount: number
+): Promise<{ payUrl?: string; deeplink?: string; qrUrl?: string }> {
+  const { data } = await axiosInstance.post(
+    "/payment/sepay/create",
+    { code: bookingCode, amount },
+    { headers: { "Content-Type": "application/json" } }
+  );
+  return data;
+}

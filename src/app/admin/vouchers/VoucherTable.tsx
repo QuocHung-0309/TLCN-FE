@@ -5,7 +5,7 @@ import { VoucherData, deleteVoucher, updateVoucher } from "@/lib/admin/adminVouc
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/Toast";
 import { format } from "date-fns";
-import vi from "date-fns/locale/vi";
+import { vi } from "date-fns/locale/vi";
 import Link from "next/link";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 

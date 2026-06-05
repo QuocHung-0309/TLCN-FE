@@ -51,11 +51,7 @@ function BookingSuccessPageContent() {
         setBookingStatus(booking.bookingStatus);
         setPaidAmount(booking.paidAmount || 0);
         setTotalPrice(booking.totalPrice || 0);
-        // Extract tourId from booking for recommendations
-        const tid = booking.tourDepartureId?.tourId?._id
-          || booking.tourDepartureId?.tourId
-          || booking.tourId;
-        if (tid) setTourId(String(tid));
+        if (booking.tourId) setTourId(booking.tourId);
       } catch (err) {
         console.error("Load booking error:", err);
       } finally {
@@ -69,8 +65,8 @@ function BookingSuccessPageContent() {
   // Determine display based on payment method and status
   const isOfficePayment = paymentMethod === "office-payment";
   const isOnlinePayment = paymentMethod === "vnpay-payment";
-  const isPaid = paidAmount > 0 || bookingStatus === "c"; // c = confirmed
-  const isPending = bookingStatus === "p"; // p = pending
+  const isPaid = paidAmount > 0 || bookingStatus === "confirmed" || bookingStatus === "completed";
+  const isPending = bookingStatus === "pending";
 
   // For office payment: always show success (they will pay later)
   // For online payment: only show success if actually paid

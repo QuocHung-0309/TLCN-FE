@@ -419,7 +419,7 @@ function ToursPageContent() {
             <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
               {filteredTours.map((tour: any, index) => {
                 const id = String(tour._id ?? tour.id ?? "");
-                const slug = tour.destinationSlug ?? slugify(tour.title);
+                const slug = tour.destinationSlug ?? tour.title?.toLowerCase().replace(/\s+/g, "-") ?? "";
                 return (
                   <motion.div
                     key={id}

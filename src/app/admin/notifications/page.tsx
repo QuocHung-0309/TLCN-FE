@@ -324,7 +324,7 @@ export default function AdminNotificationsPage() {
           <div className="flex flex-col items-center justify-center py-20 text-slate-400">
             <Bell className="h-16 w-16 mb-4 opacity-30" />
             <p className="text-lg font-medium">Chưa có thông báo</p>
-            <p className="text-sm mt-1">Bấm "Tạo thông báo" để thêm mới</p>
+            <p className="text-sm mt-1">Bấm &ldquo;Tạo thông báo&rdquo; để thêm mới</p>
           </div>
         ) : (
           <>

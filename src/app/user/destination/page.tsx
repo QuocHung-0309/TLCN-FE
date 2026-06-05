@@ -112,6 +112,7 @@ type SearchQuery = {
   q?: string;
   destination?: string;
   from?: string;
+  time?: string;
   budgetMin?: number;
   budgetMax?: number;
 };

@@ -270,11 +270,11 @@ export default function AdminTourDetail() {
                         <td className="px-4 py-4 text-slate-700">{bk.phoneNumber}</td>
                         <td className="px-4 py-4">
                           <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase ${
-                            bk.bookingStatus === 'c' ? 'bg-green-100 text-green-700' :
-                            bk.bookingStatus === 'x' ? 'bg-red-100 text-red-700' :
+                            bk.bookingStatus === 'confirmed' || bk.bookingStatus === 'completed' ? 'bg-green-100 text-green-700' :
+                            bk.bookingStatus === 'cancelled' ? 'bg-red-100 text-red-700' :
                             'bg-yellow-100 text-yellow-700'
                           }`}>
-                            {bk.bookingStatus === 'c' ? 'Đã xác nhận' : bk.bookingStatus === 'x' ? 'Đã hủy' : 'Chờ xử lý'}
+                            {bk.bookingStatus === 'confirmed' || bk.bookingStatus === 'completed' ? 'Đã xác nhận' : bk.bookingStatus === 'cancelled' ? 'Đã hủy' : 'Chờ xử lý'}
                           </span>
                         </td>
                       </tr>

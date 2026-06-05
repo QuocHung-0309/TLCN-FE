@@ -25,7 +25,7 @@ export const useUpdateBookingStatus = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: "c" | "x" }) =>
+    mutationFn: ({ id, status }: { id: string; status: "confirmed" | "completed" | "cancelled" }) =>
       updateBookingStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "bookings"] });

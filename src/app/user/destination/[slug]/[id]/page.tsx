@@ -722,7 +722,7 @@ export default function TourDetailPage() {
                   {tour.title}
                 </h1>
                 <div className="pt-2">
-                  <FavoriteButton tourId={tour._id} className="scale-110 md:scale-125" />
+                  <FavoriteButton tourId={String(tour._id)} className="scale-110 md:scale-125" />
                 </div>
               </div>
 

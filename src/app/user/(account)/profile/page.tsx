@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useAuthStore } from "#/stores/auth";
 import { authApi } from "@/lib/auth/authApi";
 import {
@@ -22,6 +23,8 @@ import {
   MessageSquare,
   AlertCircle,
   Star,
+  Clock,
+  Ban,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { blogApi, BlogSummary } from "@/lib/blog/blogApi";
@@ -567,9 +570,9 @@ function MyPostsTab() {
               Quản lý các bài viết bạn đã đăng hoặc đang lưu trữ.
             </p>
           </div>
-          <a href="/user/post-blog" className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 transition flex items-center gap-2 flex-shrink-0">
+          <Link href="/user/post-blog" className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 transition flex items-center gap-2 flex-shrink-0">
             <Plus size={16} /> Viết bài mới
-          </a>
+          </Link>
         </div>
 
         {/* Filters */}
@@ -751,7 +754,7 @@ function ReviewsTab() {
                           />
                         ))}
                       </div>
-                      <p className="text-sm text-slate-600 mt-2 italic">"{review.comment}"</p>
+                      <p className="text-sm text-slate-600 mt-2 italic">&ldquo;{review.comment}&rdquo;</p>
                       <p className="text-[10px] text-slate-400 mt-2">
                         Ngày đánh giá: {new Date(review.createdAt).toLocaleDateString("vi-VN")}
                       </p>
@@ -800,7 +803,7 @@ function ReviewsTab() {
 function ProfileContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState<"info" | "password" | "posts" | "reviews">(
+  const [activeTab, setActiveTab] = useState<"info" | "password" | "posts" | "reviews" | "favorites">(
     tabParam === "reviews" ? "reviews" : tabParam === "posts" ? "posts" : tabParam === "password" ? "password" : "info"
   );
   const [user, setUser] = useState<UserProfile | null>(null);

@@ -20,6 +20,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Star,
+  Filter,
+  ChevronRight,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -100,7 +102,7 @@ function getPaymentText(b: MyBookingItem) {
       ? Math.min(100, Math.round((paidAmount / totalPrice) * 100))
       : 0;
 
-  if (b.bookingStatus === "x")
+  if (b.bookingStatus === "cancelled")
     return `Đã hủy · Đã thanh toán: ${formatPrice(paidAmount)}`;
   if (percent >= 100) return `Đã thanh toán đủ (${formatPrice(paidAmount)})`;
   if (depositPaid && depositAmount > 0)
@@ -470,7 +472,7 @@ export default function HistoryPage() {
                           </Link>
                           {booking.bookingStatus === "completed" && (
                             <button
-                              onClick={() => setReviewTarget({ id: booking.tourId, title: booking.tourTitle })}
+                              onClick={() => setReviewTarget({ id: booking.tourId, title: booking.tourTitle ?? "" })}
                               className="px-5 py-2 rounded-lg bg-orange-600 text-white text-sm font-bold hover:bg-orange-700 transition-colors"
                             >
                               Đánh giá

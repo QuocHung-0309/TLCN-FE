@@ -638,7 +638,7 @@ export default function TourForm({ tourId, mode }: TourFormProps) {
                   />
                 </svg>
                 <p className="text-slate-500">
-                  Chưa có lịch trình. Nhấn "Thêm ngày" để bắt đầu.
+                  Chưa có lịch trình. Nhấn &ldquo;Thêm ngày&rdquo; để bắt đầu.
                 </p>
               </div>
             ) : (
