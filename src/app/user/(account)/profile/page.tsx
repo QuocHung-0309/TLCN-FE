@@ -804,7 +804,7 @@ function ProfileContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState<"info" | "password" | "posts" | "reviews" | "favorites">(
-    tabParam === "reviews" ? "reviews" : tabParam === "posts" ? "posts" : tabParam === "password" ? "password" : "info"
+    tabParam as "info" | "password" | "posts" | "reviews" | "favorites" || "info"
   );
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);

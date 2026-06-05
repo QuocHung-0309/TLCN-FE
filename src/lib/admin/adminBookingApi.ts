@@ -55,6 +55,7 @@ export interface GetAdminBookingsParams {
   limit?: number;
   status?: string;
   tourId?: string;
+  departureId?: string;
   search?: string;
   startDate?: string;
   endDate?: string;
@@ -82,6 +83,7 @@ export const getAdminBookings = async (
       limit = 20, 
       status, 
       tourId, 
+      departureId,
       search,
       startDate,
       endDate,
@@ -97,6 +99,7 @@ export const getAdminBookings = async (
     queryParams.append("limit", limit.toString());
     if (status) queryParams.append("status", status);
     if (tourId) queryParams.append("tourId", tourId);
+    if (departureId) queryParams.append("departureId", departureId);
     if (search) queryParams.append("search", search);
     if (startDate) queryParams.append("startDate", startDate);
     if (endDate) queryParams.append("endDate", endDate);
