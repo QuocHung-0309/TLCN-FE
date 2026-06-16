@@ -49,7 +49,8 @@ const getProvinceImage = (province: string) => {
   const normalized = province
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[đĐ]/g, "d");
   return (
     PROVINCE_IMAGES[normalized] ||
     `https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800`
@@ -62,9 +63,8 @@ const ACHIEVEMENTS = [
   { id: "explorer_5", name: "Lữ khách mới", req: 5, icon: Compass, color: "from-blue-400 to-cyan-500", rarity: "Thường" },
   { id: "explorer_10", name: "Phượt thủ tập sự", req: 10, icon: Mountain, color: "from-purple-400 to-violet-500", rarity: "Không phổ biến" },
   { id: "explorer_20", name: "Thám hiểm gia", req: 20, icon: TreePine, color: "from-teal-400 to-emerald-500", rarity: "Không phổ biến" },
-  { id: "explorer_35", name: "Chinh phục nửa Việt Nam", req: 35, icon: Sparkles, color: "from-amber-400 to-orange-500", rarity: "Hiếm" },
-  { id: "explorer_50", name: "Thổ địa", req: 50, icon: Award, color: "from-rose-400 to-pink-500", rarity: "Sử thi" },
-  { id: "explorer_63", name: "Huyền thoại Việt Nam", req: 63, icon: Sparkles, color: "from-yellow-400 to-amber-500", rarity: "Huyền thoại" },
+  { id: "explorer_28", name: "Chinh phục gần trọn Việt Nam", req: 28, icon: Sparkles, color: "from-amber-400 to-orange-500", rarity: "Hiếm" },
+  { id: "explorer_34", name: "Huyền thoại Việt Nam", req: 34, icon: Award, color: "from-yellow-400 to-amber-500", rarity: "Huyền thoại" },
 ];
 
 type TimelineEvent = {
@@ -291,7 +291,7 @@ export default function NewsFeed() {
                   />
                   {event.source === "tour" && (
                     <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md text-emerald-600 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1.5 border border-emerald-100">
-                      <Sparkles size={14} /> +1 Voucher
+                      <Sparkles size={14} /> Xác thực qua tour
                     </div>
                   )}
                 </div>

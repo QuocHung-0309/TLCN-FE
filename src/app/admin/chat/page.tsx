@@ -4,31 +4,24 @@ import { useState, useEffect, useRef } from "react";
 import {
   MessageCircle,
   Package,
-  MapPin,
   Send,
   Search,
   User,
-  MoreVertical,
   Loader2,
   CheckCircle2,
-  Phone,
   Mail,
   Shield,
   Crown,
-  Users,
   Clock,
   XCircle,
 } from "lucide-react";
 import {
   getAllSupportChats,
   getAllBookingChats,
-  getAllTourChats,
   adminGetSupportMessages,
   adminSendSupportMessage,
   getBookingMessages,
-  getTourGroupMessages,
   sendBookingMessage,
-  sendTourGroupMessage,
   closeSupportChat,
   type ChatMessage,
   type ChatRole,
@@ -40,7 +33,7 @@ import {
 import { Toast, useToast } from "@/components/ui/Toast";
 
 // --- TYPES ---
-type ChatTab = "support" | "booking" | "tour";
+type ChatTab = "support" | "booking";
 
 type ChatThread = {
   id: string;
@@ -82,7 +75,6 @@ export default function AdminChatPage() {
 
       if (activeTab === "support") res = await getAllSupportChats();
       else if (activeTab === "booking") res = await getAllBookingChats();
-      else if (activeTab === "tour") res = await getAllTourChats();
 
       const rawData = res.data || [];
 
@@ -99,10 +91,6 @@ export default function AdminChatPage() {
           id = item.bookingCode;
           title = `Đơn #${item.bookingCode}`;
           subtitle = item.tourTitle || "Chi tiết đơn hàng";
-        } else {
-          id = item.tourId;
-          title = item.tourTitle || "Nhóm Tour";
-          subtitle = `${item.memberCount || 0} thành viên`;
         }
 
         return {
@@ -163,7 +151,6 @@ export default function AdminChatPage() {
 
       if (thread.type === "support") res = await adminGetSupportMessages(thread.id);
       else if (thread.type === "booking") res = await getBookingMessages(thread.id);
-      else if (thread.type === "tour") res = await getTourGroupMessages(thread.id);
 
       if (res?.data) {
         setMessages(res.data);
@@ -208,8 +195,6 @@ export default function AdminChatPage() {
         await adminSendSupportMessage(selectedThread.id, { content });
       } else if (selectedThread.type === "booking") {
         await sendBookingMessage(selectedThread.id, content);
-      } else {
-        await sendTourGroupMessage(selectedThread.id, content);
       }
       fetchMessages(selectedThread, true);
       fetchThreads(true);
@@ -294,19 +279,6 @@ export default function AdminChatPage() {
               <span>Đơn hàng</span>
             </div>
           </button>
-          <button
-            onClick={() => setActiveTab("tour")}
-            className={`flex-1 py-3 text-sm font-medium transition-colors ${
-              activeTab === "tour"
-                ? "border-b-2 border-orange-500 text-orange-600"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            <div className="flex flex-col items-center gap-1">
-              <MapPin className="h-4 w-4" />
-              <span>Nhóm Tour</span>
-            </div>
-          </button>
         </div>
 
         {/* Search */}
@@ -346,18 +318,14 @@ export default function AdminChatPage() {
                 >
                   <div
                     className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${
-                      thread.type === "tour"
-                        ? "bg-purple-100 text-purple-600"
-                        : thread.type === "booking"
+                      thread.type === "booking"
                         ? "bg-blue-100 text-blue-600"
                         : isSelected
                         ? "bg-orange-200 text-orange-700"
                         : "bg-slate-200 text-slate-500"
                     }`}
                   >
-                    {thread.type === "tour" ? (
-                      <Users className="h-5 w-5" />
-                    ) : thread.type === "booking" ? (
+                    {thread.type === "booking" ? (
                       <Package className="h-5 w-5" />
                     ) : (
                       <User className="h-5 w-5" />
@@ -415,16 +383,12 @@ export default function AdminChatPage() {
               <div className="flex items-center gap-3">
                 <div
                   className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                    selectedThread.type === "tour"
-                      ? "bg-purple-100 text-purple-600"
-                      : selectedThread.type === "booking"
+                    selectedThread.type === "booking"
                       ? "bg-blue-100 text-blue-600"
                       : "bg-orange-100 text-orange-600"
                   }`}
                 >
-                  {selectedThread.type === "tour" ? (
-                    <Users className="h-5 w-5" />
-                  ) : selectedThread.type === "booking" ? (
+                  {selectedThread.type === "booking" ? (
                     <Package className="h-5 w-5" />
                   ) : (
                     <User className="h-5 w-5" />
@@ -451,9 +415,7 @@ export default function AdminChatPage() {
                   className={`px-2 py-1 rounded-full text-[10px] font-medium uppercase ${
                     selectedThread.type === "support"
                       ? "bg-orange-100 text-orange-700"
-                      : selectedThread.type === "booking"
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-purple-100 text-purple-700"
+                      : "bg-blue-100 text-blue-700"
                   }`}
                 >
                   {selectedThread.type}

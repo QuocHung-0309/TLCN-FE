@@ -154,9 +154,8 @@ export interface Passenger {
 // ======= CHAT API =======
 export interface ChatMessage {
   _id: string;
-  roomType: "booking" | "support" | "tour";
+  roomType: "booking" | "support";
   bookingCode?: string;
-  tourId?: string;
   fromId?: string;
   fromRole: "admin" | "leader" | "user" | "guest";
   name?: string;
@@ -168,17 +167,6 @@ export interface ChatMessage {
 }
 
 export const leaderChatApi = {
-  // Lấy tin nhắn nhóm tour
-  getTourMessages: async (tourId: string) => {
-    const res = await leaderAxios.get(`/chat/tour/${tourId}`);
-    return res.data as { tourId: string; total: number; data: ChatMessage[] };
-  },
-
-  // Gửi tin nhắn nhóm tour
-  sendTourMessage: async (tourId: string, content: string) => {
-    const res = await leaderAxios.post(`/chat/tour/${tourId}`, { content });
-    return res.data as { message: string; data: ChatMessage };
-  },
 
   // Lấy tin nhắn booking
   getBookingMessages: async (bookingCode: string) => {

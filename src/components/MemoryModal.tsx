@@ -1,6 +1,17 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaTimes, FaImage, FaLock, FaGlobe } from "react-icons/fa";
+import {
+  FaCalendarAlt,
+  FaCheckCircle,
+  FaCloudUploadAlt,
+  FaGlobe,
+  FaImage,
+  FaLink,
+  FaLock,
+  FaMapMarkerAlt,
+  FaSpinner,
+  FaTimes,
+} from "react-icons/fa";
 import { travelMemoryApi } from "@/lib/checkin/travelMemoryApi";
 import { toast } from "react-hot-toast";
 
@@ -168,175 +179,307 @@ export default function MemoryModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/55 p-4 backdrop-blur-sm sm:p-6">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]"
+            initial={{ opacity: 0, y: 18, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.97 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl shadow-slate-950/25"
           >
-            <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-bold text-slate-800">
-                Lưu kỷ niệm tại {provinceName}
-              </h3>
+            <div className="relative border-b border-slate-200 bg-white px-5 py-5 text-slate-900 sm:px-7">
               <button
+                type="button"
                 onClick={onClose}
-                className="text-slate-400 hover:text-slate-600"
+                aria-label="Đóng"
+                className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-orange-50 hover:text-orange-600"
               >
-                <FaTimes size={20} />
+                <FaTimes size={18} />
               </button>
+
+              <div className="flex items-start gap-4 pr-12">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-orange-500 ring-1 ring-orange-100">
+                  <FaMapMarkerAlt className="text-2xl" />
+                </div>
+                <div>
+                  <p className="mb-1 text-xs font-bold uppercase tracking-[0.18em] text-orange-500">
+                    Nhật ký hành trình
+                  </p>
+                  <h3 className="text-2xl font-black leading-tight text-slate-900 sm:text-3xl">
+                    Lưu kỷ niệm tại {provinceName}
+                  </h3>
+                  <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
+                    Lưu lại ngày đi, ảnh và vài dòng cảm nhận để bản đồ của bạn
+                    có thêm một câu chuyện đáng nhớ.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold">
+                <span className="rounded-full bg-orange-50 px-3 py-1 text-orange-600 ring-1 ring-orange-100">
+                  1-3 ảnh
+                </span>
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700 ring-1 ring-blue-100">
+                  Riêng tư hoặc công khai
+                </span>
+                {bookingId && (
+                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 ring-1 ring-emerald-100">
+                    Xác thực qua tour
+                  </span>
+                )}
+              </div>
             </div>
 
             <form
               onSubmit={handleSubmit}
-              className="p-4 flex-1 overflow-y-auto space-y-4"
+              className="flex-1 overflow-y-auto bg-slate-50 px-5 py-5 sm:px-7 sm:py-6"
             >
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">
-                  Ngày đi *
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={visitedAt}
-                  onChange={(e) => setVisitedAt(e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">
-                  Ảnh kỷ niệm * (1-3 ảnh)
-                </label>
-                <p className="text-xs text-slate-500 mb-2">
-                  Có thể tải ảnh từ máy hoặc dán link ảnh. Tối đa 3 ảnh.
-                </p>
-                <div className="space-y-2 mb-2">
-                  <label
-                    className={`flex items-center justify-center gap-2 px-4 py-2 border border-dashed rounded-lg text-sm font-semibold transition ${
-                      remainingImageSlots <= 0 || isUploadingImage
-                        ? "cursor-not-allowed border-slate-200 text-slate-400 bg-slate-50"
-                        : "cursor-pointer border-indigo-300 text-indigo-700 bg-indigo-50 hover:bg-indigo-100"
-                    }`}
-                  >
-                    <FaImage />
-                    {isUploadingImage
-                      ? "Đang tải ảnh..."
-                      : "Tải ảnh lên"}
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/png,image/jpeg,image/jpg,image/webp"
-                      onChange={handleUploadImages}
-                      disabled={remainingImageSlots <= 0 || isUploadingImage}
-                      className="hidden"
-                    />
+              <div className="space-y-5">
+                <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60">
+                  <label className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
+                    <FaCalendarAlt className="text-orange-500" />
+                    Ngày đi <span className="text-rose-500">*</span>
                   </label>
-
-                  <div className="flex gap-2">
+                  <div className="relative">
                     <input
-                      type="url"
-                      placeholder="Nhập URL ảnh..."
-                      value={imageUrlInput}
-                      onChange={(e) => setImageUrlInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddImage();
-                        }
-                      }}
-                      disabled={remainingImageSlots <= 0 || isUploadingImage}
-                      className="min-w-0 flex-1 px-4 py-2 border rounded-lg outline-none focus:border-indigo-500 disabled:bg-slate-50 disabled:text-slate-400"
+                      type="date"
+                      required
+                      value={visitedAt}
+                      onChange={(e) => setVisitedAt(e.target.value)}
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-100"
                     />
-                    <button
-                      type="button"
-                      onClick={handleAddImage}
-                      disabled={remainingImageSlots <= 0 || isUploadingImage}
-                      className="px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-lg hover:bg-slate-200 disabled:opacity-50"
+                  </div>
+                </section>
+
+                <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60">
+                  <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <label className="flex items-center gap-2 text-sm font-bold text-slate-800">
+                        <FaImage className="text-orange-500" />
+                        Ảnh kỷ niệm <span className="text-rose-500">*</span>
+                      </label>
+                      <p className="mt-1 text-xs text-slate-500">
+                        Tải ảnh từ máy hoặc dán link ảnh. Tối đa 3 ảnh.
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-600">
+                      {images.length}/3 ảnh
+                    </span>
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-[0.95fr_1.05fr]">
+                    <label
+                      className={`flex min-h-[132px] flex-col items-center justify-center rounded-2xl border border-dashed px-4 py-5 text-center transition ${
+                        remainingImageSlots <= 0 || isUploadingImage
+                          ? "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400"
+                          : "cursor-pointer border-orange-300 bg-orange-50 text-orange-700 hover:border-orange-400 hover:bg-orange-100 hover:shadow-md hover:shadow-orange-100"
+                      }`}
                     >
-                      Thêm
-                    </button>
-                  </div>
-                </div>
-                {images.length > 0 && (
-                  <div className="grid grid-cols-3 gap-2 mt-2">
-                    {images.map((img, i) => (
-                      <div key={i} className="relative aspect-square">
-                        <img
-                          src={img}
-                          alt=""
-                          className="w-full h-full object-cover rounded-lg border"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveImage(i)}
-                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
-                        >
-                          <FaTimes size={12} />
-                        </button>
+                      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-orange-100">
+                        {isUploadingImage ? (
+                          <FaSpinner className="animate-spin text-xl" />
+                        ) : (
+                          <FaCloudUploadAlt className="text-2xl" />
+                        )}
                       </div>
-                    ))}
+                      <span className="text-sm font-black">
+                        {isUploadingImage ? "Đang tải ảnh..." : "Tải ảnh lên"}
+                      </span>
+                      <span className="mt-1 text-xs text-slate-500">
+                        JPG, PNG, WEBP. Còn {remainingImageSlots} vị trí.
+                      </span>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                        onChange={handleUploadImages}
+                        disabled={remainingImageSlots <= 0 || isUploadingImage}
+                        className="hidden"
+                      />
+                    </label>
+
+                    <div className="flex flex-col justify-center gap-3">
+                      <div className="relative">
+                        <FaLink className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type="url"
+                          placeholder="Dán link ảnh vào đây..."
+                          value={imageUrlInput}
+                          onChange={(e) => setImageUrlInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddImage();
+                            }
+                          }}
+                          disabled={remainingImageSlots <= 0 || isUploadingImage}
+                          className="h-12 w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-100 disabled:text-slate-400"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAddImage}
+                        disabled={remainingImageSlots <= 0 || isUploadingImage}
+                        className="h-12 rounded-xl bg-blue-700 px-5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+                      >
+                        Thêm link ảnh
+                      </button>
+                    </div>
                   </div>
-                )}
-              </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">
-                  Cảm nhận (Tùy chọn)
-                </label>
-                <textarea
-                  value={caption}
-                  onChange={(e) => setCaption(e.target.value)}
-                  placeholder="Vài dòng đáng nhớ về chuyến đi..."
-                  maxLength={500}
-                  rows={3}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
-                />
-              </div>
+                  {images.length > 0 && (
+                    <div className="mt-4 grid grid-cols-3 gap-3">
+                      {images.map((img, i) => (
+                        <div
+                          key={`${img}-${i}`}
+                          className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-slate-100"
+                        >
+                          <img
+                            src={img}
+                            alt={`Ảnh kỷ niệm ${i + 1}`}
+                            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-x-0 bottom-0 bg-slate-950/65 px-2 py-2 text-[11px] font-bold text-white">
+                            Ảnh {i + 1}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(i)}
+                            aria-label={`Xóa ảnh ${i + 1}`}
+                            className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-sm transition hover:bg-rose-500 hover:text-white"
+                          >
+                            <FaTimes size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Chế độ hiển thị
-                </label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="privacy"
-                      value="private"
-                      checked={privacy === "private"}
-                      onChange={() => setPrivacy("private")}
-                    />
-                    <span className="flex items-center gap-1 text-slate-600">
-                      <FaLock /> Chỉ mình tôi
+                <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <label className="text-sm font-bold text-slate-800">
+                      Cảm nhận
+                    </label>
+                    <span className="text-xs font-semibold text-slate-400">
+                      {caption.length}/500
                     </span>
+                  </div>
+                  <textarea
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    placeholder="Vài dòng đáng nhớ về chuyến đi..."
+                    maxLength={500}
+                    rows={4}
+                    className="min-h-[118px] w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-100"
+                  />
+                </section>
+
+                <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60">
+                  <label className="mb-3 block text-sm font-bold text-slate-800">
+                    Chế độ hiển thị
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="privacy"
-                      value="public"
-                      checked={privacy === "public"}
-                      onChange={() => setPrivacy("public")}
-                    />
-                    <span className="flex items-center gap-1 text-slate-600">
-                      <FaGlobe /> Chia sẻ cộng đồng
-                    </span>
-                  </label>
-                </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label
+                      className={`relative cursor-pointer rounded-2xl border p-4 transition ${
+                        privacy === "private"
+                          ? "border-indigo-400 bg-indigo-50 shadow-sm shadow-indigo-100"
+                          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="privacy"
+                        value="private"
+                        checked={privacy === "private"}
+                        onChange={() => setPrivacy("private")}
+                        className="sr-only"
+                      />
+                      <div className="flex items-start gap-3">
+                        <div
+                          className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                            privacy === "private"
+                              ? "bg-indigo-600 text-white"
+                              : "bg-slate-100 text-slate-500"
+                          }`}
+                        >
+                          <FaLock />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 text-sm font-black text-slate-800">
+                            Chỉ mình tôi
+                            {privacy === "private" && (
+                              <FaCheckCircle className="text-indigo-600" />
+                            )}
+                          </div>
+                          <p className="mt-1 text-xs leading-5 text-slate-500">
+                            Lưu trong dòng thời gian cá nhân.
+                          </p>
+                        </div>
+                      </div>
+                    </label>
+
+                    <label
+                      className={`relative cursor-pointer rounded-2xl border p-4 transition ${
+                        privacy === "public"
+                          ? "border-emerald-400 bg-emerald-50 shadow-sm shadow-emerald-100"
+                          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="privacy"
+                        value="public"
+                        checked={privacy === "public"}
+                        onChange={() => setPrivacy("public")}
+                        className="sr-only"
+                      />
+                      <div className="flex items-start gap-3">
+                        <div
+                          className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                            privacy === "public"
+                              ? "bg-emerald-600 text-white"
+                              : "bg-slate-100 text-slate-500"
+                          }`}
+                        >
+                          <FaGlobe />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 text-sm font-black text-slate-800">
+                            Chia sẻ cộng đồng
+                            {privacy === "public" && (
+                              <FaCheckCircle className="text-emerald-600" />
+                            )}
+                          </div>
+                          <p className="mt-1 text-xs leading-5 text-slate-500">
+                            Hiển thị ở bảng tin và popup tỉnh.
+                          </p>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </section>
               </div>
 
-              <div className="pt-4">
+              <div className="sticky bottom-0 -mx-5 mt-6 border-t border-slate-200 bg-white/95 px-5 py-4 backdrop-blur sm:-mx-7 sm:px-7">
                 <button
                   type="submit"
                   disabled={isBusy}
-                  className="w-full py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 disabled:opacity-50"
+                  className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-4 text-base font-black text-white shadow-lg shadow-orange-500/25 transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
                 >
-                  {isLoading
-                    ? "Đang lưu..."
-                    : isUploadingImage
-                      ? "Đang tải ảnh..."
-                      : "Lưu kỷ niệm"}
+                  {isLoading ? (
+                    <>
+                      <FaSpinner className="animate-spin" />
+                      Đang lưu...
+                    </>
+                  ) : isUploadingImage ? (
+                    <>
+                      <FaSpinner className="animate-spin" />
+                      Đang tải ảnh...
+                    </>
+                  ) : (
+                    "Lưu kỷ niệm"
+                  )}
                 </button>
               </div>
             </form>

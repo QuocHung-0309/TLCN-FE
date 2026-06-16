@@ -171,9 +171,9 @@ export default function NotificationBell() {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-2xl ring-1 ring-black/5 z-50 overflow-hidden transform transition-all duration-200">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm">
             <h3 className="font-semibold text-gray-800">Thông báo</h3>
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
@@ -200,7 +200,7 @@ export default function NotificationBell() {
           </div>
 
           {/* Content */}
-          <div className="max-h-[400px] overflow-y-auto">
+          <div className="max-h-[400px] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-300 transition-colors">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
@@ -268,7 +268,7 @@ export default function NotificationBell() {
 
           {/* Footer */}
           {notifications.length > 0 && (
-            <div className="border-t bg-gray-50 px-4 py-2">
+            <div className="border-t border-gray-100 bg-gray-50/80 backdrop-blur-sm px-4 py-3">
               <button
                 onClick={() => {
                   setIsOpen(false);

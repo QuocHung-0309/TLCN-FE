@@ -19,6 +19,22 @@ const slugify = (s = "") =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
+// Strip HTML helper
+const stripHtml = (content: any) => {
+  if (!content) return "";
+  let rawText = "";
+  if (Array.isArray(content)) {
+    const firstBlock = content.find((b: any) => b.type === "text" || b.type === "html")?.value ?? "";
+    rawText = firstBlock;
+  } else if (typeof content === "string") {
+    rawText = content;
+  }
+  return String(rawText)
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
 // SỬA: Định nghĩa các trường là bắt buộc (string) để khớp với component con
 type BlogPost = {
   _id?: string;
@@ -42,8 +58,8 @@ export default function BlogSection() {
       _id: blog._id,
       slug: blog.slug || slugify(blog.title),
       title: blog.title || "Bài viết mới",
-      // Đảm bảo luôn trả về string, không undefined
-      excerpt: blog.summary || blog.content?.substring(0, 150) + "..." || "",
+      // Đảm bảo luôn trả về string và không chứa thẻ HTML
+      excerpt: blog.summary ? stripHtml(blog.summary) : (stripHtml(blog.content)?.substring(0, 150) + "..." || ""),
       image: blog.coverImageUrl || "/hot1.jpg",
       // 2 bài đầu tiên là featured
       featured: index < 2,
@@ -113,7 +129,7 @@ export default function BlogSection() {
     return `${base}-${id}`;
   };
 
-  const toHref = (p: BlogPost) => `/user/blog/${p.slug || slugify(p.title)}`;
+  const toHref = (p: BlogPost) => `/user/blog/${encodeURIComponent(p.slug || slugify(p.title))}`;
 
   return (
     <section className="py-14 sm:py-16 px-4">

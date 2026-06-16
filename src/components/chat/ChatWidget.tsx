@@ -27,6 +27,7 @@ import {
   isStaffRole,
   ROLE_LABELS,
 } from "@/lib/chat/chatApi";
+import { getSocket } from "@/lib/socket";
 
 type ViewMode = "home" | "history" | "chat" | "new";
 
@@ -42,6 +43,7 @@ export default function ChatWidget() {
     clearActiveChat,
     messages,
     setMessages,
+    addMessage,
     supportChats,
     setSupportChats,
   } = useChatStore();
@@ -84,13 +86,29 @@ export default function ChatWidget() {
     }
   }, [activeSupportId]);
 
-  // Polling messages (5s)
+  // Socket listener
   useEffect(() => {
-    let interval: NodeJS.Timeout;
     if (activeSupportId && viewMode === "chat") {
-      interval = setInterval(() => loadMessages(activeSupportId, true), 5000);
+      const socket = getSocket();
+      socket.emit("join_room", activeSupportId);
+
+      const handleReceiveMessage = (msg: any) => {
+        if (msg.supportId === activeSupportId || msg.bookingCode === activeSupportId) {
+          // Prevent duplicates
+          const exists = useChatStore.getState().messages.find(m => m._id === msg._id);
+          if (!exists) {
+            useChatStore.getState().addMessage(msg);
+          }
+        }
+      };
+
+      socket.on("receive_message", handleReceiveMessage);
+
+      return () => {
+        socket.off("receive_message", handleReceiveMessage);
+        socket.emit("leave_room", activeSupportId);
+      };
     }
-    return () => clearInterval(interval);
   }, [activeSupportId, viewMode]);
 
   const loadChatHistory = async () => {

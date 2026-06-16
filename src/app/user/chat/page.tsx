@@ -24,20 +24,15 @@ import {
   getUserSupportChats,
   getBookingMessages,
   sendBookingMessage,
-  getTourGroupMessages,
-  sendTourGroupMessage,
-  getMyTourChats,
   type ChatMessage,
   type ChatRole,
-  type TourChatInfo,
   formatChatTime,
   isStaffRole,
   ROLE_LABELS,
 } from "@/lib/chat/chatApi";
-import { Users, MapPin, Calendar } from "lucide-react";
 
 type ViewMode = "list" | "chat" | "new";
-type ChatTab = "support" | "booking" | "tour";
+type ChatTab = "support" | "booking";
 
 interface ChatThread {
   id: string;
@@ -47,18 +42,13 @@ interface ChatThread {
   lastMessage?: string;
   lastTime?: string;
   status?: string;
-  // Tour specific
-  tourImage?: string;
-  startDate?: string;
-  endDate?: string;
-  memberCount?: number;
 }
 
 export default function UserChatPage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
 
-  const [activeTab, setActiveTab] = useState<ChatTab>("tour");
+  const [activeTab, setActiveTab] = useState<ChatTab>("support");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [selectedThread, setSelectedThread] = useState<ChatThread | null>(null);
@@ -136,7 +126,7 @@ export default function UserChatPage() {
                 status: item.status || "active",
               }));
             }
-          } catch (apiErr) {
+          } catch {
             console.log("API not available, falling back to localStorage");
           }
 
@@ -163,7 +153,7 @@ export default function UserChatPage() {
                     },
                   ];
                 }
-              } catch (msgErr) {
+              } catch {
                 // Chat không còn tồn tại, xóa khỏi localStorage
                 localStorage.removeItem("supportChatId");
               }
@@ -171,20 +161,6 @@ export default function UserChatPage() {
           }
 
           setThreads(chats);
-        } else if (activeTab === "tour") {
-          // Load tour group chats từ bookings
-          const res = await getMyTourChats();
-          const tourChats: ChatThread[] = res.data.map((t: TourChatInfo) => ({
-            id: t.tourId,
-            type: "tour" as ChatTab,
-            title: t.tourTitle,
-            subtitle: t.tourDestination || "Tour du lịch",
-            tourImage: t.tourImage,
-            startDate: t.startDate,
-            endDate: t.endDate,
-            status: t.bookingStatus === "c" ? "active" : "pending",
-          }));
-          setThreads(tourChats);
         } else {
           // Load booking chats
           setThreads([]);
@@ -209,8 +185,6 @@ export default function UserChatPage() {
           res = await getSupportMessages(thread.id);
         } else if (thread.type === "booking") {
           res = await getBookingMessages(thread.id);
-        } else if (thread.type === "tour") {
-          res = await getTourGroupMessages(thread.id);
         }
 
         if (res?.data) {
@@ -334,8 +308,6 @@ export default function UserChatPage() {
         });
       } else if (selectedThread.type === "booking") {
         await sendBookingMessage(selectedThread.id, content);
-      } else if (selectedThread.type === "tour") {
-        await sendTourGroupMessage(selectedThread.id, content);
       }
 
       // Force stick to bottom after sending own message
@@ -462,17 +434,6 @@ export default function UserChatPage() {
               {/* Tabs */}
               <div className="flex bg-slate-50">
                 <button
-                  onClick={() => setActiveTab("tour")}
-                  className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-medium transition-all border-b-2 ${
-                    activeTab === "tour"
-                      ? "border-orange-500 text-orange-600 bg-white"
-                      : "border-transparent text-slate-500 hover:text-slate-700"
-                  }`}
-                >
-                  <Users className="h-4 w-4" />
-                  Nhóm Tour
-                </button>
-                <button
                   onClick={() => setActiveTab("support")}
                   className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-medium transition-all border-b-2 ${
                     activeTab === "support"
@@ -539,55 +500,29 @@ export default function UserChatPage() {
                           : ""
                       }`}
                     >
-                      {thread.type === "tour" && thread.tourImage ? (
-                        <div className="relative h-11 w-11 flex-shrink-0 rounded-xl overflow-hidden">
-                          <img
-                            src={thread.tourImage}
-                            alt={thread.title}
-                            className="h-full w-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black/20" />
-                          <div className="absolute bottom-0 right-0 bg-emerald-500 rounded-tl-lg p-0.5">
-                            <Users className="h-3 w-3 text-white" />
-                          </div>
-                        </div>
-                      ) : (
-                        <div
-                          className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full ${
-                            thread.type === "tour"
-                              ? "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white"
-                              : thread.type === "support"
-                              ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white"
-                              : "bg-gradient-to-br from-blue-400 to-blue-600 text-white"
-                          }`}
-                        >
-                          {thread.type === "tour" ? (
-                            <Users className="h-5 w-5" />
-                          ) : thread.type === "support" ? (
-                            <MessageCircle className="h-5 w-5" />
-                          ) : (
-                            <Package className="h-5 w-5" />
-                          )}
-                        </div>
-                      )}
+                      <div
+                        className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full ${
+                          thread.type === "support"
+                            ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white"
+                            : "bg-gradient-to-br from-blue-400 to-blue-600 text-white"
+                        }`}
+                      >
+                        {thread.type === "support" ? (
+                          <MessageCircle className="h-5 w-5" />
+                        ) : (
+                          <Package className="h-5 w-5" />
+                        )}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-0.5">
                           <p className="font-semibold text-slate-800 truncate text-sm">
                             {thread.title}
                           </p>
-                          {thread.type === "tour" && thread.startDate ? (
-                            <span className="text-[10px] text-emerald-600 flex-shrink-0 ml-2 flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {new Date(thread.startDate).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })}
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-slate-400 flex-shrink-0 ml-2">
-                              {formatChatTime(thread.lastTime)}
-                            </span>
-                          )}
+                          <span className="text-[10px] text-slate-400 flex-shrink-0 ml-2">
+                            {formatChatTime(thread.lastTime)}
+                          </span>
                         </div>
                         <p className="text-xs text-slate-500 truncate flex items-center gap-1">
-                          {thread.type === "tour" && <MapPin className="h-3 w-3" />}
                           {thread.subtitle}
                         </p>
                         {thread.lastMessage && (
@@ -693,66 +628,39 @@ export default function UserChatPage() {
                       >
                         <ArrowLeft className="h-5 w-5" />
                       </button>
-                      {selectedThread.type === "tour" && selectedThread.tourImage ? (
-                        <div className="relative h-11 w-11 rounded-xl overflow-hidden">
-                          <img
-                            src={selectedThread.tourImage}
-                            alt={selectedThread.title}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div
-                          className={`flex h-11 w-11 items-center justify-center rounded-full ${
-                            selectedThread.type === "tour"
-                              ? "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white"
-                              : selectedThread.type === "support"
-                              ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white"
-                              : "bg-gradient-to-br from-blue-400 to-blue-600 text-white"
-                          }`}
-                        >
-                          {selectedThread.type === "tour" ? (
-                            <Users className="h-5 w-5" />
-                          ) : selectedThread.type === "support" ? (
-                            <MessageCircle className="h-5 w-5" />
-                          ) : (
-                            <Package className="h-5 w-5" />
-                          )}
-                        </div>
-                      )}
+                      <div
+                        className={`flex h-11 w-11 items-center justify-center rounded-full ${
+                          selectedThread.type === "support"
+                            ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white"
+                            : "bg-gradient-to-br from-blue-400 to-blue-600 text-white"
+                        }`}
+                      >
+                        {selectedThread.type === "support" ? (
+                          <MessageCircle className="h-5 w-5" />
+                        ) : (
+                          <Package className="h-5 w-5" />
+                        )}
+                      </div>
                       <div>
                         <h3 className="font-semibold text-slate-800">
-                          {selectedThread.type === "tour" ? "Nhóm: " : ""}{selectedThread.title}
+                          {selectedThread.title}
                         </h3>
                         <p className="text-xs text-slate-500 flex items-center gap-1">
-                          {selectedThread.type === "tour" && <MapPin className="h-3 w-3" />}
                           {selectedThread.subtitle}
-                          {selectedThread.type === "tour" && selectedThread.startDate && (
-                            <span className="ml-2 text-emerald-600">
-                              • {new Date(selectedThread.startDate).toLocaleDateString("vi-VN")}
-                            </span>
-                          )}
                         </p>
                       </div>
                     </div>
-                    {selectedThread.type === "tour" ? (
-                      <span className="rounded-full bg-emerald-100 text-emerald-700 px-3 py-1 text-xs font-medium flex items-center gap-1">
-                        <Users className="h-3 w-3" />
-                        Nhóm chat
-                      </span>
-                    ) : (
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                          selectedThread.status === "active"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        {selectedThread.status === "active"
-                          ? "Đang hoạt động"
-                          : "Đã đóng"}
-                      </span>
-                    )}
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-medium ${
+                        selectedThread.status === "active"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {selectedThread.status === "active"
+                        ? "Đang hoạt động"
+                        : "Đã đóng"}
+                    </span>
                   </div>
 
                   {/* Messages */}
@@ -777,12 +685,7 @@ export default function UserChatPage() {
                           msg.fromRole || "guest"
                         ).toLowerCase() as ChatRole;
                         const isStaff = isStaffRole(role);
-                        const isTourChat = selectedThread?.type === "tour";
-
-                        // Trong tour chat: xác định tin nhắn của mình dựa trên fromId
-                        const isMyMessage = isTourChat
-                          ? msg.fromId === user?.id || msg.fromId === user?._id
-                          : !isStaff;
+                        const isMyMessage = !isStaff;
 
                         // System message
                         if (msg.isSystem) {
@@ -815,16 +718,10 @@ export default function UserChatPage() {
                                       ? "bg-blue-500"
                                       : role === "leader"
                                       ? "bg-purple-500"
-                                      : isTourChat
-                                      ? "bg-emerald-500"
                                       : "bg-slate-400"
                                   } text-white text-xs font-bold`}
                                 >
-                                  {isTourChat && role === "user" ? (
-                                    msg.name?.charAt(0).toUpperCase() || "U"
-                                  ) : (
-                                    getRoleIcon(role)
-                                  )}
+                                  {getRoleIcon(role)}
                                 </div>
                               )}
 
@@ -837,10 +734,6 @@ export default function UserChatPage() {
                                 <span className="mb-1 px-1 text-[10px] font-medium text-slate-400">
                                   {isMyMessage ? (
                                     "Bạn"
-                                  ) : isTourChat && role === "user" ? (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                                      {msg.name || "Thành viên"}
-                                    </span>
                                   ) : (
                                     <span
                                       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${getRoleBadgeStyle(
@@ -858,8 +751,6 @@ export default function UserChatPage() {
                                   className={`rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
                                     isMyMessage
                                       ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-tr-sm"
-                                      : isTourChat && role === "user"
-                                      ? "bg-white text-slate-800 border border-slate-200 rounded-tl-sm"
                                       : getMessageBubbleStyle(role, true)
                                   }`}
                                 >

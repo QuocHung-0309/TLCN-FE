@@ -162,7 +162,6 @@ export default function Header() {
     { name: "Tour yêu thích", href: "/user/favorites", icon: Heart },
     { name: "Đánh giá của tôi", href: "/user/reviews", icon: Star },
     { name: "Blog của tôi", href: "/user/blog", icon: BookOpen },
-    { name: "Vouchers", href: "/user/vouchers", icon: BookOpen },
   ];
 
   const handleLogout = async () => {
@@ -245,13 +244,10 @@ export default function Header() {
               <ChevronDown size={16} className="text-gray-500" />
 
               {avatarOpen && (
-                <div className="absolute right-0 top-[110%] w-64 bg-white rounded-lg shadow-lg border z-50">
-                  <div className="p-4 border-b bg-gray-50">
+                <div className="absolute right-0 top-[110%] w-64 bg-white rounded-xl shadow-2xl ring-1 ring-black/5 z-50 overflow-hidden">
+                  <div className="p-4 bg-gray-50/80 backdrop-blur-sm">
                     <p className="font-bold text-sm">{fullName}</p>
                     <p className="text-xs text-gray-600 mt-1">{userEmail}</p>
-                    <p className="text-xs text-yellow-600 mt-2">
-                      ⭐ {points} điểm • Thành viên {memberStatus}
-                    </p>
                   </div>
 
                   <nav className="flex flex-col py-2">
@@ -269,7 +265,7 @@ export default function Header() {
 
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-gray-100 border-t"
+                      className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors mt-1"
                     >
                       <LogOut size={18} /> Đăng xuất
                     </button>

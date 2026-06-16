@@ -8,7 +8,6 @@ import { motion, type Variants, AnimatePresence } from "framer-motion";
 import {
   Map as MapIcon,
   Trophy,
-  Gift,
   Lock,
   Plane,
   ChevronDown,
@@ -16,7 +15,6 @@ import {
   MapPin,
   Sparkles,
   Star,
-  Users,
   Clock,
   Ticket,
   Activity,
@@ -89,7 +87,7 @@ const FEATURES = [
   {
     icon: MapIcon,
     title: "Bản đồ tương tác",
-    description: "Theo dõi hành trình chinh phục 63 tỉnh thành Việt Nam",
+    description: "Theo dõi hành trình chinh phục 34 tỉnh thành Việt Nam",
     color: "from-blue-500 to-cyan-500",
     bgColor: "bg-blue-50",
   },
@@ -101,16 +99,16 @@ const FEATURES = [
     bgColor: "bg-amber-50",
   },
   {
-    icon: Gift,
-    title: "Nhận voucher",
-    description: "Tích điểm và đổi ưu đãi giảm giá tour",
+    icon: Plane,
+    title: "Gợi ý tour",
+    description: "Khám phá các tour phù hợp với những tỉnh còn thiếu",
     color: "from-emerald-500 to-teal-500",
     bgColor: "bg-emerald-50",
   },
   {
-    icon: Users,
-    title: "Bảng xếp hạng",
-    description: "Cạnh tranh với cộng đồng phượt thủ",
+    icon: Activity,
+    title: "Bảng tin cộng đồng",
+    description: "Xem và chia sẻ những kỷ niệm du lịch công khai",
     color: "from-purple-500 to-violet-500",
     bgColor: "bg-purple-50",
   },
@@ -224,13 +222,13 @@ export default function UserHomeMapPage() {
               Chinh phục
               <br />
               <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-400 bg-clip-text text-transparent">
-                63 tỉnh thành
+                34 tỉnh thành
               </span>
             </h1>
 
             <p className="mx-auto max-w-2xl text-base leading-relaxed text-blue-100 sm:text-lg">
-              Ghi dấu mọi bước chân, mở khóa thành tựu và nhận những phần quà
-              giá trị trên hành trình khám phá Việt Nam cùng AHH Travel.
+              Ghi dấu mọi bước chân, mở khóa thành tựu và lưu lại những kỷ niệm
+              đáng nhớ trên hành trình khám phá Việt Nam cùng AHH Travel.
             </p>
 
             {/* CTAs */}
@@ -267,7 +265,7 @@ export default function UserHomeMapPage() {
               {[
                 { value: "10K+", label: "Phượt thủ" },
                 { value: "500K+", label: "Địa điểm" },
-                { value: "50K+", label: "Voucher" },
+                { value: "34", label: "Tỉnh/thành" },
               ].map((s, i) => (
                 <div key={i} className="text-center">
                   <p className="text-2xl font-black text-white">{s.value}</p>
@@ -352,14 +350,14 @@ export default function UserHomeMapPage() {
               </h2>
               <p className="mb-6 text-sm text-slate-600 sm:text-base">
                 Mỗi địa điểm bạn ghé thăm sẽ được tô sáng trên bản đồ. Theo dõi
-                tiến độ chinh phục 63 tỉnh thành và nhận thưởng tương xứng.
+                tiến độ chinh phục 34 tỉnh thành và những kỷ niệm đã lưu.
               </p>
 
               <div className="space-y-3 text-sm text-slate-700">
                 {[
                   "Tự động check-in khi đặt tour trên hệ thống",
                   "Đánh dấu thủ công những nơi đã từng đến",
-                  "Nhận voucher khi mở khóa tỉnh/thành mới",
+                  "Xem gợi ý tour cho những tỉnh còn thiếu",
                   "Chia sẻ hành trình với bạn bè trong một cú bấm",
                 ].map((item, i) => (
                   <motion.div
@@ -413,7 +411,7 @@ export default function UserHomeMapPage() {
                     <div>
                       <p className="text-xs text-slate-500">Tiến độ mẫu</p>
                       <p className="text-2xl font-black text-slate-900">
-                        25/63 tỉnh
+                        25/34 tỉnh
                       </p>
                     </div>
                     <div className="text-right">

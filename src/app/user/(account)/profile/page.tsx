@@ -974,18 +974,6 @@ function ProfileContent() {
             icon={Lock}
             label="Mật khẩu & Bảo mật"
           />
-          <TabButton
-            active={activeTab === "reviews"}
-            onClick={() => setActiveTab("reviews")}
-            icon={Star}
-            label="Đánh giá của tôi"
-          />
-          <TabButton
-            active={activeTab === "favorites"}
-            onClick={() => setActiveTab("favorites")}
-            icon={Heart}
-            label="Tour yêu thích"
-          />
         </div>
 
         {/* --- Tab Content --- */}

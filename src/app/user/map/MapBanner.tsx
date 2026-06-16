@@ -3,7 +3,67 @@
 import React, { useEffect, useState } from "react";
 import useUser from "#/src/hooks/useUser"; // Adjust path
 import { checkinApi } from "@/lib/checkin/checkinApi";
-import { FaTrophy, FaShareAlt, FaMapMarkerAlt } from "react-icons/fa";
+import { FaTrophy, FaMapMarkerAlt } from "react-icons/fa";
+
+const TOTAL_PROVINCES = 34;
+
+const MERGED_PROVINCE_ALIASES: Record<string, string> = {
+  "yen bai": "lao cai",
+  "bac kan": "thai nguyen",
+  "vinh phuc": "phu tho",
+  "hoa binh": "phu tho",
+  "bac giang": "bac ninh",
+  "thai binh": "hung yen",
+  "hai duong": "hai phong",
+  "ha nam": "ninh binh",
+  "nam dinh": "ninh binh",
+  "quang binh": "quang tri",
+  "quang nam": "da nang",
+  "kon tum": "quang ngai",
+  "binh dinh": "gia lai",
+  "ninh thuan": "khanh hoa",
+  "dak nong": "lam dong",
+  "binh thuan": "lam dong",
+  "phu yen": "dak lak",
+  "ba ria vung tau": "ho chi minh",
+  "binh duong": "ho chi minh",
+  "tp ho chi minh": "ho chi minh",
+  "thanh pho ho chi minh": "ho chi minh",
+  "ho chi minh city": "ho chi minh",
+  "binh phuoc": "dong nai",
+  "long an": "tay ninh",
+  "soc trang": "can tho",
+  "hau giang": "can tho",
+  "ben tre": "vinh long",
+  "tra vinh": "vinh long",
+  "tien giang": "dong thap",
+  "bac lieu": "ca mau",
+  "kien giang": "an giang",
+  "ha giang": "tuyen quang",
+  "thua thien hue": "hue",
+  "a nang": "da nang",
+  "ak lak": "dak lak",
+  "ak nong": "lam dong",
+  "ien bien": "dien bien",
+  "ong nai": "dong nai",
+  "ong thap": "dong thap",
+  "lam ong": "lam dong",
+};
+
+const normalizeProvince = (provinceName: string) =>
+  provinceName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[đĐ]/g, "d")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const getMergedProvinceKey = (provinceName: string) => {
+  const normalized = normalizeProvince(provinceName || "");
+  return MERGED_PROVINCE_ALIASES[normalized] || normalized;
+};
 
 export default function MapBanner() {
   const { user, isAuthenticated } = useUser();
@@ -28,18 +88,22 @@ export default function MapBanner() {
       try {
         const res = await checkinApi.getUserCheckins();
         const uniqueProvinces = new Set(
-          res.map((item: any) => item.placeId?.province || item.placeId?.name)
+          res
+            .map((item: any) =>
+              getMergedProvinceKey(item.placeId?.province || item.placeId?.name || "")
+            )
+            .filter(Boolean)
         );
 
-        const count = uniqueProvinces.size;
-        const percent = Math.round((count / 63) * 100);
+        const count = Math.min(uniqueProvinces.size, TOTAL_PROVINCES);
+        const percent = Math.min(Math.round((count / TOTAL_PROVINCES) * 100), 100);
 
         let rank = "Người mới bắt đầu";
         if (count >= 5) rank = "Người thích vi vu";
         if (count >= 15) rank = "Phượt thủ tập sự";
-        if (count >= 30) rank = "Nhà thám hiểm";
-        if (count >= 50) rank = "Thổ địa Việt Nam";
-        if (count === 63) rank = "Huyền thoại du lịch";
+        if (count >= 20) rank = "Nhà thám hiểm";
+        if (count >= 28) rank = "Người chinh phục";
+        if (count >= TOTAL_PROVINCES) rank = "Huyền thoại du lịch";
 
         setStats({ count, percent, rank });
       } catch (error) {
@@ -91,7 +155,7 @@ export default function MapBanner() {
               </p>
               <p className="text-sm font-black text-slate-700">
                 {stats.count}
-                <span className="text-xs font-normal text-slate-400">/63</span>
+                <span className="text-xs font-normal text-slate-400">/{TOTAL_PROVINCES}</span>
               </p>
             </div>
           </div>

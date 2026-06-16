@@ -113,9 +113,9 @@ const TopPlacesBarChart: React.FC<TopPlaceChartProps> = ({ data }) => {
 
   if (data.length === 0) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-200">
-          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-50 text-xs font-bold text-orange-600 dark:bg-orange-900/50 dark:text-orange-100">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-700">
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-50 text-xs font-bold text-orange-600">
             📍
           </span>
           Top điểm đến phổ biến
@@ -128,11 +128,11 @@ const TopPlacesBarChart: React.FC<TopPlaceChartProps> = ({ data }) => {
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-200">
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-50 text-xs font-bold text-orange-600 dark:bg-orange-900/50 dark:text-orange-100">
+          <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-700">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-50 text-xs font-bold text-orange-600">
               📍
             </span>
             Top điểm đến phổ biến
@@ -152,18 +152,18 @@ const TopPlacesBarChart: React.FC<TopPlaceChartProps> = ({ data }) => {
       </div>
 
       {/* Legend with details */}
-      <div className="mt-4 grid grid-cols-2 gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
+      <div className="mt-4 grid grid-cols-2 gap-2 border-t border-slate-100 pt-4">
         {data.slice(0, 4).map((item, index) => (
           <div
             key={item.name}
-            className="flex items-center gap-2 rounded-lg bg-slate-50 p-2 dark:bg-slate-800/50"
+            className="flex items-center gap-2 rounded-lg bg-slate-50 p-2"
           >
             <div
               className="h-3 w-3 rounded-full"
               style={{ backgroundColor: colors[index] }}
             />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium text-slate-700 dark:text-slate-200">
+              <p className="truncate text-xs font-medium text-slate-700">
                 {item.name}
               </p>
               <p className="text-[10px] text-slate-500">

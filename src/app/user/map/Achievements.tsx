@@ -13,12 +13,69 @@ import {
   Waves,
   TreePine,
   Building,
-  Sparkles,
   X,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { checkinApi } from "@/lib/checkin/checkinApi";
 import useUser from "#/src/hooks/useUser";
+
+const MERGED_PROVINCE_ALIASES: Record<string, string> = {
+  "yen bai": "lao cai",
+  "bac kan": "thai nguyen",
+  "vinh phuc": "phu tho",
+  "hoa binh": "phu tho",
+  "bac giang": "bac ninh",
+  "thai binh": "hung yen",
+  "hai duong": "hai phong",
+  "ha nam": "ninh binh",
+  "nam dinh": "ninh binh",
+  "quang binh": "quang tri",
+  "quang nam": "da nang",
+  "kon tum": "quang ngai",
+  "binh dinh": "gia lai",
+  "ninh thuan": "khanh hoa",
+  "dak nong": "lam dong",
+  "binh thuan": "lam dong",
+  "phu yen": "dak lak",
+  "ba ria vung tau": "ho chi minh",
+  "binh duong": "ho chi minh",
+  "tp ho chi minh": "ho chi minh",
+  "thanh pho ho chi minh": "ho chi minh",
+  "ho chi minh city": "ho chi minh",
+  "binh phuoc": "dong nai",
+  "long an": "tay ninh",
+  "soc trang": "can tho",
+  "hau giang": "can tho",
+  "ben tre": "vinh long",
+  "tra vinh": "vinh long",
+  "tien giang": "dong thap",
+  "bac lieu": "ca mau",
+  "kien giang": "an giang",
+  "ha giang": "tuyen quang",
+  "thua thien hue": "hue",
+  "a nang": "da nang",
+  "ak lak": "dak lak",
+  "ak nong": "lam dong",
+  "ien bien": "dien bien",
+  "ong nai": "dong nai",
+  "ong thap": "dong thap",
+  "lam ong": "lam dong",
+};
+
+const normalizeProvince = (provinceName: string) =>
+  provinceName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[đĐ]/g, "d")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const getMergedProvinceKey = (provinceName: string) => {
+  const normalized = normalizeProvince(provinceName || "");
+  return MERGED_PROVINCE_ALIASES[normalized] || normalized;
+};
 
 // Achievement definitions
 const ACHIEVEMENTS = [
@@ -63,31 +120,21 @@ const ACHIEVEMENTS = [
     rarity: "uncommon",
   },
   {
-    id: "explorer_35",
-    name: "Chinh phục nửa Việt Nam",
-    description: "Chinh phục 35 tỉnh thành",
+    id: "explorer_28",
+    name: "Chinh phục gần trọn Việt Nam",
+    description: "Chinh phục 28 tỉnh thành",
     icon: Star,
-    requirement: 35,
+    requirement: 28,
     type: "provinces",
     color: "from-amber-400 to-orange-500",
     rarity: "rare",
   },
   {
-    id: "explorer_50",
-    name: "Thổ địa",
-    description: "Chinh phục 50 tỉnh thành",
-    icon: Award,
-    requirement: 50,
-    type: "provinces",
-    color: "from-rose-400 to-pink-500",
-    rarity: "epic",
-  },
-  {
-    id: "explorer_63",
+    id: "explorer_34",
     name: "Huyền thoại Việt Nam",
-    description: "Chinh phục toàn bộ 63 tỉnh thành",
-    icon: Sparkles,
-    requirement: 63,
+    description: "Chinh phục toàn bộ 34 tỉnh thành",
+    icon: Award,
+    requirement: 34,
     type: "provinces",
     color: "from-yellow-400 to-amber-500",
     rarity: "legendary",
@@ -168,8 +215,22 @@ export default function Achievements() {
       if (!isAuthenticated) return;
       try {
         const res = await checkinApi.getFullJourney();
-        const total = res.progress?.length
-          ?? new Set([...(res.fromBookings || []), ...(res.fromManualCheckins || [])]).size;
+        const provinceKeys = new Set<string>();
+        if (res.progress?.length) {
+          res.progress.forEach((p: any) => {
+            const provinceKey = getMergedProvinceKey(p.provinceName);
+            if (provinceKey) provinceKeys.add(provinceKey);
+          });
+        } else {
+          [...(res.fromBookings || []), ...(res.fromManualCheckins || [])].forEach(
+            (provinceName) => {
+              const provinceKey = getMergedProvinceKey(provinceName);
+              if (provinceKey) provinceKeys.add(provinceKey);
+            }
+          );
+        }
+
+        const total = Math.min(provinceKeys.size, 34);
         setProvincesCount(total);
 
         // Calculate unlocked achievements

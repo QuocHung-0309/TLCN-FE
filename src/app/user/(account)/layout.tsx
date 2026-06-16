@@ -48,12 +48,8 @@ function UserSidebar({ user }: { user: UserProfile | null }) {
   // Các link trong sidebar
   const navItems = [
     { name: "Đặt chỗ của tôi", href: "/user/history", icon: List },
-    { name: "Mã giảm giá", href: "/user/vouchers", icon: Ticket },
     { name: "Đánh giá của tôi", href: "/user/reviews", icon: Star },
     { name: "Tour yêu thích", href: "/user/favorites", icon: Heart },
-    { name: "Điểm tích lũy", href: "/user/score", icon: Award },
-    { name: "Thông tin hành khách", href: "/user/passengers", icon: Users },
-    { name: "Cài đặt thông báo", href: "/user/notifications", icon: Bell },
     { name: "Tài khoản", href: "/user/profile", icon: Settings },
   ];
 
@@ -116,9 +112,9 @@ function UserSidebar({ user }: { user: UserProfile | null }) {
         {/* Nút Đăng xuất */}
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 mt-4"
+          className="flex items-center gap-3 px-3 py-2 rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors mt-4 font-medium"
         >
-          <LogOut size={18} className="text-gray-500" />
+          <LogOut size={18} className="text-red-500" />
           <span>Đăng xuất</span>
         </button>
       </nav>

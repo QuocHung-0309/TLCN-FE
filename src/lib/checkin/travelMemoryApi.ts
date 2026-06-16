@@ -11,6 +11,17 @@ export interface TravelMemoryPayload {
   source?: "manual" | "tour" | "both";
 }
 
+export interface TravelMemoryComment {
+  _id: string;
+  content: string;
+  createdAt: string;
+  userId?: {
+    _id: string;
+    fullName?: string;
+    avatar?: string;
+  };
+}
+
 export const travelMemoryApi = {
   uploadImages: async (files: File[]) => {
     const token = localStorage.getItem("accessToken");
@@ -108,5 +119,57 @@ export const travelMemoryApi = {
       },
     });
     return res.data;
-  }
+  },
+
+  getComments: async (memoryId: string, page: number = 1, limit: number = 20) => {
+    const token = localStorage.getItem("accessToken");
+    const res = await axios.get(`${API_URL}/travel-memories/${memoryId}/comments`, {
+      params: { page, limit },
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+    return res.data as {
+      success: boolean;
+      data: TravelMemoryComment[];
+      pagination?: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+      };
+    };
+  },
+
+  createComment: async (memoryId: string, content: string) => {
+    const token = localStorage.getItem("accessToken");
+    const res = await axios.post(
+      `${API_URL}/travel-memories/${memoryId}/comments`,
+      { content },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      }
+    );
+    return res.data as {
+      success: boolean;
+      message: string;
+      comment: TravelMemoryComment;
+    };
+  },
+
+  deleteComment: async (memoryId: string, commentId: string) => {
+    const token = localStorage.getItem("accessToken");
+    const res = await axios.delete(
+      `${API_URL}/travel-memories/${memoryId}/comments/${commentId}`,
+      {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      }
+    );
+    return res.data;
+  },
 };

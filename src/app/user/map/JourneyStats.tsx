@@ -4,16 +4,72 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   MapPin,
-  Trophy,
-  Flame,
   Target,
-  Star,
-  TrendingUp,
-  Award,
+  BarChart3,
   Compass,
 } from "lucide-react";
 import { checkinApi } from "@/lib/checkin/checkinApi";
 import useUser from "#/src/hooks/useUser";
+
+const TOTAL_PROVINCES = 34;
+
+const MERGED_PROVINCE_ALIASES: Record<string, string> = {
+  "yen bai": "lao cai",
+  "bac kan": "thai nguyen",
+  "vinh phuc": "phu tho",
+  "hoa binh": "phu tho",
+  "bac giang": "bac ninh",
+  "thai binh": "hung yen",
+  "hai duong": "hai phong",
+  "ha nam": "ninh binh",
+  "nam dinh": "ninh binh",
+  "quang binh": "quang tri",
+  "quang nam": "da nang",
+  "kon tum": "quang ngai",
+  "binh dinh": "gia lai",
+  "ninh thuan": "khanh hoa",
+  "dak nong": "lam dong",
+  "binh thuan": "lam dong",
+  "phu yen": "dak lak",
+  "ba ria vung tau": "ho chi minh",
+  "binh duong": "ho chi minh",
+  "tp ho chi minh": "ho chi minh",
+  "thanh pho ho chi minh": "ho chi minh",
+  "ho chi minh city": "ho chi minh",
+  "binh phuoc": "dong nai",
+  "long an": "tay ninh",
+  "soc trang": "can tho",
+  "hau giang": "can tho",
+  "ben tre": "vinh long",
+  "tra vinh": "vinh long",
+  "tien giang": "dong thap",
+  "bac lieu": "ca mau",
+  "kien giang": "an giang",
+  "ha giang": "tuyen quang",
+  "thua thien hue": "hue",
+  "a nang": "da nang",
+  "ak lak": "dak lak",
+  "ak nong": "lam dong",
+  "ien bien": "dien bien",
+  "ong nai": "dong nai",
+  "ong thap": "dong thap",
+  "lam ong": "lam dong",
+};
+
+const normalizeProvince = (provinceName: string) =>
+  provinceName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[đĐ]/g, "d")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const getMergedProvinceKey = (provinceName: string) => {
+  const normalized = normalizeProvince(provinceName || "");
+  return MERGED_PROVINCE_ALIASES[normalized] || normalized;
+};
 
 // Animated counter component
 function AnimatedCounter({
@@ -105,9 +161,8 @@ const RANKS = [
   { min: 5, name: "Lữ khách", icon: "🎒", color: "from-green-400 to-emerald-500" },
   { min: 10, name: "Phượt thủ", icon: "🏕️", color: "from-blue-400 to-cyan-500" },
   { min: 20, name: "Thám hiểm gia", icon: "🧭", color: "from-purple-400 to-violet-500" },
-  { min: 35, name: "Chinh phục giả", icon: "⛰️", color: "from-orange-400 to-amber-500" },
-  { min: 50, name: "Thổ địa", icon: "🏆", color: "from-yellow-400 to-orange-500" },
-  { min: 63, name: "Huyền thoại", icon: "👑", color: "from-rose-400 to-pink-500" },
+  { min: 28, name: "Nhà chinh phục", icon: "⛰️", color: "from-orange-400 to-amber-500" },
+  { min: 34, name: "Huyền thoại", icon: "🏆", color: "from-yellow-400 to-orange-500" },
 ];
 
 function getRank(count: number) {
@@ -126,13 +181,11 @@ function getNextRank(count: number) {
 }
 
 export default function JourneyStats() {
-  const { user, isAuthenticated } = useUser();
+  const { isAuthenticated } = useUser();
   const [stats, setStats] = useState({
     totalProvinces: 0,
     manualProvinces: 0,
     tourProvinces: 0,
-    totalVouchers: 0,
-    streak: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -147,28 +200,35 @@ export default function JourneyStats() {
 
         if (progress.length > 0) {
           progress.forEach((p) => {
+            const provinceKey = getMergedProvinceKey(p.provinceName);
+            if (!provinceKey) return;
             if (p.source === "tour" || p.source === "both") {
-              tourProvinces.add(p.provinceName);
+              tourProvinces.add(provinceKey);
             }
             if (p.source === "manual" || p.source === "both") {
-              manualProvinces.add(p.provinceName);
+              manualProvinces.add(provinceKey);
             }
           });
         } else {
-          (res.fromBookings || []).forEach((p) => tourProvinces.add(p));
-          (res.fromManualCheckins || []).forEach((p) => manualProvinces.add(p));
+          (res.fromBookings || []).forEach((p) => {
+            const provinceKey = getMergedProvinceKey(p);
+            if (provinceKey) tourProvinces.add(provinceKey);
+          });
+          (res.fromManualCheckins || []).forEach((p) => {
+            const provinceKey = getMergedProvinceKey(p);
+            if (provinceKey) manualProvinces.add(provinceKey);
+          });
         }
 
-        const totalProvinces = progress.length
-          ? progress.length
-          : new Set([...tourProvinces, ...manualProvinces]).size;
+        const totalProvinces = Math.min(new Set([
+          ...tourProvinces,
+          ...manualProvinces,
+        ]).size, TOTAL_PROVINCES);
 
         setStats({
           totalProvinces,
-          manualProvinces: manualProvinces.size,
-          tourProvinces: tourProvinces.size,
-          totalVouchers: tourProvinces.size,
-          streak: Math.floor(Math.random() * 7) + 1, // Demo streak
+          manualProvinces: Math.min(manualProvinces.size, TOTAL_PROVINCES),
+          tourProvinces: Math.min(tourProvinces.size, TOTAL_PROVINCES),
         });
       } catch (error) {
         console.error("Error fetching journey stats:", error);
@@ -181,6 +241,10 @@ export default function JourneyStats() {
 
   const currentRank = getRank(stats.totalProvinces);
   const nextRank = getNextRank(stats.totalProvinces);
+  const completionPercent = Math.min(
+    Math.round((stats.totalProvinces / TOTAL_PROVINCES) * 100),
+    100
+  );
   const progressToNext = nextRank
     ? ((stats.totalProvinces - currentRank.min) / (nextRank.min - currentRank.min)) * 100
     : 100;
@@ -198,27 +262,27 @@ export default function JourneyStats() {
   return (
     <div className="space-y-6">
       {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Progress Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="col-span-1 md:col-span-2 lg:col-span-1 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg shadow-emerald-500/20"
+          className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg shadow-emerald-500/20"
         >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-emerald-100 text-sm font-medium mb-1">Tiến độ</p>
               <h3 className="text-4xl font-black">
-                {Math.round((stats.totalProvinces / 63) * 100)}%
+                {completionPercent}%
               </h3>
               <p className="text-emerald-200 text-xs mt-1">
-                {stats.totalProvinces}/63 tỉnh thành
+                {stats.totalProvinces}/{TOTAL_PROVINCES} tỉnh thành
               </p>
             </div>
             <CircularProgress
               value={stats.totalProvinces}
-              max={63}
+              max={TOTAL_PROVINCES}
               size={80}
               strokeWidth={6}
               color="#ffffff"
@@ -258,51 +322,6 @@ export default function JourneyStats() {
           </div>
         </motion.div>
 
-        {/* Vouchers Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100"
-        >
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-slate-500 text-sm font-medium mb-1">Voucher đã nhận</p>
-              <h3 className="text-3xl font-black text-slate-800">
-                <AnimatedCounter value={stats.totalVouchers} />
-              </h3>
-              <p className="text-emerald-600 text-xs mt-1 font-medium">
-                🎁 Phiếu giảm giá
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
-              <Star className="w-6 h-6 text-amber-500" />
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Streak Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100"
-        >
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-slate-500 text-sm font-medium mb-1">Chuỗi hoạt động</p>
-              <h3 className="text-3xl font-black text-slate-800">
-                <AnimatedCounter value={stats.streak} /> ngày
-              </h3>
-              <p className="text-orange-600 text-xs mt-1 font-medium">
-                🔥 Đang giữ streak!
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-              <Flame className="w-6 h-6 text-orange-500" />
-            </div>
-          </div>
-        </motion.div>
       </div>
 
       {/* Breakdown Row */}
@@ -353,7 +372,9 @@ export default function JourneyStats() {
             </div>
             <div>
               <p className="text-xs text-slate-500">Còn lại</p>
-              <p className="text-xl font-bold text-emerald-700">{63 - stats.totalProvinces}</p>
+              <p className="text-xl font-bold text-emerald-700">
+                {Math.max(TOTAL_PROVINCES - stats.totalProvinces, 0)}
+              </p>
             </div>
           </div>
         </motion.div>
@@ -366,11 +387,13 @@ export default function JourneyStats() {
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-amber-600" />
+              <BarChart3 className="w-5 h-5 text-amber-600" />
             </div>
             <div>
-              <p className="text-xs text-slate-500">Xếp hạng</p>
-              <p className="text-xl font-bold text-amber-700">Top 10%</p>
+              <p className="text-xs text-slate-500">Hoàn thành</p>
+              <p className="text-xl font-bold text-amber-700">
+                {completionPercent}%
+              </p>
             </div>
           </div>
         </motion.div>

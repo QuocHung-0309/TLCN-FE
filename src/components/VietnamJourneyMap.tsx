@@ -23,18 +23,83 @@ const COLORS = {
 };
 
 const MERGED_PROVINCE_ALIASES: Record<string, string> = {
+  "yen bai": "lao cai",
+  "bac kan": "thai nguyen",
+  "vinh phuc": "phu tho",
+  "hoa binh": "phu tho",
+  "bac giang": "bac ninh",
+  "thai binh": "hung yen",
+  "hai duong": "hai phong",
+  "ha nam": "ninh binh",
+  "nam dinh": "ninh binh",
+  "quang binh": "quang tri",
+  "quang nam": "da nang",
+  "kon tum": "quang ngai",
+  "binh dinh": "gia lai",
+  "ninh thuan": "khanh hoa",
+  "dak nong": "lam dong",
+  "binh thuan": "lam dong",
+  "phu yen": "dak lak",
+  "ba ria vung tau": "ho chi minh",
+  "binh duong": "ho chi minh",
+  "tp ho chi minh": "ho chi minh",
+  "thanh pho ho chi minh": "ho chi minh",
+  "ho chi minh city": "ho chi minh",
+  "binh phuoc": "dong nai",
+  "long an": "tay ninh",
+  "soc trang": "can tho",
+  "hau giang": "can tho",
+  "ben tre": "vinh long",
+  "tra vinh": "vinh long",
+  "tien giang": "dong thap",
+  "bac lieu": "ca mau",
+  "kien giang": "an giang",
   "ha giang": "tuyen quang",
+  "thua thien hue": "hue",
+  "a nang": "da nang",
+  "ak lak": "dak lak",
+  "ak nong": "lam dong",
+  "ien bien": "dien bien",
+  "ong nai": "dong nai",
+  "ong thap": "dong thap",
+  "lam ong": "lam dong",
 };
 
 const MERGED_PROVINCE_LABELS: Record<string, string> = {
-  "tuyen quang": "Tuyên Quang (gồm Hà Giang)",
+  "lao cai": "Lào Cai",
+  "thai nguyen": "Thái Nguyên",
+  "phu tho": "Phú Thọ",
+  "bac ninh": "Bắc Ninh",
+  "hung yen": "Hưng Yên",
+  "hai phong": "Hải Phòng",
+  "ninh binh": "Ninh Bình",
+  "quang tri": "Quảng Trị",
+  "da nang": "Đà Nẵng",
+  "quang ngai": "Quảng Ngãi",
+  "gia lai": "Gia Lai",
+  "khanh hoa": "Khánh Hòa",
+  "lam dong": "Lâm Đồng",
+  "dak lak": "Đắk Lắk",
+  "ho chi minh": "TP. Hồ Chí Minh",
+  "dong nai": "Đồng Nai",
+  "tay ninh": "Tây Ninh",
+  "can tho": "Cần Thơ",
+  "vinh long": "Vĩnh Long",
+  "dong thap": "Đồng Tháp",
+  "ca mau": "Cà Mau",
+  "an giang": "An Giang",
+  "tuyen quang": "Tuyên Quang",
+  "hue": "Huế",
 };
 
 const normalizeProvince = (provinceName: string) =>
   provinceName
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[đĐ]/g, "d")
     .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 
 const getMergedProvinceKey = (provinceName: string) => {
@@ -45,6 +110,17 @@ const getMergedProvinceKey = (provinceName: string) => {
 const getProvinceLabel = (provinceName: string) => {
   const mergedKey = getMergedProvinceKey(provinceName);
   return MERGED_PROVINCE_LABELS[mergedKey] || provinceName;
+};
+
+const cleanMemoryCaption = (caption = "", provinceName = "") => {
+  let text = caption.replace(/^\[Seed Journey\]\s*/i, "").trim();
+  const provincePrefix = `${provinceName}:`;
+
+  if (text.toLowerCase().startsWith(provincePrefix.toLowerCase())) {
+    text = text.slice(provincePrefix.length).trim();
+  }
+
+  return text;
 };
 
 const ARCHIPELAGO_SOURCE_PROVINCES = new Set(["VN21", "VN25"]);
@@ -132,6 +208,7 @@ export default function VietnamJourneyMap() {
   const router = useRouter();
   const { user } = useAuthStore();
   const mapRef = useRef<SVGSVGElement | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Tỉnh từ booking đã hoàn thành trên web (TỰ ĐỘNG - xanh ngọc)
   const [bookingProvinces, setBookingProvinces] = useState<Set<string>>(
@@ -212,12 +289,28 @@ export default function VietnamJourneyMap() {
         // Phase 1 API returns `progress` array
         if (res.progress && Array.isArray(res.progress)) {
           res.progress.forEach((p: any) => {
-            progressByKey[getMergedProvinceKey(p.provinceName)] = p;
+            const provinceKey = getMergedProvinceKey(p.provinceName);
+            const currentProgress = progressByKey[provinceKey];
+            const currentSource = currentProgress?.source;
+            const nextSource =
+              currentSource && currentSource !== p.source ? "both" : p.source;
+
+            progressByKey[provinceKey] = {
+              ...currentProgress,
+              ...p,
+              provinceName: getProvinceLabel(p.provinceName),
+              source: nextSource,
+              memoryCount:
+                (currentProgress?.memoryCount || 0) + (p.memoryCount || 0),
+              completedTourCount:
+                (currentProgress?.completedTourCount || 0) +
+                (p.completedTourCount || 0),
+            };
             if (p.source === "tour" || p.source === "both") {
-              fromBookingsSet.add(getMergedProvinceKey(p.provinceName));
+              fromBookingsSet.add(provinceKey);
             }
             if (p.source === "manual" || p.source === "both") {
-              fromManualSet.add(getMergedProvinceKey(p.provinceName));
+              fromManualSet.add(provinceKey);
             }
           });
         } else {
@@ -308,12 +401,40 @@ export default function VietnamJourneyMap() {
     setTranslate({ x: 0, y: 0 });
   };
 
+  const updateTooltipPosition = (e: React.MouseEvent) => {
+    const rect = mapContainerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
   const handlePathClick = (e: React.MouseEvent, title: string) => {
     e.stopPropagation();
     setSelectedProvince(title);
     setPopupTab("me");
-    const x = Math.min(e.clientX, window.innerWidth - 320);
-    const y = Math.min(e.clientY, window.innerHeight - 250);
+
+    const containerRect = mapContainerRef.current?.getBoundingClientRect();
+    if (!containerRect) {
+      setPopupPos({ x: 16, y: 16 });
+      return;
+    }
+
+    const margin = 16;
+    const gap = 12;
+    const popupWidth = 320;
+    const popupMaxHeight = 420;
+    const rawX = e.clientX - containerRect.left + gap;
+    const rawY = e.clientY - containerRect.top + gap;
+    const maxX = containerRect.width - popupWidth - margin;
+    const maxY = containerRect.height - popupMaxHeight - margin;
+    const x =
+      maxX <= margin ? margin : Math.min(Math.max(rawX, margin), maxX);
+    const y =
+      maxY <= margin ? margin : Math.min(Math.max(rawY, margin), maxY);
+
     setPopupPos({ x, y });
   };
 
@@ -326,7 +447,10 @@ export default function VietnamJourneyMap() {
 
   return (
     <section className="w-full max-w-5xl mx-auto px-4 mt-8 select-none">
-      <div className="relative w-full aspect-[4/3] bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+      <div
+        ref={mapContainerRef}
+        className="relative w-full aspect-[4/3] bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden"
+      >
         {/* Controls */}
         <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 bg-white/90 backdrop-blur p-2 rounded-xl shadow-sm border border-slate-200">
           <button
@@ -375,21 +499,19 @@ export default function VietnamJourneyMap() {
             setLastPos({ x: e.clientX, y: e.clientY });
           }}
           onMouseMove={(e) => {
+            updateTooltipPosition(e);
             if (!isDragging || !lastPos) return;
             const dx = e.clientX - lastPos.x;
             const dy = e.clientY - lastPos.y;
             setTranslate((p) => ({ x: p.x + dx, y: p.y + dy }));
             setLastPos({ x: e.clientX, y: e.clientY });
-            // Tooltip pos
-            const rect = mapRef.current?.getBoundingClientRect();
-            if (rect)
-              setMousePos({
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top,
-              });
           }}
           onMouseUp={() => setIsDragging(false)}
-          onMouseLeave={() => setIsDragging(false)}
+          onMouseLeave={() => {
+            setIsDragging(false);
+            setHoveredName(null);
+            setMousePos(null);
+          }}
         >
           <svg
             ref={mapRef}
@@ -430,7 +552,11 @@ export default function VietnamJourneyMap() {
                     stroke={COLORS.STROKE}
                     strokeWidth={0.5}
                     className="transition-all duration-200 cursor-pointer"
-                    onMouseEnter={() => setHoveredName(provinceLabel)}
+                    onMouseEnter={(e) => {
+                      setHoveredName(provinceLabel);
+                      updateTooltipPosition(e);
+                    }}
+                    onMouseMove={updateTooltipPosition}
                     onMouseLeave={() => setHoveredName(null)}
                     onClick={(e) => handlePathClick(e, p.title)}
                   />
@@ -476,8 +602,8 @@ export default function VietnamJourneyMap() {
         {/* Tooltip */}
         {hoveredName && mousePos && (
           <div
-            className="absolute z-30 px-3 py-1 bg-slate-800 text-white text-xs font-bold rounded pointer-events-none transform -translate-x-1/2 -translate-y-full"
-            style={{ left: mousePos.x, top: mousePos.y - 10 }}
+            className="absolute z-40 px-3 py-1 bg-slate-900 text-white text-xs font-bold rounded-lg shadow-lg pointer-events-none"
+            style={{ left: mousePos.x + 12, top: mousePos.y + 12 }}
           >
             {hoveredName}
           </div>
@@ -490,7 +616,7 @@ export default function VietnamJourneyMap() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="fixed z-50 bg-white rounded-2xl shadow-2xl p-6 w-80 border border-slate-100"
+              className="absolute z-50 w-80 max-w-[calc(100%_-_2rem)] max-h-[calc(100%_-_2rem)] overflow-y-auto bg-white rounded-2xl shadow-2xl p-6 border border-slate-100"
               style={{ left: popupPos.x, top: popupPos.y }}
             >
               <button
@@ -636,7 +762,7 @@ export default function VietnamJourneyMap() {
                            <div className="flex items-center justify-between">
                              <div className="flex items-center gap-2">
                                {m.userId?.avatar ? (
-                                 <img src={m.userId.avatar} className="w-6 h-6 rounded-full object-cover" />
+                                  <img src={m.userId.avatar} alt={m.userId?.fullName || "avatar"} className="w-6 h-6 rounded-full object-cover" />
                                ) : (
                                  <div className="w-6 h-6 rounded-full bg-slate-200"></div>
                                )}
@@ -646,10 +772,41 @@ export default function VietnamJourneyMap() {
                            </div>
                            
                            {m.images && m.images.length > 0 && (
-                             <img src={m.images[0]} className="w-full h-24 object-cover rounded-lg" />
+                             <div
+                               className={`grid gap-1 ${
+                                 m.images.length === 1
+                                   ? "grid-cols-1"
+                                   : m.images.length === 2
+                                     ? "grid-cols-2"
+                                     : "h-44 grid-cols-2 grid-rows-2"
+                               }`}
+                             >
+                               {m.images.slice(0, 3).map((image: string, index: number) => (
+                                 <div
+                                   key={image + index}
+                                   className={`relative overflow-hidden rounded-lg bg-slate-100 ${
+                                     m.images.length >= 3 ? "h-full" : "h-24"
+                                   } ${
+                                     index === 0 && m.images.length >= 3
+                                       ? "row-span-2"
+                                       : ""
+                                   }`}
+                                 >
+                                   <img
+                                     src={image}
+                                     alt={m.provinceName || "memory"}
+                                     className="h-full w-full object-cover"
+                                   />
+                                 </div>
+                               ))}
+                             </div>
                            )}
                            
-                           {m.caption && <p className="text-xs text-slate-600 line-clamp-2">"{m.caption}"</p>}
+                           {cleanMemoryCaption(m.caption, m.provinceName) && (
+                             <p className="text-xs text-slate-600 line-clamp-2">
+                               &ldquo;{cleanMemoryCaption(m.caption, m.provinceName)}&rdquo;
+                             </p>
+                           )}
                            
                            <div className="flex items-center justify-between mt-1">
                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${m.source === "tour" ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"}`}>

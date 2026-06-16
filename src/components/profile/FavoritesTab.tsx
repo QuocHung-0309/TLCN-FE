@@ -114,8 +114,8 @@ export default function FavoritesTab() {
            </div>
            <p className="text-slate-800 font-bold text-lg">Hành trình yêu thích trống</p>
            <p className="text-slate-400 text-sm mb-6">Bạn chưa lưu lại chuyến đi nào.</p>
-           <Link href="/user/tour-list" className="px-6 py-2.5 bg-blue-950 text-white rounded-xl text-sm font-bold hover:bg-blue-900 transition-all shadow-lg shadow-blue-900/20">
-             Khám phá tour mới
+           <Link href="/user/tours" className="inline-flex items-center gap-2 px-6 py-2.5 bg-orange-600 text-white rounded-full font-bold shadow-lg shadow-orange-500/30 hover:bg-orange-700 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-500/40 active:translate-y-0 transition-all duration-300">
+             Khám phá tour mới <Plane size={16} />
            </Link>
         </div>
       ) : (
@@ -138,7 +138,7 @@ export default function FavoritesTab() {
                   {/* Thumbnail */}
                   <Link 
                     href={`/user/destination/tour/${tour._id}`} 
-                    className={`block relative overflow-hidden ${viewMode === "list" ? "w-48 h-auto flex-shrink-0" : "aspect-[4/3]"}`}
+                    className={`block relative overflow-hidden ${viewMode === "list" ? "w-32 md:w-48 aspect-[4/3] flex-shrink-0" : "aspect-[4/3]"}`}
                   >
                     <Image
                       src={tour.images?.[0] || "/tour.jpg"}
@@ -196,7 +196,7 @@ export default function FavoritesTab() {
                        </div>
                        <Link 
                          href={`/user/destination/tour/${tour._id}`}
-                         className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-blue-600 transition-colors"
+                         className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-blue-600 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 transition-all duration-300"
                        >
                          Khám phá
                        </Link>

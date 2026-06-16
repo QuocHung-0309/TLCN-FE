@@ -120,22 +120,29 @@ const Page = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      {/* HEADER: Accent Line Style */}
+      <div className="relative mb-8 border-b border-slate-200 pb-5 pt-2">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-1">
               Quản Lý Tours
             </h1>
-            <p className="text-slate-600">Quản lý thông tin tours du lịch</p>
+            <p className="text-sm text-slate-500 font-medium">
+              Quản lý thông tin, chỉnh sửa và tạo các mẫu tour du lịch mới
+            </p>
           </div>
+          
           <Link
             href="/admin/tours/create"
-            className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition font-semibold shadow-lg shadow-orange-500/25"
+            className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition font-semibold shadow-lg shadow-orange-500/25 shrink-0"
           >
-            + Tạo Tour Mới
+            <i className="ri-add-line text-lg"></i>
+            Tạo Tour Mới
           </Link>
         </div>
+        
+        {/* Accent Line */}
+        <div className="absolute bottom-0 left-0 h-[3px] w-24 bg-orange-500 rounded-t-md" />
       </div>
 
       {/* Filters */}

@@ -10,7 +10,6 @@ interface ChatState {
   // Current active chat
   activeSupportId: string | null;
   activeBookingCode: string | null;
-  activeTourId: string | null;
   activeRoomType: RoomType | null;
 
   // Messages cache
@@ -19,12 +18,10 @@ interface ChatState {
   // User's chat history (for quick access)
   supportChats: ChatThread[];
   bookingChats: ChatThread[];
-  tourChats: ChatThread[];
 
   // Unread counts
   unreadSupport: number;
   unreadBooking: number;
-  unreadTour: number;
 
   // Actions
   openWidget: () => void;
@@ -44,12 +41,10 @@ interface ChatState {
   // Chat history
   setSupportChats: (chats: ChatThread[]) => void;
   setBookingChats: (chats: ChatThread[]) => void;
-  setTourChats: (chats: ChatThread[]) => void;
 
   // Unread
   setUnreadSupport: (count: number) => void;
   setUnreadBooking: (count: number) => void;
-  setUnreadTour: (count: number) => void;
   clearAllUnread: () => void;
 
   // Reset
@@ -61,15 +56,12 @@ const initialState = {
   isMinimized: false,
   activeSupportId: null,
   activeBookingCode: null,
-  activeTourId: null,
   activeRoomType: null,
   messages: [],
   supportChats: [],
   bookingChats: [],
-  tourChats: [],
   unreadSupport: 0,
   unreadBooking: 0,
-  unreadTour: 0,
 };
 
 export const useChatStore = create<ChatState>()(
@@ -98,12 +90,10 @@ export const useChatStore = create<ChatState>()(
           activeRoomType: type,
           activeSupportId: null,
           activeBookingCode: null,
-          activeTourId: null,
         };
 
         if (type === "support") updates.activeSupportId = id;
         else if (type === "booking") updates.activeBookingCode = id;
-        else if (type === "tour") updates.activeTourId = id;
 
         set(updates);
       },
@@ -113,7 +103,6 @@ export const useChatStore = create<ChatState>()(
           activeRoomType: null,
           activeSupportId: null,
           activeBookingCode: null,
-          activeTourId: null,
           messages: [],
         }),
 
@@ -126,14 +115,12 @@ export const useChatStore = create<ChatState>()(
       // Chat history
       setSupportChats: (chats) => set({ supportChats: chats }),
       setBookingChats: (chats) => set({ bookingChats: chats }),
-      setTourChats: (chats) => set({ tourChats: chats }),
 
       // Unread
       setUnreadSupport: (count) => set({ unreadSupport: count }),
       setUnreadBooking: (count) => set({ unreadBooking: count }),
-      setUnreadTour: (count) => set({ unreadTour: count }),
       clearAllUnread: () =>
-        set({ unreadSupport: 0, unreadBooking: 0, unreadTour: 0 }),
+        set({ unreadSupport: 0, unreadBooking: 0 }),
 
       // Reset
       reset: () => set(initialState),

@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { getMyReviews, deleteReview } from "@/lib/reviews/reviewApi";
 import ReviewModal from "@/components/ReviewModal";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 export default function ReviewsTab() {
   const [reviews, setReviews] = useState<any[]>([]);
@@ -67,7 +68,7 @@ export default function ReviewsTab() {
   return (
     <div className="space-y-6">
       {/* --- Stats Strip (Thay thế cho Title) --- */}
-      <div className="relative z-30 flex flex-wrap items-center justify-between gap-4 bg-white/50 backdrop-blur-md p-4 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="relative z-30 flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-blue-50/80 to-white backdrop-blur-md p-4 rounded-2xl border border-slate-100 shadow-sm">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
@@ -134,8 +135,11 @@ export default function ReviewsTab() {
             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <Star size={40} className="text-slate-200" />
             </div>
-            <p className="text-slate-500 font-bold text-lg">Chưa có đánh giá nào</p>
-            <p className="text-slate-400 text-sm">Hãy chia sẻ trải nghiệm của bạn sau mỗi chuyến đi nhé!</p>
+            <p className="text-slate-500 font-bold text-lg mb-2">Chưa có đánh giá nào</p>
+            <p className="text-slate-400 text-sm mb-6">Hãy chia sẻ trải nghiệm của bạn sau mỗi chuyến đi nhé!</p>
+            <Link href="/user/history" className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-950 text-white rounded-full font-bold shadow-lg shadow-blue-900/20 hover:bg-blue-900 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-900/30 active:translate-y-0 transition-all duration-300">
+              Đánh giá chuyến đi
+            </Link>
           </div>
         ) : (
           <AnimatePresence mode="popLayout">
@@ -184,7 +188,7 @@ export default function ReviewsTab() {
                         </div>
                       </div>
 
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                         <button 
                           onClick={() => setEditingReview(review)}
                           className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"

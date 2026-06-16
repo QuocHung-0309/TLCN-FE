@@ -1,20 +1,30 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { FormEvent, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import {
+  BadgeCheck,
   Calendar,
-  MapPin,
   Camera,
-  Clock,
-  ChevronRight,
-  Sparkles,
+  CheckCircle2,
+  Globe2,
+  Heart,
+  ImageIcon,
   Lock,
-  Globe,
-  Heart
+  MapPin,
+  MessageCircle,
+  Send,
+  Share2,
+  Sparkles,
+  Trash2,
+  TrendingUp,
+  Users,
 } from "lucide-react";
-import { travelMemoryApi, TravelMemoryPayload } from "@/lib/checkin/travelMemoryApi";
+import {
+  travelMemoryApi,
+  TravelMemoryComment,
+} from "@/lib/checkin/travelMemoryApi";
 import useUser from "#/src/hooks/useUser";
 import { toast } from "react-hot-toast";
 
@@ -28,12 +38,224 @@ interface TimelineItem {
   source: "manual" | "tour";
   userId?: {
     _id: string;
-    fullName: string;
-    avatar: string;
+    fullName?: string;
+    avatar?: string;
   };
   likesCount?: number;
+  commentsCount?: number;
   isLikedByMe?: boolean;
 }
+
+const DEFAULT_IMAGE = "/hot1.jpg";
+
+const cleanCaption = (caption = "", provinceName = "") => {
+  let text = caption.replace(/^\[Seed Journey\]\s*/i, "").trim();
+  const provincePrefix = `${provinceName}:`;
+
+  if (text.toLowerCase().startsWith(provincePrefix.toLowerCase())) {
+    text = text.slice(provincePrefix.length).trim();
+  }
+
+  return text;
+};
+
+const getDisplayName = (item: TimelineItem) =>
+  item.userId?.fullName || "Người dùng AHH";
+
+const getInitials = (name = "AHH") =>
+  name
+    .trim()
+    .split(/\s+/)
+    .slice(-2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+
+const formatDate = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Chưa có ngày";
+
+  return date.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
+const formatLongDate = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Chưa có ngày";
+
+  return date.toLocaleDateString("vi-VN", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+const formatRelativeTime = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Vừa xong";
+
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.max(Math.floor(diffMs / 60000), 0);
+
+  if (diffMinutes < 1) return "Vừa xong";
+  if (diffMinutes < 60) return `${diffMinutes} phút trước`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours} giờ trước`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays} ngày trước`;
+
+  return formatDate(value);
+};
+
+const sourceMeta = (source?: TimelineItem["source"]) => {
+  if (source === "tour") {
+    return {
+      label: "Đã xác thực qua tour",
+      shortLabel: "Qua tour AHH",
+      icon: BadgeCheck,
+      className: "bg-emerald-50 text-emerald-700 ring-emerald-100",
+    };
+  }
+
+  return {
+    label: "Tự đánh dấu",
+    shortLabel: "Tự đánh dấu",
+    icon: MapPin,
+    className: "bg-blue-50 text-blue-700 ring-blue-100",
+  };
+};
+
+const Avatar = ({
+  src,
+  name,
+  size = "md",
+}: {
+  src?: string;
+  name?: string;
+  size?: "sm" | "md" | "lg";
+}) => {
+  const sizeClass =
+    size === "sm"
+      ? "h-8 w-8 text-xs"
+      : size === "lg"
+        ? "h-12 w-12 text-sm"
+        : "h-10 w-10 text-sm";
+
+  if (src) {
+    return (
+      <div className={`relative shrink-0 overflow-hidden rounded-full bg-slate-100 ${sizeClass}`}>
+        <Image src={src} alt={name || "Avatar"} fill sizes="48px" className="object-cover" />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`flex shrink-0 items-center justify-center rounded-full bg-blue-600 font-bold text-white ${sizeClass}`}
+    >
+      {getInitials(name)}
+    </div>
+  );
+};
+
+const ImageGrid = ({ images, title }: { images?: string[]; title: string }) => {
+  const safeImages = images?.length ? images.slice(0, 3) : [DEFAULT_IMAGE];
+
+  if (safeImages.length === 1) {
+    return (
+      <div className="relative h-52 overflow-hidden rounded-xl bg-slate-100 sm:h-60">
+        <Image
+          src={safeImages[0]}
+          alt={title}
+          fill
+          sizes="(max-width: 768px) 100vw, 680px"
+          className="object-cover"
+        />
+      </div>
+    );
+  }
+
+  if (safeImages.length === 2) {
+    return (
+      <div className="grid h-52 grid-cols-2 gap-1.5 sm:h-60">
+        {safeImages.map((image, index) => (
+          <div key={image + index} className="relative overflow-hidden rounded-xl bg-slate-100">
+            <Image src={image} alt={title} fill sizes="340px" className="object-cover" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid h-60 grid-cols-[1.25fr_0.9fr] gap-1.5 sm:h-64">
+      <div className="relative overflow-hidden rounded-xl bg-slate-100">
+        <Image src={safeImages[0]} alt={title} fill sizes="430px" className="object-cover" />
+      </div>
+      <div className="grid gap-1.5">
+        {safeImages.slice(1).map((image, index) => (
+          <div key={image + index} className="relative overflow-hidden rounded-xl bg-slate-100">
+            <Image src={image} alt={title} fill sizes="250px" className="object-cover" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const CompactImageGrid = ({
+  images,
+  title,
+}: {
+  images?: string[];
+  title: string;
+}) => {
+  const safeImages = images?.length ? images.slice(0, 3) : [DEFAULT_IMAGE];
+  const layoutClass =
+    safeImages.length === 1
+      ? ""
+      : safeImages.length === 2
+        ? "grid grid-cols-2 gap-1"
+        : "grid grid-cols-2 grid-rows-2 gap-1";
+
+  return (
+    <div
+      className={`relative h-28 w-full shrink-0 overflow-hidden rounded-2xl bg-slate-100 sm:w-44 ${layoutClass}`}
+    >
+      {safeImages.map((image, index) => (
+        <div
+          key={image + index}
+          className={`relative overflow-hidden ${
+            safeImages.length === 1
+              ? "h-full w-full"
+              : index === 0 && safeImages.length === 3
+                ? "row-span-2"
+                : ""
+          }`}
+        >
+          <Image
+            src={image}
+            alt={title}
+            fill
+            sizes="176px"
+            className="object-cover"
+          />
+        </div>
+      ))}
+
+      <div className="absolute bottom-2 right-2 rounded-full bg-slate-950/70 px-2 py-1 text-xs font-bold text-white">
+        <Camera size={12} className="mr-1 inline" />
+        {Math.max(images?.length || 1, 1)}
+      </div>
+    </div>
+  );
+};
 
 export default function JourneyTimeline({
   initialTab = "me",
@@ -42,288 +264,596 @@ export default function JourneyTimeline({
   initialTab?: "me" | "community";
   filterProvince?: string;
 }) {
-  const { isAuthenticated } = useUser();
-  const [activeTab, setActiveTab] = useState<"me" | "community">(initialTab);
+  const { user, isAuthenticated } = useUser();
   const [timeline, setTimeline] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
+  const [commentsByMemory, setCommentsByMemory] = useState<
+    Record<string, TravelMemoryComment[]>
+  >({});
+  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
+  const [loadingComments, setLoadingComments] = useState<Record<string, boolean>>({});
+  const [postingComment, setPostingComment] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    setActiveTab(initialTab);
-  }, [initialTab]);
+  const isCommunity = initialTab === "community";
 
   useEffect(() => {
     const fetchTimeline = async () => {
       if (!isAuthenticated) return;
       setLoading(true);
+
       try {
-        if (activeTab === "me") {
-          const res = await travelMemoryApi.getMyMemories(filterProvince, 1, 10);
-          setTimeline(res.data || []);
-        } else {
-          const res = await travelMemoryApi.getPublicMemories(filterProvince, 1, 10);
-          setTimeline(res.data || []);
-        }
-      } catch (error) {
-        console.error(error);
+        const res = isCommunity
+          ? await travelMemoryApi.getPublicMemories(filterProvince, 1, 20)
+          : await travelMemoryApi.getMyMemories(filterProvince, 1, 30);
+
+        setTimeline(res.data || []);
+      } catch {
+        toast.error("Không thể tải dữ liệu hành trình.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchTimeline();
-  }, [isAuthenticated, activeTab, filterProvince]);
+  }, [isAuthenticated, isCommunity, filterProvince]);
+
+  const communityStats = useMemo(() => {
+    const provinceSet = new Set(timeline.map((item) => item.provinceName));
+    return {
+      posts: timeline.length,
+      provinces: provinceSet.size,
+      likes: timeline.reduce((total, item) => total + (item.likesCount || 0), 0),
+      comments: timeline.reduce(
+        (total, item) => total + (item.commentsCount || 0),
+        0
+      ),
+      verified: timeline.filter((item) => item.source === "tour").length,
+    };
+  }, [timeline]);
 
   const handleLike = async (id: string, isLiked: boolean) => {
     if (!isAuthenticated) return;
+
+    setTimeline((prev) =>
+      prev.map((item) =>
+        item._id === id
+          ? {
+              ...item,
+              isLikedByMe: !isLiked,
+              likesCount: Math.max((item.likesCount || 0) + (isLiked ? -1 : 1), 0),
+            }
+          : item
+      )
+    );
+
     try {
-      setTimeline(prev => prev.map(item => {
-        if (item._id === id) {
-          return {
-            ...item,
-            isLikedByMe: !isLiked,
-            likesCount: (item.likesCount || 0) + (isLiked ? -1 : 1)
-          };
-        }
-        return item;
-      }));
-      
       if (isLiked) {
         await travelMemoryApi.unlikeMemory(id);
       } else {
         await travelMemoryApi.likeMemory(id);
       }
-    } catch (error: any) {
-      toast.error("Có lỗi xảy ra, vui lòng thử lại sau.");
+    } catch {
+      toast.error("Không thể cập nhật lượt thích.");
+      setTimeline((prev) =>
+        prev.map((item) =>
+          item._id === id
+            ? {
+                ...item,
+                isLikedByMe: isLiked,
+                likesCount: Math.max(
+                  (item.likesCount || 0) + (isLiked ? 1 : -1),
+                  0
+                ),
+              }
+            : item
+        )
+      );
     }
   };
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return {
-      day: date.getDate(),
-      month: date.toLocaleDateString("vi-VN", { month: "short" }),
-      year: date.getFullYear(),
-      time: date.toLocaleTimeString("vi-VN", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
+  const loadComments = async (memoryId: string) => {
+    if (commentsByMemory[memoryId]) return;
+
+    setLoadingComments((prev) => ({ ...prev, [memoryId]: true }));
+    try {
+      const res = await travelMemoryApi.getComments(memoryId, 1, 20);
+      setCommentsByMemory((prev) => ({
+        ...prev,
+        [memoryId]: res.data || [],
+      }));
+    } catch {
+      toast.error("Không thể tải bình luận.");
+    } finally {
+      setLoadingComments((prev) => ({ ...prev, [memoryId]: false }));
+    }
+  };
+
+  const toggleComments = async (memoryId: string) => {
+    const willOpen = !openComments[memoryId];
+    setOpenComments((prev) => ({ ...prev, [memoryId]: willOpen }));
+    if (willOpen) await loadComments(memoryId);
+  };
+
+  const handleSubmitComment = async (
+    event: FormEvent<HTMLFormElement>,
+    memoryId: string
+  ) => {
+    event.preventDefault();
+    const content = (commentInputs[memoryId] || "").trim();
+
+    if (!content) return;
+
+    setPostingComment((prev) => ({ ...prev, [memoryId]: true }));
+    try {
+      const res = await travelMemoryApi.createComment(memoryId, content);
+      setCommentsByMemory((prev) => ({
+        ...prev,
+        [memoryId]: [...(prev[memoryId] || []), res.comment],
+      }));
+      setTimeline((prev) =>
+        prev.map((item) =>
+          item._id === memoryId
+            ? { ...item, commentsCount: (item.commentsCount || 0) + 1 }
+            : item
+        )
+      );
+      setCommentInputs((prev) => ({ ...prev, [memoryId]: "" }));
+      setOpenComments((prev) => ({ ...prev, [memoryId]: true }));
+    } catch {
+      toast.error("Không thể gửi bình luận.");
+    } finally {
+      setPostingComment((prev) => ({ ...prev, [memoryId]: false }));
+    }
+  };
+
+  const handleDeleteComment = async (memoryId: string, commentId: string) => {
+    try {
+      await travelMemoryApi.deleteComment(memoryId, commentId);
+      setCommentsByMemory((prev) => ({
+        ...prev,
+        [memoryId]: (prev[memoryId] || []).filter(
+          (comment) => comment._id !== commentId
+        ),
+      }));
+      setTimeline((prev) =>
+        prev.map((item) =>
+          item._id === memoryId
+            ? {
+                ...item,
+                commentsCount: Math.max((item.commentsCount || 0) - 1, 0),
+              }
+            : item
+        )
+      );
+    } catch {
+      toast.error("Không thể xóa bình luận.");
+    }
+  };
+
+  const handleShare = async (memoryId: string) => {
+    const shareUrl = `${window.location.origin}${window.location.pathname}#memory-${memoryId}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "Kỷ niệm du lịch trên AHH Travel",
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Đã sao chép liên kết bài viết.");
+      }
+    } catch {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("Đã sao chép liên kết bài viết.");
+    }
   };
 
   if (loading) {
     return (
-      <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
-        <div className="animate-pulse space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="flex gap-4">
-              <div className="w-16 h-16 bg-slate-100 rounded-xl" />
-              <div className="flex-1 space-y-2">
-                <div className="h-4 bg-slate-100 rounded w-1/3" />
-                <div className="h-3 bg-slate-100 rounded w-1/4" />
+      <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm md:p-8">
+        <div className="mb-6 h-8 w-64 animate-pulse rounded bg-slate-100" />
+        <div className="space-y-5">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="rounded-2xl border border-slate-100 p-4">
+              <div className="mb-4 flex gap-3">
+                <div className="h-11 w-11 animate-pulse rounded-full bg-slate-100" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-1/3 animate-pulse rounded bg-slate-100" />
+                  <div className="h-3 w-1/4 animate-pulse rounded bg-slate-100" />
+                </div>
               </div>
+              <div className="h-56 animate-pulse rounded-2xl bg-slate-100" />
             </div>
           ))}
         </div>
-      </div>
+      </section>
     );
   }
 
-  if (timeline.length === 0) {
+  if (!timeline.length) {
     return (
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 text-center">
-        <div className="flex items-center gap-4 border-b border-slate-200 pb-4 mb-6">
-          <button
-            onClick={() => setActiveTab("me")}
-            className={`font-bold transition-colors ${activeTab === "me" ? "text-indigo-600" : "text-slate-500 hover:text-slate-700"}`}
-          >
-            Cá nhân
-          </button>
-          <button
-            onClick={() => setActiveTab("community")}
-            className={`font-bold transition-colors ${activeTab === "community" ? "text-indigo-600" : "text-slate-500 hover:text-slate-700"}`}
-          >
-            Cộng đồng
-          </button>
+      <section className="rounded-3xl border border-slate-100 bg-white p-8 text-center shadow-sm">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+          {isCommunity ? <Users size={30} /> : <ImageIcon size={30} />}
         </div>
-        <div className="w-20 h-20 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-4">
-          <MapPin className="w-10 h-10 text-slate-400" />
-        </div>
-        <h3 className="text-lg font-bold text-slate-800 mb-2">
-          {activeTab === "me" ? "Chưa có kỷ niệm nào" : "Chưa có bài đăng nào"}
-        </h3>
-        <p className="text-slate-500 text-sm">
-          {activeTab === "me" 
-            ? "Hãy bắt đầu chinh phục Việt Nam bằng cách lưu lại kỷ niệm tại địa điểm đầu tiên!"
-            : "Hãy là người đầu tiên chia sẻ kỷ niệm tại đây!"}
+        <h2 className="text-xl font-bold text-slate-900">
+          {isCommunity ? "Chưa có bài đăng cộng đồng" : "Chưa có kỷ niệm nào"}
+        </h2>
+        <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
+          {isCommunity
+            ? "Khi người dùng chia sẻ kỷ niệm ở chế độ công khai, bài viết sẽ xuất hiện tại đây."
+            : "Hãy lưu kỷ niệm đầu tiên để dòng thời gian cá nhân bắt đầu có dấu chân của bạn."}
         </p>
-      </div>
+      </section>
+    );
+  }
+
+  if (isCommunity) {
+    return (
+      <section className="mx-auto grid max-w-6xl grid-cols-1 gap-5 lg:grid-cols-[minmax(0,680px)_280px] lg:justify-center">
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="mb-2 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-blue-700">
+                  <Users size={14} />
+                  Cộng đồng AHH Travel
+                </p>
+                <h2 className="text-xl font-black text-slate-900 md:text-2xl">
+                  Bảng tin cộng đồng
+                </h2>
+                <p className="mt-1 text-sm leading-6 text-slate-500">
+                  Những kỷ niệm công khai từ mọi người, có thể thả tim và bình luận.
+                </p>
+              </div>
+              <div className="w-fit rounded-xl bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 ring-1 ring-slate-200">
+                {communityStats.posts} bài viết mới nhất
+              </div>
+            </div>
+          </div>
+
+          {timeline.map((item, index) => {
+            const meta = sourceMeta(item.source);
+            const SourceIcon = meta.icon;
+            const caption = cleanCaption(item.caption, item.provinceName);
+            const comments = commentsByMemory[item._id] || [];
+            const displayName = getDisplayName(item);
+
+            return (
+              <motion.article
+                id={`memory-${item._id}`}
+                key={item._id}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.04 }}
+                className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm"
+              >
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 gap-3">
+                      <Avatar src={item.userId?.avatar} name={displayName} size="md" />
+                      <div className="min-w-0">
+                        <h3 className="truncate text-base font-bold text-slate-900">
+                          {displayName}
+                        </h3>
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                          <span>{formatRelativeTime(item.visitedAt)}</span>
+                          <span className="h-1 w-1 rounded-full bg-slate-300" />
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin size={13} />
+                            {item.provinceName}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${meta.className}`}
+                    >
+                      <SourceIcon size={13} />
+                      {meta.shortLabel}
+                    </span>
+                  </div>
+
+                  {caption && (
+                    <p className="mt-3 line-clamp-4 whitespace-pre-line text-sm leading-6 text-slate-700">
+                      {caption}
+                    </p>
+                  )}
+                </div>
+
+                <div className="px-4">
+                  <ImageGrid images={item.images} title={item.provinceName} />
+                </div>
+
+                <div className="px-4 pb-4 pt-3">
+                  <div className="mb-2 flex items-center justify-between text-xs text-slate-500">
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Heart size={14} className="text-rose-500" />
+                        {item.likesCount || 0} lượt thích
+                      </span>
+                      <button
+                        onClick={() => toggleComments(item._id)}
+                        className="inline-flex items-center gap-1.5 hover:text-blue-700"
+                      >
+                        <MessageCircle size={14} />
+                        {item.commentsCount || 0} bình luận
+                      </button>
+                    </div>
+                    <span>{formatDate(item.visitedAt)}</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-1.5 border-y border-slate-100 py-1.5">
+                    <button
+                      onClick={() => handleLike(item._id, !!item.isLikedByMe)}
+                      className={`flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition-colors ${
+                        item.isLikedByMe
+                          ? "bg-rose-50 text-rose-600"
+                          : "text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      <Heart
+                        size={16}
+                        className={item.isLikedByMe ? "fill-rose-500" : ""}
+                      />
+                      Thích
+                    </button>
+
+                    <button
+                      onClick={() => toggleComments(item._id)}
+                      className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-50"
+                    >
+                      <MessageCircle size={16} />
+                      Bình luận
+                    </button>
+
+                    <button
+                      onClick={() => handleShare(item._id)}
+                      className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-50"
+                    >
+                      <Share2 size={16} />
+                      Chia sẻ
+                    </button>
+                  </div>
+
+                  {openComments[item._id] && (
+                    <div className="mt-3 space-y-3">
+                      {loadingComments[item._id] ? (
+                        <div className="space-y-3">
+                          {Array.from({ length: 2 }).map((_, commentIndex) => (
+                            <div key={commentIndex} className="flex gap-2.5">
+                              <div className="h-8 w-8 animate-pulse rounded-full bg-slate-100" />
+                              <div className="h-12 flex-1 animate-pulse rounded-xl bg-slate-100" />
+                            </div>
+                          ))}
+                        </div>
+                      ) : comments.length ? (
+                        <div className="space-y-2.5">
+                          {comments.map((comment) => {
+                            const commentOwnerId = comment.userId?._id;
+                            const canDelete = commentOwnerId && commentOwnerId === user?.id;
+
+                            return (
+                              <div key={comment._id} className="flex gap-2.5">
+                                <Avatar
+                                  src={comment.userId?.avatar}
+                                  name={comment.userId?.fullName}
+                                  size="sm"
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <div className="rounded-xl bg-slate-50 px-3 py-2.5">
+                                    <div className="mb-1 flex items-center justify-between gap-2">
+                                      <p className="truncate text-sm font-bold text-slate-900">
+                                        {comment.userId?.fullName || "Người dùng AHH"}
+                                      </p>
+                                      {canDelete && (
+                                        <button
+                                          onClick={() =>
+                                            handleDeleteComment(item._id, comment._id)
+                                          }
+                                          className="rounded-full p-1 text-slate-400 hover:bg-white hover:text-rose-500"
+                                          title="Xóa bình luận"
+                                        >
+                                          <Trash2 size={14} />
+                                        </button>
+                                      )}
+                                    </div>
+                                    <p className="whitespace-pre-line text-sm leading-6 text-slate-700">
+                                      {comment.content}
+                                    </p>
+                                  </div>
+                                  <p className="mt-1 px-2 text-xs text-slate-400">
+                                    {formatRelativeTime(comment.createdAt)}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="rounded-xl bg-slate-50 px-3 py-2.5 text-sm text-slate-500">
+                          Chưa có bình luận nào. Hãy là người mở lời cho chuyến đi này.
+                        </p>
+                      )}
+
+                      <form
+                        onSubmit={(event) => handleSubmitComment(event, item._id)}
+                        className="flex gap-2.5"
+                      >
+                        <Avatar src={user?.avatar} name={user?.fullName} size="sm" />
+                        <div className="flex flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 focus-within:border-blue-300 focus-within:bg-white">
+                          <input
+                            value={commentInputs[item._id] || ""}
+                            onChange={(event) =>
+                              setCommentInputs((prev) => ({
+                                ...prev,
+                                [item._id]: event.target.value,
+                              }))
+                            }
+                            maxLength={500}
+                            placeholder="Viết bình luận..."
+                            className="min-w-0 flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                          />
+                          <button
+                            type="submit"
+                            disabled={postingComment[item._id]}
+                            className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                          >
+                            <Send size={15} />
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+                </div>
+              </motion.article>
+            );
+          })}
+        </div>
+
+        <aside className="space-y-3 lg:sticky lg:top-24 lg:h-fit">
+          <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+            <h3 className="mb-3 flex items-center gap-2 text-base font-black text-slate-900">
+              <TrendingUp size={18} className="text-blue-600" />
+              Hoạt động cộng đồng
+            </h3>
+            <div className="grid grid-cols-2 gap-2.5">
+              {[
+                { label: "Bài viết", value: communityStats.posts },
+                { label: "Tỉnh/thành", value: communityStats.provinces },
+                { label: "Lượt thích", value: communityStats.likes },
+                { label: "Bình luận", value: communityStats.comments },
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-xl bg-slate-50 p-3">
+                  <p className="text-lg font-black text-slate-900">{stat.value}</p>
+                  <p className="mt-1 text-xs font-semibold text-slate-500">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+            <h3 className="mb-2 flex items-center gap-2 text-sm font-black text-slate-900">
+              <Sparkles size={16} className="text-blue-600" />
+              Cách đăng lên cộng đồng
+            </h3>
+            <p className="text-xs leading-5 text-slate-600">
+              Khi lưu kỷ niệm, chọn chế độ công khai. Bài viết sẽ xuất hiện ở bảng
+              tin để mọi người có thể thả tim và bình luận.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm">
+            <p className="text-sm font-bold text-slate-900">
+              {communityStats.verified} bài viết đã xác thực qua tour
+            </p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              Các bài này đến từ hành trình đã đặt trên hệ thống AHH Travel.
+            </p>
+          </div>
+        </aside>
+      </section>
     );
   }
 
   return (
-    <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-6">
-          <button
-            onClick={() => setActiveTab("me")}
-            className={`text-lg md:text-xl font-bold pb-1 border-b-2 transition-colors ${activeTab === "me" ? "border-indigo-600 text-slate-800" : "border-transparent text-slate-400 hover:text-slate-600"}`}
-          >
-            Của tôi
-          </button>
-          <button
-            onClick={() => setActiveTab("community")}
-            className={`text-lg md:text-xl font-bold pb-1 border-b-2 transition-colors ${activeTab === "community" ? "border-indigo-600 text-slate-800" : "border-transparent text-slate-400 hover:text-slate-600"}`}
-          >
-            Cộng đồng
-          </button>
+    <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm md:p-8">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="mb-2 inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+            <Calendar size={14} />
+            Nhật ký cá nhân
+          </p>
+          <h2 className="text-2xl font-black text-slate-900 md:text-3xl">
+            Dòng thời gian của tôi
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Các kỷ niệm bạn đã lưu, sắp xếp theo ngày đi mới nhất.
+          </p>
         </div>
-        {!filterProvince && (
-          <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1">
-            Xem tất cả <ChevronRight size={16} />
-          </button>
-        )}
+        <div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600 ring-1 ring-slate-200">
+          {timeline.length} kỷ niệm
+        </div>
       </div>
 
-      {/* Timeline */}
-      <div className="relative mt-4">
-        {/* Vertical line */}
-        <div className="absolute left-[39px] top-0 bottom-0 w-0.5 bg-gradient-to-b from-indigo-200 via-emerald-200 to-slate-200" />
+      <div className="relative">
+        <div className="absolute bottom-0 left-[24px] top-0 w-0.5 bg-slate-100" />
 
-        <div className="space-y-6">
+        <div className="space-y-5">
           {timeline.map((item, index) => {
-            const date = formatDate(item.visitedAt);
+            const meta = sourceMeta(item.source);
+            const SourceIcon = meta.icon;
+            const caption = cleanCaption(item.caption, item.provinceName);
 
             return (
-              <motion.div
+              <motion.article
                 key={item._id}
-                initial={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: -16 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="relative flex gap-4 group"
+                transition={{ delay: index * 0.04 }}
+                className="relative flex gap-4"
               >
-                {/* Date badge */}
-                <div className="flex-shrink-0 w-20 text-center">
-                  <div
-                    className={`relative z-10 w-12 h-12 mx-auto rounded-xl flex flex-col items-center justify-center shadow-md ${
-                      item.source === "tour"
-                        ? "bg-gradient-to-br from-emerald-500 to-teal-500 text-white"
-                        : "bg-gradient-to-br from-blue-500 to-indigo-500 text-white"
-                    }`}
-                  >
-                    <span className="text-lg font-black leading-none">
-                      {date.day}
-                    </span>
-                    <span className="text-[10px] font-medium opacity-90">
-                      {date.month}
-                    </span>
-                  </div>
+                <div className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-sm">
+                  <CheckCircle2 size={22} />
                 </div>
 
-                {/* Content card */}
-                <div className="flex-1 bg-slate-50 rounded-2xl p-4 group-hover:bg-slate-100 transition-colors overflow-hidden">
-                  <div className="flex gap-4">
-                    {/* Image */}
-                    <div className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
-                      <Image
-                        src={(item.images && item.images.length > 0) ? item.images[0] : "/hot1.jpg"}
-                        alt={item.provinceName}
-                        fill
-                        className="object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                      <div className="absolute bottom-1 right-1 w-5 h-5 bg-white/90 rounded-full flex items-center justify-center">
-                        <Camera size={12} className="text-slate-600" />
-                      </div>
-                    </div>
+                <div className="min-w-0 flex-1 rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
+                  <div className="flex flex-col gap-4 sm:flex-row">
+                    <CompactImageGrid
+                      images={item.images}
+                      title={item.provinceName}
+                    />
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0 flex flex-col justify-between">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <h4 className="font-bold text-slate-800 truncate">
-                            {item.provinceName}
-                          </h4>
-                          <div className="flex items-center flex-wrap gap-2 mt-1">
-                            {item.userId && activeTab === "community" && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-200 text-[10px] font-bold text-slate-700">
-                                {item.userId.avatar && (
-                                  <img src={item.userId.avatar} alt="avatar" className="w-3 h-3 rounded-full object-cover" />
-                                )}
-                                {item.userId.fullName}
-                              </span>
-                            )}
-                            <span
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                item.source === "tour"
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : "bg-blue-100 text-blue-700"
-                              }`}
-                            >
-                              {item.source === "tour" ? (
-                                <>
-                                  <Sparkles size={10} /> Đã xác thực qua tour
-                                </>
-                              ) : (
-                                <>
-                                  <MapPin size={10} /> Tự đánh dấu
-                                </>
-                              )}
-                            </span>
-                            {activeTab === "me" && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-200 text-slate-600">
-                                {item.privacy === "public" ? <Globe size={10} /> : <Lock size={10} />}
-                                {item.privacy === "public" ? "Công khai" : "Chỉ mình tôi"}
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-lg font-bold text-slate-900">
+                          {item.provinceName}
+                        </h3>
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${meta.className}`}
+                        >
+                          <SourceIcon size={13} />
+                          {meta.shortLabel}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-slate-500 ring-1 ring-slate-100">
+                          {item.privacy === "public" ? (
+                            <Globe2 size={13} />
+                          ) : (
+                            <Lock size={13} />
+                          )}
+                          {item.privacy === "public" ? "Công khai" : "Chỉ mình tôi"}
+                        </span>
                       </div>
 
-                      {item.caption && (
-                        <p className="text-sm text-slate-600 mt-2 italic border-l-2 border-indigo-200 pl-2">
-                          "{item.caption.length > 80 ? item.caption.substring(0, 80) + '...' : item.caption}"
+                      {caption && (
+                        <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-600">
+                          {caption}
                         </p>
                       )}
 
-                      {item.source === "tour" && (!item.images || item.images.length === 0) && activeTab === "me" && (
-                        <div className="mt-2 pt-2 border-t border-slate-100">
-                          <a href="/user/bookings" className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800">
-                            Thêm hình ảnh kỷ niệm <ChevronRight size={12}/>
-                          </a>
-                        </div>
-                      )}
-
-                      <div className="mt-2 flex items-center justify-between">
-                        <p className="text-xs text-slate-400 flex items-center gap-1">
-                          <Calendar size={12} />
-                          {new Date(item.visitedAt).toLocaleDateString("vi-VN", {
-                            weekday: "long",
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })}
-                        </p>
-                        
-                        {/* Nút Thích */}
-                        {activeTab === "community" && (
-                          <button 
-                            onClick={() => handleLike(item._id, !!item.isLikedByMe)}
-                            className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold transition-all active:scale-95 ${
-                              item.isLikedByMe 
-                                ? "bg-rose-50 text-rose-600" 
-                                : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                            }`}
-                          >
-                            <Heart size={14} className={item.isLikedByMe ? "fill-rose-500" : ""} />
-                            {item.likesCount || 0}
-                          </button>
-                        )}
+                      <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
+                        <span className="inline-flex items-center gap-1.5">
+                          <Calendar size={13} />
+                          {formatLongDate(item.visitedAt)}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <Heart size={13} />
+                          {item.likesCount || 0} lượt thích
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <MessageCircle size={13} />
+                          {item.commentsCount || 0} bình luận
+                        </span>
                       </div>
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </motion.article>
             );
           })}
         </div>

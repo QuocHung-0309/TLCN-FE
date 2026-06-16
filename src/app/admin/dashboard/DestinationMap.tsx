@@ -102,9 +102,9 @@ const DestinationMap: React.FC<DestinationMapProps> = ({ data }) => {
 
   if (data.length === 0) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-200">
-          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-50 text-xs font-bold text-blue-600 dark:bg-blue-900/50 dark:text-blue-100">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-700">
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-50 text-xs font-bold text-blue-600">
             🗺️
           </span>
           Bản đồ điểm đến
@@ -117,10 +117,10 @@ const DestinationMap: React.FC<DestinationMapProps> = ({ data }) => {
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4">
-        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-200">
-          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-50 text-xs font-bold text-blue-600 dark:bg-blue-900/50 dark:text-blue-100">
+        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-700">
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-50 text-xs font-bold text-blue-600">
             🗺️
           </span>
           Bản đồ điểm đến
@@ -131,7 +131,7 @@ const DestinationMap: React.FC<DestinationMapProps> = ({ data }) => {
       </div>
 
       {/* Map Container */}
-      <div className="relative h-72 rounded-xl bg-gradient-to-b from-blue-50 to-emerald-50 dark:from-slate-800 dark:to-slate-700 overflow-hidden">
+      <div className="relative h-72 rounded-xl bg-gradient-to-b from-blue-50 to-emerald-50 overflow-hidden">
         {/* Vietnam outline (simplified SVG) */}
         <svg
           viewBox="0 0 100 100"
@@ -215,12 +215,12 @@ const DestinationMap: React.FC<DestinationMapProps> = ({ data }) => {
         {mappedData.slice(0, 6).map((item) => (
           <div
             key={item.name}
-            className="flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 dark:bg-slate-800"
+            className="flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1"
           >
             <div
               className={`h-2.5 w-2.5 rounded-full ${getMarkerColor(item.index)}`}
             />
-            <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
+            <span className="text-[11px] font-medium text-slate-600">
               {item.name}
             </span>
           </div>

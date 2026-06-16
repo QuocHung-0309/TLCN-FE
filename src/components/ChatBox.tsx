@@ -28,6 +28,7 @@ import {
   isStaffRole,
   ROLE_LABELS,
 } from "@/lib/chat/chatApi";
+import { getSocket } from "@/lib/socket";
 import { toast } from "react-hot-toast";
 
 export default function ChatBox() {
@@ -76,11 +77,27 @@ export default function ChatBox() {
   }, []);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
     if (isOpen && supportId && !showStartForm) {
-      interval = setInterval(() => loadMessages(supportId, true), 3000);
+      const socket = getSocket();
+      socket.emit("join_room", supportId);
+
+      const handleReceiveMessage = (msg: any) => {
+        if (msg.supportId === supportId || msg.bookingCode === supportId) {
+          setMessages((prev) => {
+            if (prev.find(m => m._id === msg._id)) return prev;
+            setUnreadCount((c) => c + 1);
+            return [...prev, msg];
+          });
+        }
+      };
+
+      socket.on("receive_message", handleReceiveMessage);
+
+      return () => {
+        socket.off("receive_message", handleReceiveMessage);
+        socket.emit("leave_room", supportId);
+      };
     }
-    return () => clearInterval(interval);
   }, [isOpen, supportId, showStartForm]);
 
   useEffect(() => {
