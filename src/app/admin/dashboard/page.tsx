@@ -72,11 +72,34 @@ export default function AdminDashboard() {
                 Theo dõi hiệu suất kinh doanh, quản lý các tour sắp khởi hành và phản hồi nhanh chóng các yêu cầu đặt tour từ khách hàng.
               </p>
             </div>
-
+            
             {pendingCountTotal > 0 ? (
               <div className="flex items-center gap-4 rounded-2xl bg-orange-50 border border-orange-100 p-4 pr-6 shadow-sm">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
                   <i className="ri-notification-3-line text-xl" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-orange-800">Cần xử lý ngay</p>
+                  <p className="text-orange-600 text-sm mt-0.5">
+                    Bạn có <strong className="font-bold">{pendingCountTotal} booking</strong> đang chờ xác nhận.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-4 rounded-2xl bg-emerald-50 border border-emerald-100 p-4 pr-6 shadow-sm">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                  <i className="ri-check-double-line text-xl" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-emerald-800">Tuyệt vời!</p>
+                  <p className="text-emerald-600 text-sm mt-0.5">
+                    Tất cả booking đã được xử lý.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
 
         {/* ===== OVERVIEW STATS (nền trắng, viền nhẹ) ===== */}
         <section className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
@@ -273,28 +296,11 @@ export default function AdminDashboard() {
                       {tour.bookingCount} lượt đặt
                     </p>
                   </div>
->>>>>>> upstream/feature/chatbot-memory
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-orange-800">Cần xử lý ngay</p>
-                  <p className="text-orange-600 text-sm mt-0.5">
-                    Bạn có <strong className="font-bold">{pendingCountTotal} booking</strong> đang chờ xác nhận.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-4 rounded-2xl bg-emerald-50 border border-emerald-100 p-4 pr-6 shadow-sm">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
-                  <i className="ri-check-double-line text-xl" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-emerald-800">Tuyệt vời!</p>
-                  <p className="text-emerald-600 text-sm mt-0.5">
-                    Tất cả booking đã được xử lý.
-                  </p>
-                </div>
-              </div>
-            )}
+              ))}
+            </div>
+          </div>
+
           </div>
         </div>
 
@@ -435,7 +441,6 @@ export default function AdminDashboard() {
                   <p className="text-sm">Không có lịch khởi hành nào trong 14 ngày tới.</p>
                 </div>
               ) : (
-<<<<<<< HEAD
                 <div className="space-y-2">
                   {upcomingDepartures.map((dep: any) => {
                     const isUnderbooked = dep.currentGuests < dep.minGuests;
@@ -452,42 +457,14 @@ export default function AdminDashboard() {
                         <div className="flex gap-2 mb-3 mt-2">
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${isUnderbooked ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
                             <i className="ri-group-line" /> {dep.currentGuests} / {dep.minGuests} (Min)
-=======
-                <div className="space-y-3">
-                  {tours.slice(0, 5).map((tour: any) => (
-                    <div
-                      key={tour._id}
-                      className="flex items-center justify-between rounded-xl bg-slate-50 p-3 dark:bg-slate-800/70"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-50">
-                          {tour.title}
-                        </p>
-                        <p className="truncate text-xs text-slate-500 dark:text-slate-300">
-                          {tour.destination}
-                        </p>
-                        <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-400">
-                          {tour.startDate
-                            ? `Khởi hành: ${formatDateTime(tour.startDate)}`
-                            : "Chưa xác định ngày khởi hành"}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-slate-500 dark:text-slate-300">
-                          Khách hiện tại
-                        </p>
-                        <p className="text-sm font-semibold text-blue-950 dark:text-emerald-300">
-                          {tour.current_guests || 0}/{tour.quantity || "—"}
-                        </p>
-                        <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-400">
-                          Leader:{" "}
-                          <span className="font-medium text-slate-700 dark:text-slate-100">
-                            {tour.leader?.fullName || "Chưa gán"}
                           </span>
-                        </p>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${noLeader ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'}`}>
+                            <i className="ri-user-star-line" /> {dep.leader || "Chưa gán HDV"}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
