@@ -42,7 +42,7 @@ const statusMap: Record<
   },
   confirmed: {
     label: "Đã xác nhận",
-    color: "text-emerald-600",
+    color: "text-blue-950",
     bg: "bg-emerald-50 border-emerald-100",
     icon: CheckCircle2,
   },
@@ -257,27 +257,27 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-600 animate-in fade-in duration-500">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-600">
       {/* HEADER SECTION */}
-      <div className="bg-blue-950 pt-10 pb-20 px-6 rounded-3xl mx-4 mt-4 shadow-2xl">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-white">
+      <div className="bg-blue-950 px-6 pb-8 pt-10">
+        <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-6 text-white md:flex-row md:items-end">
           <div>
             <h1 className="text-2xl font-bold">Lịch sử đặt chỗ</h1>
             <p className="text-blue-200 text-sm">Quản lý và theo dõi các chuyến đi của bạn</p>
           </div>
-          {/* Stats Cards Small */}
-          <div className="flex gap-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 px-5 border border-white/10 text-center">
-              <p className="text-xs text-blue-200 uppercase tracking-wider">
+          {/* Stats */}
+          <div className="flex gap-8">
+            <div>
+              <p className="text-xs uppercase tracking-wider text-blue-300">
                 Tổng booking
               </p>
               <p className="text-xl font-bold text-orange-400">{stats.total}</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 px-5 border border-white/10 text-center">
-              <p className="text-xs text-blue-200 uppercase tracking-wider">
+            <div>
+              <p className="text-xs uppercase tracking-wider text-blue-300">
                 Sắp đi
               </p>
-              <p className="text-xl font-bold text-emerald-400">
+              <p className="text-xl font-bold text-white">
                 {stats.upcoming}
               </p>
             </div>
@@ -285,10 +285,10 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      {/* CONTENT SECTION (Negative Margin to pull up) */}
-      <div className="max-w-5xl mx-auto px-4 -mt-10 pb-20">
+      {/* CONTENT SECTION */}
+      <div className="max-w-5xl mx-auto px-4 pb-20 pt-6">
         {/* Filter & Search Bar */}
-        <div className="bg-white p-4 rounded-2xl shadow-xl border border-slate-100 flex flex-col md:flex-row gap-4 mb-8">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col md:flex-row gap-4 mb-8">
           {/* Tabs */}
           <div className="flex flex-wrap gap-2 overflow-x-auto no-scrollbar flex-1">
             {statusFilters.map((f) => (
@@ -343,7 +343,7 @@ export default function HistoryPage() {
 
         {/* Loading Indicator for updates */}
         {loading && bookings.length > 0 && (
-          <div className="mb-4 flex items-center gap-2 text-orange-500 animate-pulse">
+          <div className="mb-4 flex items-center gap-2 text-orange-600">
             <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
             <span className="text-xs font-bold">Đang cập nhật dữ liệu mới...</span>
           </div>
@@ -351,10 +351,8 @@ export default function HistoryPage() {
 
         <div className="min-h-[200px]">
           {filteredBookings.length === 0 && !loading ? (
-          <div className="bg-white rounded-3xl p-10 text-center shadow-sm border border-slate-100">
-            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
-              <Calendar size={32} />
-            </div>
+          <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
+            <Calendar size={28} className="mx-auto mb-3 text-slate-300" />
             <h3 className="text-lg font-bold text-slate-800 mb-2">
               Chưa có booking nào
             </h3>
@@ -363,7 +361,7 @@ export default function HistoryPage() {
             </p>
             <Link
               href="/tours"
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-orange-600 text-white rounded-full font-bold shadow-lg shadow-orange-500/30 hover:bg-orange-700 transition-all"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-orange-600 text-white rounded-full font-bold hover:bg-orange-700 transition-colors"
             >
               Đặt tour ngay <ChevronRight size={16} />
             </Link>
@@ -531,17 +529,15 @@ export default function HistoryPage() {
       {/* CANCEL MODAL */}
       <AnimatePresence>
         {cancelTarget && (
-          <div className="fixed inset-0 z-[99] flex items-center justify-center p-4 bg-blue-950/40 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[99] flex items-center justify-center p-4 bg-slate-900/40">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+              className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
             >
-              <div className="bg-red-50 p-6 border-b border-red-100 flex gap-4">
-                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0 text-red-500">
-                  <AlertCircle size={24} />
-                </div>
+              <div className="bg-red-50 p-6 border-b border-red-100 flex gap-3">
+                <AlertCircle size={20} className="mt-0.5 shrink-0 text-red-500" />
                 <div>
                   <h3 className="text-lg font-bold text-red-900">
                     Huỷ đặt tour?
@@ -578,7 +574,7 @@ export default function HistoryPage() {
                   <button
                     onClick={handleCancelConfirm}
                     disabled={cancelingCode === cancelTarget.code}
-                    className="px-5 py-2.5 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 shadow-lg shadow-red-500/30 transition-all disabled:opacity-70"
+                    className="px-5 py-2.5 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition-colors disabled:opacity-70"
                   >
                     {cancelingCode ? "Đang xử lý..." : "Xác nhận huỷ"}
                   </button>

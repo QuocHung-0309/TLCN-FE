@@ -177,7 +177,7 @@ const Page = () => {
 
           <div className="flex items-end">
             <button
-              className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-bold text-sm transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-blue-950 hover:from-blue-950 hover:to-emerald-700 text-white rounded-xl font-bold text-sm transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
             >
               <i className="ri-search-line"></i>
               Tìm kiếm
@@ -194,7 +194,7 @@ const Page = () => {
                 setEndDate('')
                 setPage(1)
               }}
-              className="text-xs text-slate-400 hover:text-emerald-600 transition flex items-center gap-1.5"
+              className="text-xs text-slate-400 hover:text-blue-950 transition flex items-center gap-1.5"
             >
               <i className="ri-refresh-line"></i> Làm mới bộ lọc
             </button>
@@ -294,7 +294,7 @@ const Page = () => {
               <button
                 onClick={handleUpdateSubmit}
                 disabled={updateMutation.isPending}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
+                className="px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
               >
                 {updateMutation.isPending ? 'Đang xử lý...' : 'Lưu'}
               </button>

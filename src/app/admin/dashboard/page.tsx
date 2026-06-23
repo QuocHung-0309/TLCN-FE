@@ -65,7 +65,7 @@ export default function AdminDashboard() {
   if (statsLoading || toursLoading) {
     return (
       <div className="flex min-h-80 items-center justify-center bg-slate-50">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" />
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-200 border-t-blue-950" />
       </div>
     );
   }
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
                 <p className="mt-2 text-2xl font-extrabold text-blue-950 dark:text-slate-50">
                   {overview.totalUsers?.toLocaleString() || 0}
                 </p>
-                <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-300">
+                <p className="mt-1 text-xs text-blue-950 dark:text-emerald-300">
                   {overview.newUsersThisMonth
                     ? `+${overview.newUsersThisMonth} tháng này`
                     : "Theo dõi tăng trưởng trong Admin"}
@@ -176,7 +176,7 @@ export default function AdminDashboard() {
                 <p className="mt-2 text-2xl font-extrabold text-blue-950 dark:text-slate-50">
                   {overview.totalTours?.toLocaleString() || 0}
                 </p>
-                <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-300">
+                <p className="mt-1 text-xs text-blue-950 dark:text-emerald-300">
                   {overview.activeTours || 0} tour đang hoạt động
                 </p>
               </div>
@@ -315,7 +315,7 @@ export default function AdminDashboard() {
               </span>
               <Link
                 href="/admin/tours"
-                className="text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-300 dark:hover:text-emerald-200"
+                className="text-xs font-medium text-blue-950 hover:text-emerald-700 dark:text-emerald-300 dark:hover:text-emerald-200"
               >
                 Quản lý tours →
               </Link>
@@ -377,7 +377,7 @@ export default function AdminDashboard() {
               </h3>
               <Link
                 href="/admin/bookings"
-                className="text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-300 dark:hover:text-emerald-200"
+                className="text-xs font-medium text-blue-950 hover:text-emerald-700 dark:text-emerald-300 dark:hover:text-emerald-200"
               >
                 Xem tất cả →
               </Link>
@@ -408,7 +408,7 @@ export default function AdminDashboard() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-300">
+                        <p className="text-sm font-semibold text-blue-950 dark:text-emerald-300">
                           {formatCurrency(booking.totalPrice || 0)}
                         </p>
                         <span
@@ -434,7 +434,7 @@ export default function AdminDashboard() {
               </h3>
               <Link
                 href="/admin/tours"
-                className="text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-300 dark:hover:text-emerald-200"
+                className="text-xs font-medium text-blue-950 hover:text-emerald-700 dark:text-emerald-300 dark:hover:text-emerald-200"
               >
                 Quản lý tours →
               </Link>
@@ -468,7 +468,7 @@ export default function AdminDashboard() {
                         <p className="text-xs text-slate-500 dark:text-slate-300">
                           Khách hiện tại
                         </p>
-                        <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-300">
+                        <p className="text-sm font-semibold text-blue-950 dark:text-emerald-300">
                           {tour.current_guests || 0}/{tour.quantity || "—"}
                         </p>
                         <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-400">

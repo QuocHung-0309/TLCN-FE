@@ -113,7 +113,7 @@ export default function LeaderDashboardPage() {
 
   const statCards = [
     { label: "Tổng tour",       value: stats.total,      icon: BarChart3,    iconBg: "bg-blue-100",    iconColor: "text-blue-600",    sub: "Tất cả lịch trình" },
-    { label: "Đang diễn ra",    value: stats.inProgress, icon: Plane,        iconBg: "bg-emerald-100", iconColor: "text-emerald-600", sub: "Tour đang chạy" },
+    { label: "Đang diễn ra",    value: stats.inProgress, icon: Plane,        iconBg: "bg-emerald-100", iconColor: "text-blue-950", sub: "Tour đang chạy" },
     { label: "Sắp khởi hành",   value: stats.upcoming,   icon: Clock,        iconBg: "bg-amber-100",   iconColor: "text-amber-600",   sub: "Đã xác nhận" },
     { label: "Hoàn thành",      value: stats.completed,  icon: CheckCircle2, iconBg: "bg-violet-100",  iconColor: "text-violet-600",  sub: "Tour kết thúc" },
   ];

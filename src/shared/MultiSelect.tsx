@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import { Listbox, Transition } from "@headlessui/react";
-import { CheckIcon, ChevronUpDownIcon, XMarkIcon } from "@heroicons/react/20/solid";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import CustomDropdown from "@/shared/CustomDropdown";
 
 export interface MultiSelectProps<T> {
@@ -40,14 +40,14 @@ export function MultiSelect<T>({
               }}
             >
               {getLabel(option)}
-              <XMarkIcon className="h-4 w-4 cursor-pointer hover:text-red-500" />
+              <X className="h-4 w-4 cursor-pointer hover:text-red-500" />
             </span>
           ))
         ) : (
           <span className="text-gray-400">Chọn mục</span>
         )}
         <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-          <ChevronUpDownIcon className="h-5 w-5 text-gray-400" />
+          <ChevronsUpDown className="h-5 w-5 text-gray-400" />
         </span>
       </Listbox.Button>
   
@@ -76,7 +76,7 @@ export function MultiSelect<T>({
                   </span>
                   {isSelected && (
                     <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
-                      <CheckIcon className="h-5 w-5" />
+                      <Check className="h-5 w-5" />
                     </span>
                   )}
                 </>

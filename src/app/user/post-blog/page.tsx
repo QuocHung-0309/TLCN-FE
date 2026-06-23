@@ -27,6 +27,12 @@ import CoverUpload from "./CoverUpload";
 import CategoryTagsForm from "./CategoryTagsForm";
 import PostPrivacySettings from "./PostPrivacySettings";
 
+// Trình soạn nội dung là contentEditable: khi xoá hết chữ, trình duyệt vẫn có
+// thể để lại các tag rỗng (<br>, <div><br></div>...) khiến content.trim() vẫn
+// khác rỗng dù không còn nội dung hiển thị -> phải bóc tag để kiểm tra thật.
+const isContentEmpty = (html: string) =>
+  html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, "").trim() === "";
+
 export default function CreateBlogPage() {
   const router = useRouter();
   const { user, loading: userLoading } = useUser();
@@ -81,7 +87,7 @@ export default function CreateBlogPage() {
       return;
     }
 
-    if (!content.trim()) {
+    if (isContentEmpty(content)) {
       toast.error("Vui lòng nhập nội dung bài viết");
       return;
     }
@@ -356,7 +362,7 @@ export default function CreateBlogPage() {
                 </button>
 
                 <div className="text-blue-200 text-sm">
-                  {title.trim() && content.trim() ? (
+                  {title.trim() && !isContentEmpty(content) ? (
                     <span className="flex items-center gap-1 text-emerald-300">
                       <CheckCircle size={14} />
                       Sẵn sàng đăng bài
@@ -372,7 +378,7 @@ export default function CreateBlogPage() {
 
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting || !title.trim() || !content.trim()}
+                disabled={isSubmitting || !title.trim() || isContentEmpty(content)}
                 className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
               >
                 {isSubmitting ? (

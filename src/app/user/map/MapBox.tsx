@@ -1,10 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { FaTimes } from "react-icons/fa";
-import { LuTag } from "react-icons/lu";
-import { PiMapPinAreaLight } from "react-icons/pi";
-import { LiaShoePrintsSolid } from "react-icons/lia";
+import { X, Tag, MapPin, Footprints } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { placeApi } from "@/lib/place/placeApi";
 import { checkinApi } from "@/lib/checkin/checkinApi";
@@ -287,7 +284,7 @@ export default function VNMap() {
             onClick={handleClosePopup}
             className="absolute top-3 right-3 text-gray-500 hover:text-black"
           >
-            <FaTimes size={18} />
+            <X size={18} />
           </button>
           <div className="flex justify-around gap-8 mt-4">
             <button
@@ -295,7 +292,7 @@ export default function VNMap() {
               className="flex flex-col items-center text-sm sm:text-base text-blue-500"
             >
               <div className="flex items-center justify-center w-10 h-10">
-                <LiaShoePrintsSolid
+                <Footprints
                   size={50}
                   className="text-blue-500"
                   stroke="currentColor"
@@ -309,7 +306,7 @@ export default function VNMap() {
               className="flex flex-col items-center text-sm sm:text-base text-blue-500"
             >
               <div className="flex items-center justify-center w-10 h-10">
-                <PiMapPinAreaLight
+                <MapPin
                   size={55}
                   className="text-blue-500"
                   stroke="currentColor"

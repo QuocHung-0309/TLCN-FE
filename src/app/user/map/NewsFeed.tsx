@@ -290,7 +290,7 @@ export default function NewsFeed() {
                     className="object-cover"
                   />
                   {event.source === "tour" && (
-                    <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md text-emerald-600 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1.5 border border-emerald-100">
+                    <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md text-blue-950 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1.5 border border-emerald-100">
                       <Sparkles size={14} /> +1 Voucher
                     </div>
                   )}

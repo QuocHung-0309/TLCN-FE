@@ -108,6 +108,28 @@ export const getBlogs = async (
   };
 };
 
+// Bài viết công khai của 1 tác giả - dùng cho trang cá nhân công khai
+export const getBlogsByAuthor = async (
+  authorId: string,
+  page = 1,
+  limit = 6
+): Promise<BlogsResponse> => {
+  const res = await axiosInstance.get<BlogsResponse>("/blog", {
+    params: { page, limit, authorId },
+  });
+
+  const raw = res.data;
+
+  return {
+    ...raw,
+    data: raw.data.map((b: any) => ({
+      ...b,
+      excerpt: b.excerpt ?? b.summary ?? "",
+      cover: b.cover ?? b.coverImageUrl ?? b.thumbnail,
+    })),
+  };
+};
+
 // ✅ Normalize comment để luôn có userName, userAvatar, userId chuẩn
 export const getComments = async (
   slug: string
@@ -280,4 +302,5 @@ export const blogApi = {
   previewOwnPost,
   togglePrivacy,
   getRelatedBlogsForTour,
+  getBlogsByAuthor,
 };

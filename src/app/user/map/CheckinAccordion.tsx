@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import DestinationCard from "@/components/cards/DestinationCard";
-import { FiMinus, FiPlus, FiCheckCircle  } from "react-icons/fi";
+import { Minus, Plus, CheckCircle } from "lucide-react";
 import { travelMemoryApi } from "@/lib/checkin/travelMemoryApi";
 
 type Ward = {
@@ -82,8 +82,8 @@ const CheckinAccordion = () => {
   return (
     <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
       <div className="mb-6 flex items-center gap-3">
-        <div className="p-3 bg-emerald-100 rounded-full text-emerald-600">
-          <FiCheckCircle size={24} />
+        <div className="p-3 bg-emerald-100 rounded-full text-blue-950">
+          <CheckCircle size={24} />
         </div>
         <div>
           <h2 className="text-xl md:text-2xl font-bold text-slate-800">
@@ -124,7 +124,7 @@ const CheckinAccordion = () => {
                       : "bg-slate-100 text-slate-500"
                   }`}
                 >
-                  {isOpen ? <FiMinus /> : <FiPlus />}
+                  {isOpen ? <Minus /> : <Plus />}
                 </span>
               </button>
 

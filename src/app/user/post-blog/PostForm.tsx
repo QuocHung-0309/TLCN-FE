@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { FiBold, FiItalic, FiUnderline, FiImage, FiVideo, FiGlobe, FiUser } from "react-icons/fi";
+import { Bold, Italic, Underline, Image as ImageIcon, Video, Globe, User } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 // File size limits
@@ -216,13 +216,13 @@ export default function PostForm({
       case "public":
         return (
           <span className="flex items-center gap-1 font-medium">
-            <FiGlobe /> Tất cả mọi người
+            <Globe /> Tất cả mọi người
           </span>
         );
       case "private":
         return (
           <span className="flex items-center gap-1 font-medium">
-            <FiUser /> Chỉ mình bạn
+            <User /> Chỉ mình bạn
           </span>
         );
       default:
@@ -250,8 +250,10 @@ export default function PostForm({
         value={title}
         onChange={(e) => onTitleChange(e.target.value)}
         placeholder="Nhập tiêu đề bài viết..."
-        className="w-full bg-[#F9F9FC] border border-[var(--gray-5)] rounded-lg p-3 mb-4 outline-none focus:ring-2 focus:ring-[var(--primary)]"
+        maxLength={200}
+        className="w-full bg-[#F9F9FC] border border-[var(--gray-5)] rounded-lg p-3 outline-none focus:ring-2 focus:ring-[var(--primary)]"
       />
+      <div className="text-right text-xs text-slate-400 mb-4">{title.length}/200</div>
 
       {/* Summary */}
       <label className="block mb-4">
@@ -273,20 +275,20 @@ export default function PostForm({
         <span className="font-medium text-[var(--gray-2)]">Nội dung</span>
         <div className="flex gap-2 ">
           <button type="button" title="In đậm" className="cursor-pointer p-2 hover:bg-[var(--gray-6)] rounded" onClick={() => execCommand("bold")}>
-            <FiBold />
+            <Bold />
           </button>
           <button type="button" title="In nghiêng" className="cursor-pointer p-2 hover:bg-[var(--gray-6)] rounded" onClick={() => execCommand("italic")}>
-            <FiItalic />
+            <Italic />
           </button>
           <button type="button" title="Gạch chân" className="cursor-pointer p-2 hover:bg-[var(--gray-6)] rounded" onClick={() => execCommand("underline")}>
-            <FiUnderline />
+            <Underline />
           </button>
           <button type="button" title="Thêm hình" className="cursor-pointer p-2 hover:bg-[var(--gray-6)] rounded" onClick={() => imageInputRef.current?.click()}>
-            <FiImage />
+            <ImageIcon />
           </button>
           <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
           <button type="button" title="Thêm video" className="cursor-pointer p-2 hover:bg-[var(--gray-6)] rounded" onClick={() => videoInputRef.current?.click()}>
-            <FiVideo />
+            <Video />
           </button>
           <input ref={videoInputRef} type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} />
         </div>

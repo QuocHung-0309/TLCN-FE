@@ -22,7 +22,7 @@ const STATUS_CFG: Record<string, any> = {
 
 const EVENT_CFG: Record<string, any> = {
   departed:   { icon: Plane,        color: "text-blue-600",    bg: "bg-blue-100",    border: "border-blue-200",    label: "Xuất phát" },
-  arrived:    { icon: MapPin,       color: "text-emerald-600", bg: "bg-emerald-100", border: "border-emerald-200", label: "Đến nơi" },
+  arrived:    { icon: MapPin,       color: "text-blue-950", bg: "bg-emerald-100", border: "border-emerald-200", label: "Đến nơi" },
   checkpoint: { icon: Flag,         color: "text-orange-600",  bg: "bg-orange-100",  border: "border-orange-200",  label: "Điểm dừng" },
   note:       { icon: FileText,     color: "text-slate-500",   bg: "bg-slate-100",   border: "border-slate-200",   label: "Ghi chú" },
   finished:   { icon: CheckCircle2, color: "text-violet-600",  bg: "bg-violet-100",  border: "border-violet-200",  label: "Kết thúc" },
@@ -272,7 +272,7 @@ export default function TourDetailPage() {
                   {tour.status==="in_progress" && (
                     <button onClick={() => { setTlForm({...tlForm, eventType:"finished"}); setShowTL(true); }}
                       className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 text-white
-                        font-semibold hover:bg-emerald-600 active:scale-95 shadow-lg shadow-emerald-500/30 transition-all text-sm">
+                        font-semibold hover:bg-blue-950 active:scale-95 shadow-lg shadow-emerald-500/30 transition-all text-sm">
                       <CheckCircle2 className="w-4 h-4" /> Kết thúc tour
                     </button>
                   )}
@@ -321,7 +321,7 @@ export default function TourDetailPage() {
                     <ul className="list-disc list-inside text-sm text-emerald-700 space-y-1">
                       {tour.tourId.includes.map((inc: string, idx: number) => <li key={idx}>{inc}</li>)}
                     </ul>
-                  ) : <p className="text-sm text-emerald-600/70">Không có dữ liệu</p>}
+                  ) : <p className="text-sm text-blue-950/70">Không có dữ liệu</p>}
                 </div>
                 <div className="bg-red-50 rounded-xl p-4 border border-red-100">
                   <h4 className="font-semibold text-red-800 mb-2">Không bao gồm</h4>
@@ -515,7 +515,7 @@ export default function TourDetailPage() {
             {(tour.status==="confirmed"||tour.status==="in_progress") && (
               <button onClick={() => setShowExp(true)}
                 className="w-full py-3.5 rounded-2xl border-2 border-dashed border-slate-300
-                  text-slate-500 hover:border-emerald-400 hover:text-emerald-600 hover:bg-emerald-50/50
+                  text-slate-500 hover:border-emerald-400 hover:text-blue-950 hover:bg-emerald-50/50
                   transition-all flex items-center justify-center gap-2 text-sm font-medium">
                 <Plus className="w-5 h-5" /> Thêm chi phí phát sinh
               </button>

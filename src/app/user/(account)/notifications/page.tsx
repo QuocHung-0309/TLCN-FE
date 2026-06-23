@@ -40,7 +40,7 @@ const TYPE_ICONS: Record<NotificationType, React.ReactNode> = {
 const TYPE_COLORS: Record<NotificationType, string> = {
   system: "bg-slate-100 text-slate-600",
   booking: "bg-blue-100 text-blue-600",
-  tour: "bg-emerald-100 text-emerald-600",
+  tour: "bg-emerald-100 text-blue-950",
   payment: "bg-green-100 text-green-600",
   promotion: "bg-orange-100 text-orange-600",
   chat: "bg-purple-100 text-purple-600",
@@ -122,7 +122,7 @@ export default function UserNotificationsPage() {
   return (
     <div className="min-h-screen bg-slate-100">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-950 to-blue-900 shadow-lg">
+      <div className="bg-blue-950">
         <div className="mx-auto max-w-4xl px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -132,9 +132,7 @@ export default function UserNotificationsPage() {
               >
                 <Home className="h-5 w-5" />
               </button>
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/20">
-                <Bell className="h-6 w-6 text-orange-400" />
-              </div>
+              <Bell className="h-6 w-6 text-orange-400" />
               <div>
                 <h1 className="text-xl font-bold text-white">Thông báo</h1>
                 <p className="text-sm text-blue-200">
@@ -195,7 +193,7 @@ export default function UserNotificationsPage() {
         </div>
 
         {/* Content */}
-        <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
+        <div className="rounded-2xl bg-white border border-slate-200 overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-orange-500" />

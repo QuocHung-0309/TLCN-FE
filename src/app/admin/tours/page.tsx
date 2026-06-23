@@ -342,7 +342,7 @@ const Page = () => {
                           {/* Xem chi tiết (có bảng Lịch Khởi Hành) */}
                           <Link
                             href={`/admin/tours/${tour._id}`}
-                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
+                            className="p-2 text-blue-950 hover:bg-emerald-50 rounded-lg transition"
                             title="Xem chi tiết & Lịch khởi hành"
                           >
                             <i className="ri-calendar-line text-lg"></i>

@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { FiChevronLeft } from "react-icons/fi";
+import { ChevronLeft } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authApi } from "@/lib/auth/authApi";
 import { toast } from "react-hot-toast";
@@ -80,7 +80,7 @@ function RegisterOtpPageContent() {
         href="/auth/register"
         className="text-sm text-gray-500 hover:underline inline-flex items-center mb-4"
       >
-        <FiChevronLeft className="mr-2 text-base" />
+        <ChevronLeft className="mr-2 text-base" />
         Quay lại trang đăng ký
       </a>
 

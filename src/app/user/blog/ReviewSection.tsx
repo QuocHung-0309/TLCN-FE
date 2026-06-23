@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import ReviewCard from './ReviewCard';
-import { MdNavigateBefore, MdNavigateNext } from 'react-icons/md';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 type Review = {
   id: number;
@@ -39,7 +39,7 @@ const ReviewSection = ({ reviews }: ReviewSectionProps) => {
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
         >
-          <MdNavigateBefore size={24} />
+          <ChevronLeft size={24} />
         </button>
         <span className="text-sm text-[var(--gray-2)]">
           {currentPage} of {totalPages}
@@ -49,7 +49,7 @@ const ReviewSection = ({ reviews }: ReviewSectionProps) => {
           onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
           disabled={currentPage === totalPages}
         >
-          <MdNavigateNext size={24} />
+          <ChevronRight size={24} />
         </button>
       </div>
     </div>

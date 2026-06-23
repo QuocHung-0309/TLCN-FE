@@ -210,15 +210,15 @@ export default function JourneyStats() {
             <div>
               <p className="text-emerald-100 text-sm font-medium mb-1">Tiến độ</p>
               <h3 className="text-4xl font-black">
-                {Math.round((stats.totalProvinces / 63) * 100)}%
+                {Math.round((stats.totalProvinces / 34) * 100)}%
               </h3>
               <p className="text-emerald-200 text-xs mt-1">
-                {stats.totalProvinces}/63 tỉnh thành
+                {stats.totalProvinces}/34 tỉnh thành
               </p>
             </div>
             <CircularProgress
               value={stats.totalProvinces}
-              max={63}
+              max={34}
               size={80}
               strokeWidth={6}
               color="#ffffff"
@@ -271,7 +271,7 @@ export default function JourneyStats() {
               <h3 className="text-3xl font-black text-slate-800">
                 <AnimatedCounter value={stats.totalVouchers} />
               </h3>
-              <p className="text-emerald-600 text-xs mt-1 font-medium">
+              <p className="text-blue-950 text-xs mt-1 font-medium">
                 🎁 Phiếu giảm giá
               </p>
             </div>
@@ -349,11 +349,11 @@ export default function JourneyStats() {
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-              <Target className="w-5 h-5 text-emerald-600" />
+              <Target className="w-5 h-5 text-blue-950" />
             </div>
             <div>
               <p className="text-xs text-slate-500">Còn lại</p>
-              <p className="text-xl font-bold text-emerald-700">{63 - stats.totalProvinces}</p>
+              <p className="text-xl font-bold text-emerald-700">{Math.max(34 - stats.totalProvinces, 0)}</p>
             </div>
           </div>
         </motion.div>

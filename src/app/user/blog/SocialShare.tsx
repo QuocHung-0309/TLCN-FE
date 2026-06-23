@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LuCopy } from "react-icons/lu";
-import { FaFacebookF, FaInstagram } from "react-icons/fa";
-import { SiZalo } from "react-icons/si";
+import { Copy, Facebook, Instagram } from "lucide-react";
+import ZaloIcon from "@/components/icons/ZaloIcon";
 import { toast } from "react-hot-toast";
 
 export default function SocialShare() {
@@ -53,25 +52,25 @@ export default function SocialShare() {
           onClick={handleCopyLink}
           className="text-[var(--gray-2)] hover:text-[var(--gray-1)] transition"
         >
-          <LuCopy size={20} />
+          <Copy size={20} />
         </button>
         <button
           onClick={handleShareFacebook}
           className="text-[var(--gray-2)] hover:text-[var(--gray-1)] transition"
         >
-          <FaFacebookF size={20} />
+          <Facebook size={20} />
         </button>
         <button
           onClick={handleShareInstagram}
           className="text-[var(--gray-2)] hover:text-[var(--gray-1)] transition"
         >
-          <FaInstagram size={20} />
+          <Instagram size={20} />
         </button>
         <button
           onClick={handleShareZalo}
           className="text-[var(--gray-2)] hover:text-[var(--gray-1)] transition"
         >
-          <SiZalo size={40} />
+          <ZaloIcon size={40} />
         </button>
       </div>
       <hr className="flex-1 border-[#D1E7E5]" />

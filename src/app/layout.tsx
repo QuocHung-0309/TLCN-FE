@@ -6,7 +6,6 @@ import { Inter } from 'next/font/google';
 import {Providers} from '../lib/providers';
 import { Toaster } from 'react-hot-toast';
 
-
 const inter = Inter({
   subsets: ['latin'],
   weight: ['400', '500', '700'],

@@ -932,7 +932,7 @@ export default function TourDetailPage() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                   <h4 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/10 text-blue-950">
                       ✓
                     </span>
                     Đã bao gồm
@@ -1294,7 +1294,7 @@ export default function TourDetailPage() {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-slate-500">Số chỗ còn lại:</span>
-                      <span className="text-sm font-bold text-emerald-600">
+                      <span className="text-sm font-bold text-blue-950">
                         {selectedDeparture 
                           ? (selectedDeparture.max_guests - (selectedDeparture.current_guests || 0))
                           : "—"}
@@ -1375,12 +1375,13 @@ export default function TourDetailPage() {
           </div>
 
           {/* Tour tương tự - Recommendation */}
-          <section className="mt-14">
+          <section className="mt-14 border-t border-slate-200 pt-10">
             <TourRecommendations
               type="similar"
               tourId={id}
               heading="Tour tương tự bạn có thể thích"
-              limit={4}
+              limit={3}
+              bare
             />
           </section>
         </div>

@@ -3,12 +3,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import {
-  FaMapMarkerAlt,
-  FaCalendarAlt,
-  FaSearch,
-  FaMoneyBillWave,
-} from "react-icons/fa";
+import { MapPin, CalendarDays, Search, Wallet } from "lucide-react";
 import { getTours } from "@/lib/tours/tour";
 
 const budgetOptions = [
@@ -141,7 +136,7 @@ const SearchBox = () => {
         {/* Destination Field */}
         <div className="relative flex-[1.5]" ref={destRef}>
           <Field
-            icon={<FaMapMarkerAlt className="text-orange-500" />}
+            icon={<MapPin className="text-orange-500" />}
             placeholder="Bạn muốn đến đâu?"
             value={where}
             onChange={(e) => {
@@ -201,7 +196,7 @@ const SearchBox = () => {
         <div className="flex-1">
           <Field
             type="date"
-            icon={<FaCalendarAlt className="text-orange-500" />}
+            icon={<CalendarDays className="text-orange-500" />}
             placeholder="Ngày đi"
             value={date}
             onChange={(e) => setDate(e.target.value)}
@@ -217,7 +212,7 @@ const SearchBox = () => {
             className="group flex items-center gap-2 px-4 h-12 rounded-full hover:bg-black/[0.04] cursor-pointer transition"
           >
             <span className="text-orange-500">
-              <FaMoneyBillWave />
+              <Wallet />
             </span>
             <div className="flex flex-col justify-center">
               <span
@@ -273,7 +268,7 @@ const SearchBox = () => {
           type="submit"
           className="ml-2 h-12 px-8 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-bold flex items-center gap-2 shadow-[0_6px_20px_-4px_rgba(249,115,22,0.5)] hover:shadow-[0_8px_25px_-4px_rgba(249,115,22,0.6)] hover:-translate-y-0.5 active:scale-[0.98] focus:outline-none transition-all duration-200"
         >
-          <FaSearch className="text-white" />
+          <Search className="text-white" />
           Tìm kiếm
         </button>
       </form>

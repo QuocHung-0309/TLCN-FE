@@ -91,7 +91,7 @@ export function ReviewTable({ data, onEdit, onDelete, isDeleting }: Props) {
                 onClick={() =>
                   onEdit?.(review._id, review.rating, review.comment)
                 }
-                className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
+                className="p-2 text-blue-950 hover:bg-emerald-50 rounded-lg transition"
                 title="Chỉnh sửa"
               >
                 <i className="ri-pencil-line text-lg"></i>

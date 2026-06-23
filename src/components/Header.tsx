@@ -45,6 +45,7 @@ export default function Header() {
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const avatarRef = useRef<HTMLDivElement | null>(null);
+  const lastLoadedTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -99,8 +100,28 @@ export default function Header() {
       isLoggedIn,
     });
 
-    // Nếu có user info trong store thì dùng luôn
-    if (user && accessToken) {
+    if (!accessToken) {
+      lastLoadedTokenRef.current = null;
+      setFullName("");
+      setAvatarUrl("/Image.svg");
+      setMemberStatus("Thành viên");
+      setUserEmail("");
+      setPoints(0);
+      setUserId(null);
+      return;
+    }
+
+    // Token đổi (vd: đăng nhập tài khoản khác) -> luôn fetch lại profile mới,
+    // không được tin vào `user` cũ còn sót trong store vì có thể response login
+    // trước đó không trả kèm user, khiến store giữ user của tài khoản trước.
+    if (lastLoadedTokenRef.current !== accessToken) {
+      lastLoadedTokenRef.current = accessToken;
+      loadProfile(accessToken);
+      return;
+    }
+
+    // Cùng token và đã có user info trong store thì dùng luôn, không cần fetch lại
+    if (user) {
       setFullName(user.fullName || "User");
       setAvatarUrl(user.avatar || "/Image.svg");
       setMemberStatus(user.memberStatus || "Thành viên");
@@ -108,17 +129,6 @@ export default function Header() {
       setPoints(user.points || 0);
       setUserId(user.id);
       debugTokenAndUser.logUserInfoDisplay("Header.useEffect[fromStore]", user);
-    }
-    // Nếu không có user info nhưng có token thì fetch từ API
-    else if (accessToken && !user) {
-      loadProfile(accessToken);
-    } else {
-      setFullName("");
-      setAvatarUrl("/Image.svg");
-      setMemberStatus("Thành viên");
-      setUserEmail("");
-      setPoints(0);
-      setUserId(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted, accessToken, user]);
@@ -227,56 +237,70 @@ export default function Header() {
               {/* Notification Bell */}
               <NotificationBell />
 
-              <div
-              ref={avatarRef}
-              className="relative flex items-center gap-2 cursor-pointer"
-              onClick={() => setAvatarOpen((v) => !v)}
-            >
-              <Image
-                src={avatarUrl}
-                alt="Avatar"
-                width={40}
-                height={40}
-                className="w-10 h-10 rounded-full object-cover"
-              />
-              <span className="text-gray-800 font-medium text-sm truncate max-w-[120px]">
-                {fullName}
-              </span>
-              <ChevronDown size={16} className="text-gray-500" />
+              <div ref={avatarRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setAvatarOpen((v) => !v)}
+                  className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition hover:bg-slate-100"
+                >
+                  <Image
+                    src={avatarUrl}
+                    alt="Avatar"
+                    width={40}
+                    height={40}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                  <span className="text-slate-800 font-medium text-sm truncate max-w-[120px]">
+                    {fullName}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`text-slate-500 transition-transform duration-200 ${avatarOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
 
-              {avatarOpen && (
-                <div className="absolute right-0 top-[110%] w-64 bg-white rounded-lg shadow-lg border z-50">
-                  <div className="p-4 border-b bg-gray-50">
-                    <p className="font-bold text-sm">{fullName}</p>
-                    <p className="text-xs text-gray-600 mt-1">{userEmail}</p>
-                    <p className="text-xs text-yellow-600 mt-2">
-                      ⭐ {points} điểm • Thành viên {memberStatus}
-                    </p>
+                <div
+                  className={`absolute right-0 top-full z-50 mt-3 w-72 origin-top-right rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-900/10 transition-all duration-150 ${
+                    avatarOpen
+                      ? "opacity-100 scale-100 pointer-events-auto"
+                      : "opacity-0 scale-95 pointer-events-none"
+                  }`}
+                >
+                  <div className="rounded-t-2xl bg-slate-50 p-4">
+                    <p className="font-bold text-sm text-slate-900 truncate">{fullName}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 truncate">{userEmail}</p>
+                    <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-sm">
+                      <Star size={13} className="text-amber-400 fill-amber-400" />
+                      {points} điểm
+                      <span className="text-slate-300">•</span>
+                      <span style={{ color: "var(--primary)" }}>{memberStatus}</span>
+                    </div>
                   </div>
 
-                  <nav className="flex flex-col py-2">
+                  <nav className="flex flex-col gap-0.5 p-2">
                     {dropdownItems.map((item) => (
                       <Link
                         key={item.href}
                         href={item.href}
                         onClick={() => setAvatarOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100"
                       >
-                        <item.icon size={18} />
+                        <item.icon size={18} className="text-slate-400" />
                         {item.name}
                       </Link>
                     ))}
+                  </nav>
 
+                  <div className="border-t border-slate-100 p-2">
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-gray-100 border-t"
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-red-600 transition hover:bg-red-50"
                     >
                       <LogOut size={18} /> Đăng xuất
                     </button>
-                  </nav>
+                  </div>
                 </div>
-              )}
-            </div>
+              </div>
             </>
           )}
         </div>

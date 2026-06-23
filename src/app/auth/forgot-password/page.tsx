@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { FiEye, FiEyeOff, FiChevronLeft } from "react-icons/fi";
+import { Eye, EyeOff, ChevronLeft } from "lucide-react";
 import { authApi } from "@/lib/auth/authApi";
 import { toast } from "react-hot-toast";
 
@@ -98,7 +98,7 @@ export default function ForgotPasswordPage() {
         href="/auth/login"
         className="text-sm text-gray-500 hover:underline inline-flex items-center mb-4"
       >
-        <FiChevronLeft className="mr-2 text-base" />
+        <ChevronLeft className="mr-2 text-base" />
         Quay lại trang đăng nhập
       </a>
 
@@ -195,7 +195,7 @@ export default function ForgotPasswordPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-[42px] text-gray-500 hover:text-gray-700"
               >
-                {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
               {passwordErrors.length > 0 && (
                 <p className="text-red-500 text-xs mt-1">
@@ -217,7 +217,7 @@ export default function ForgotPasswordPage() {
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-3 top-[42px] text-gray-500 hover:text-gray-700"
               >
-                {showConfirmPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
               {confirmPassword && password !== confirmPassword && (
                 <p className="text-red-500 text-xs mt-1">Mật khẩu không khớp</p>

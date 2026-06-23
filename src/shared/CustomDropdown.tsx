@@ -1,7 +1,7 @@
 "use client";
 import { Fragment } from "react";
 import { Listbox, Transition } from "@headlessui/react";
-import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
+import { Check, ChevronsUpDown } from "lucide-react";
 
 interface DropdownProps {
   options: string[];
@@ -24,7 +24,7 @@ export default function CustomDropdown({
           <Listbox.Button className="relative flex-1 w-full cursor-default rounded-lg border border-gray-300 bg-white py-3 pl-4 pr-10 text-left shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 sm:text-sm">
             <span className="block truncate">{value}</span>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-              <ChevronUpDownIcon className="h-5 w-5 text-gray-400" />
+              <ChevronsUpDown className="h-5 w-5 text-gray-400" />
             </span>
           </Listbox.Button>
 
@@ -57,7 +57,7 @@ export default function CustomDropdown({
                       </span>
                       {selected && (
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
-                          <CheckIcon className="h-5 w-5" />
+                          <Check className="h-5 w-5" />
                         </span>
                       )}
                     </>

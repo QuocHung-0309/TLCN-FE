@@ -8,6 +8,7 @@ import { blogApi, type BlogDetail, type BlogComment } from "@/lib/blog/blogApi";
 import { Star, AlertCircle, Clock, Lock } from "lucide-react";
 import { useAuthStore } from "#/stores/auth";
 import { toast } from "react-hot-toast";
+import { sanitizeBlogHtml } from "@/lib/blog/sanitizeHtml";
 
 const renderBlock = (block: any, idx: number) => {
   if (!block) return null;
@@ -30,7 +31,7 @@ const renderBlock = (block: any, idx: number) => {
         <div
           key={idx}
           className="prose prose-sm max-w-none prose-img:rounded-2xl"
-          dangerouslySetInnerHTML={{ __html: block.value }}
+          dangerouslySetInnerHTML={{ __html: sanitizeBlogHtml(block.value) }}
         />
       );
     case "text":
@@ -232,7 +233,7 @@ export default function BlogPreviewPage() {
           {blog.content && Array.isArray(blog.content) && blog.content.length > 0 ? (
             blog.content.map((b, i) => renderBlock(b, i))
           ) : typeof blog.content === "string" && blog.content ? (
-            <div className="prose prose-slate max-w-none" dangerouslySetInnerHTML={{ __html: blog.content }} />
+            <div className="prose prose-slate max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeBlogHtml(blog.content) }} />
           ) : (
             <p className="text-sm text-slate-600">
               Bài viết này chưa có nội dung chi tiết.

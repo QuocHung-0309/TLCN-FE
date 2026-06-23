@@ -295,8 +295,8 @@ export default function CompareTourDialog({
                         )}
                         
                         {renderRow("Ưu đãi giảm giá", 
-                          Number(baseTour?.discountAmount) > 0 ? <span className="text-emerald-600 font-semibold">Giảm {vnd(baseTour.discountAmount)}</span> : "Không áp dụng", 
-                          Number(targetTour?.discountAmount) > 0 ? <span className="text-emerald-600 font-semibold">Giảm {vnd(targetTour.discountAmount)}</span> : "Không áp dụng"
+                          Number(baseTour?.discountAmount) > 0 ? <span className="text-blue-950 font-semibold">Giảm {vnd(baseTour.discountAmount)}</span> : "Không áp dụng", 
+                          Number(targetTour?.discountAmount) > 0 ? <span className="text-blue-950 font-semibold">Giảm {vnd(targetTour.discountAmount)}</span> : "Không áp dụng"
                         )}
 
                         {renderRow("Số lượng ghế", 

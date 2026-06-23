@@ -131,7 +131,7 @@ const BookingStatusChart: React.FC<BookingStatusChartProps> = ({ data }) => {
       <div className="mt-4 border-t border-slate-100 pt-4 dark:border-slate-800">
         <div className="flex items-center justify-between text-sm">
           <span className="text-slate-500">Doanh thu đã xác nhận:</span>
-          <span className="font-bold text-emerald-600">{formatCurrency(data.confirmed.revenue)}</span>
+          <span className="font-bold text-blue-950">{formatCurrency(data.confirmed.revenue)}</span>
         </div>
       </div>
     </div>

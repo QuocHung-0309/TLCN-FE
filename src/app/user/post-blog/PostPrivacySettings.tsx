@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FiGlobe, FiUser, FiUsers, FiX } from "react-icons/fi";
-import { FaSquareCheck } from "react-icons/fa6";
-import { CiSquareCheck } from "react-icons/ci";
+import { Globe, User, Users, X, SquareCheck, Square } from "lucide-react";
 import Button from "@/components/ui/Button";
 
 interface PostPrivacySettingsProps {
@@ -18,8 +16,8 @@ export default function PostPrivacySettings({
   onClose,
 }: PostPrivacySettingsProps) {
   const options = [
-    { key: "public", label: "Tất cả mọi người", icon: <FiGlobe /> },
-    { key: "private", label: "Chỉ mình bạn", icon: <FiUser /> },
+    { key: "public", label: "Tất cả mọi người", icon: <Globe /> },
+    { key: "private", label: "Chỉ mình bạn", icon: <User /> },
   ];
 
   const [tempValue, setTempValue] = useState(value);
@@ -37,7 +35,7 @@ export default function PostPrivacySettings({
             onClick={onClose}
             className="text-[var(--gray-1)] hover:text-[var(--foreground)] cursor-pointer"
           >
-            <FiX />
+            <X />
           </button>
         </div>
 
@@ -60,9 +58,9 @@ export default function PostPrivacySettings({
               </div>
               <span className="text-xl">
                 {tempValue === opt.key ? (
-                  <FaSquareCheck className="text-[#22C55E]" />
+                  <SquareCheck className="text-[#22C55E]" />
                 ) : (
-                  <CiSquareCheck className="text-[var(--foreground)]" />
+                  <Square className="text-[var(--foreground)]" />
                 )}
               </span>
             </button>

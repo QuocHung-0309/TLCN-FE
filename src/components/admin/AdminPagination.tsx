@@ -27,11 +27,11 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
       shadow: "shadow-orange-500/20",
     },
     emerald: {
-      text: "text-emerald-600",
+      text: "text-blue-950",
       bg: "bg-emerald-500",
       border: "border-emerald-500",
       hoverBorder: "hover:border-emerald-300",
-      hoverText: "hover:text-emerald-600",
+      hoverText: "hover:text-blue-950",
       shadow: "shadow-emerald-500/20",
     },
     blue: {

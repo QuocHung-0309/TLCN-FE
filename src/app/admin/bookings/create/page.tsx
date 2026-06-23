@@ -187,7 +187,7 @@ export default function AdminCreateBookingPage() {
                                 >
                                   <div className="flex justify-between items-start mb-2">
                                     <span className="font-bold text-slate-900 text-base">{localFormatDate(d.startDate)}</span>
-                                    <span className={`text-[10px] px-2 py-0.5 rounded-lg font-bold uppercase tracking-wider ${d.current_guests >= d.max_guests ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"}`}>
+                                    <span className={`text-[10px] px-2 py-0.5 rounded-lg font-bold uppercase tracking-wider ${d.current_guests >= d.max_guests ? "bg-red-100 text-red-600" : "bg-emerald-100 text-blue-950"}`}>
                                       {d.max_guests - d.current_guests} Chỗ trống
                                     </span>
                                   </div>
@@ -275,7 +275,7 @@ export default function AdminCreateBookingPage() {
             {/* Step 3: Thông tin liên hệ */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-emerald-100 text-blue-950 rounded-full flex items-center justify-center">
                   <i className="ri-contacts-book-line text-xl"></i>
                 </div>
                 <h2 className="text-xl font-bold text-slate-800">3. Thông tin liên hệ</h2>
@@ -397,7 +397,7 @@ export default function AdminCreateBookingPage() {
                         <div className="text-sm font-bold text-slate-900">Đặt cọc 50%</div>
                         <div className="text-[10px] font-bold uppercase leading-tight">
                           {canDeposit 
-                            ? <span className="text-emerald-600">Thu trước {localFormatVND(depositAmount)}</span> 
+                            ? <span className="text-blue-950">Thu trước {localFormatVND(depositAmount)}</span> 
                             : <span className="text-red-400">Chỉ áp dụng trước khởi hành {'>'} 3 ngày</span>}
                         </div>
                       </div>

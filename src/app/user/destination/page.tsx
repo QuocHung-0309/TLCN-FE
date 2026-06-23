@@ -10,7 +10,7 @@ import CardHot from "@/components/cards/CardHot";
 import TourFilter, { type TourFilterValue } from "@/components/TourFilter";
 import { useGetTours } from "#/hooks/tours-hook/useTours";
 import { getTours } from "@/lib/tours/tour";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 /* ========= Helpers ========= */
 type DayBucket = "1-4" | "5-8" | "9-12" | "14+";
@@ -494,7 +494,7 @@ function DestinationPageContent() {
                       onClick={() => goToPage(currentPage - 1)}
                       aria-label="Previous page"
                     >
-                      <FaChevronLeft size={12} />
+                      <ChevronLeft size={12} />
                     </button>
 
                     {pageNumbers.map((n, idx) =>
@@ -526,7 +526,7 @@ function DestinationPageContent() {
                       onClick={() => goToPage(currentPage + 1)}
                       aria-label="Next page"
                     >
-                      <FaChevronRight size={12} />
+                      <ChevronRight size={12} />
                     </button>
                   </div>
                 )}

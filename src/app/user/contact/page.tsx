@@ -124,7 +124,7 @@ export default function ContactPage() {
                   text: "Số 1 Võ Văn Ngân, TP. HCM",
                   subtext: "Phường Thủ Đức",
                   action: undefined,
-                  color: "bg-emerald-50 text-emerald-600",
+                  color: "bg-emerald-50 text-blue-950",
                 },
               ].map((item, idx) => (
                 <motion.div
@@ -347,7 +347,7 @@ export default function ContactPage() {
                     Số 1 Võ Văn Ngân, TP. Thủ Đức, TP. HCM
                   </div>
                   <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-emerald-600" />
+                    <Phone className="h-4 w-4 text-blue-950" />
                     <span>Hotline: +84 (0) 123 456 789</span>
                   </div>
                   <div className="flex items-center gap-2">

@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { HiLocationMarker } from 'react-icons/hi';
+import { MapPin } from 'lucide-react';
 
 interface LocationCardProps {
   title: string;
@@ -55,7 +55,7 @@ const LocationCard = ({
         </h3>
 
         <div className="flex items-center gap-1 text-xs text-[var(--gray-2)]">
-          <HiLocationMarker className="w-4 h-4 text-[#47A9C4]" />
+          <MapPin className="w-4 h-4 text-[#47A9C4]" />
           <span>{district}</span>
         </div>
       </div>

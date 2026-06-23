@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import useUser from "#/src/hooks/useUser"; // Adjust path
 import { checkinApi } from "@/lib/checkin/checkinApi";
-import { FaTrophy, FaShareAlt, FaMapMarkerAlt } from "react-icons/fa";
+import { Trophy, Share2, MapPin } from "lucide-react";
 
 export default function MapBanner() {
   const { user, isAuthenticated } = useUser();
@@ -83,7 +83,7 @@ export default function MapBanner() {
           {/* Card 1: Số tỉnh */}
           <div className="flex-1 md:flex-none bg-slate-50 rounded-xl px-4 py-2 border border-slate-200 flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-              <FaMapMarkerAlt />
+              <MapPin />
             </div>
             <div>
               <p className="text-[10px] text-slate-400 font-bold uppercase">
@@ -99,7 +99,7 @@ export default function MapBanner() {
           {/* Card 2: Danh hiệu */}
           <div className="flex-1 md:flex-none bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl px-4 py-2 border border-orange-100 flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center">
-              <FaTrophy />
+              <Trophy />
             </div>
             <div>
               <p className="text-[10px] text-orange-400 font-bold uppercase">

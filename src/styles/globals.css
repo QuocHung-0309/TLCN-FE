@@ -14,6 +14,7 @@
   --foreground: #171717;
   --brand-primary: #1D3B72; /* Xanh AHH (navy) */
   --brand-accent:  #F15A24; /* Đỏ cam chữ Tr */
+  --brand-navy:    #144d7e; /* Heading navy dùng xuyên suốt */
 
   /* Brand */
   --primary: #307afd;
@@ -86,6 +87,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-inter, Arial), sans-serif;
 }
+
 
 /* =========================
    💼 Layer: Utilities

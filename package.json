@@ -1,5 +1,5 @@
 {
-  "name": "saigon-di-web",
+  "name": "AHHTravel-web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",
-    "@heroicons/react": "^2.2.0",
     "@jridgewell/resolve-uri": "^3.1.2",
     "@reduxjs/toolkit": "^2.9.0",
     "@tanstack/react-query": "^5.90.2",
@@ -24,6 +23,7 @@
     "confetti": "^2.0.6",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.25",
+    "isomorphic-dompurify": "^3.18.0",
     "lucide-react": "^0.541.0",
     "next": "^15.4.5",
     "rc-motion": "^2.9.5",
@@ -34,7 +34,6 @@
     "react-circular-progressbar": "^2.2.0",
     "react-dom": "^19.1.1",
     "react-hot-toast": "^2.6.0",
-    "react-icons": "^5.5.0",
     "react-intersection-observer": "^9.16.0",
     "react-leaflet": "^5.0.0",
     "react-markdown": "^10.1.0",

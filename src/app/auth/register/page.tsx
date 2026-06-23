@@ -4,9 +4,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FaFacebookF, FaApple } from "react-icons/fa";
-import { FcGoogle } from "react-icons/fc";
-import { User, Mail, Phone, Lock, Eye, EyeOff, UserPlus, AlertCircle, CheckCircle2, AtSign } from "lucide-react";
+import { User, Mail, Phone, Lock, Eye, EyeOff, UserPlus, AlertCircle, CheckCircle2, AtSign, Facebook, Apple } from "lucide-react";
+import GoogleIcon from "@/components/icons/GoogleIcon";
 import { useRegister } from "#/hooks/auth-hook/useAuth";
 import { toast } from "react-hot-toast";
 
@@ -269,7 +268,7 @@ export default function RegisterPage() {
                   />
                 ))}
               </div>
-              <p className={`text-xs ${passwordStrength >= 4 ? "text-emerald-600" : passwordStrength >= 3 ? "text-yellow-600" : "text-red-500"}`}>
+              <p className={`text-xs ${passwordStrength >= 4 ? "text-blue-950" : passwordStrength >= 3 ? "text-yellow-600" : "text-red-500"}`}>
                 {strengthTexts[passwordStrength]}
               </p>
             </div>
@@ -300,7 +299,7 @@ export default function RegisterPage() {
             </button>
           </div>
           {confirmPassword && password === confirmPassword && (
-            <p className="text-emerald-600 text-xs mt-1 flex items-center gap-1">
+            <p className="text-blue-950 text-xs mt-1 flex items-center gap-1">
               <CheckCircle2 className="w-3 h-3" /> Mật khẩu khớp
             </p>
           )}
@@ -367,21 +366,21 @@ export default function RegisterPage() {
           onClick={() => startOAuth("facebook")}
           className="w-12 h-12 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all"
         >
-          <FaFacebookF className="text-[#1877F2]" />
+          <Facebook className="text-[#1877F2]" />
         </button>
         <button
           type="button"
           onClick={() => startOAuth("google")}
           className="w-12 h-12 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all"
         >
-          <FcGoogle />
+          <GoogleIcon className="w-5 h-5" />
         </button>
         <button
           type="button"
           onClick={() => startOAuth("apple")}
           className="w-12 h-12 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all"
         >
-          <FaApple className="text-slate-900" />
+          <Apple className="text-slate-900" />
         </button>
       </div>
     </div>

@@ -4,13 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import { FaCheck, FaTimes, FaMapMarkerAlt, FaGift, FaHeart, FaSearchPlus, FaSearchMinus, FaRedo } from "react-icons/fa";
+import { Check, X, MapPin, Gift, Heart, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { travelMemoryApi } from "@/lib/checkin/travelMemoryApi";
 import { checkinApi } from "@/lib/checkin/checkinApi";
 import { useAuthStore } from "#/stores/auth";
 import { toast } from "react-hot-toast";
 import { VIETNAM_PATHS, MAP_VIEWBOX } from "./VietnamMapPaths"; // Import file data
 import MemoryModal from "./MemoryModal";
+import { formatTimeAgo } from "@/lib/utils";
 
 const COLORS = {
   BOOKING_VISITED: "#10b981", // Xanh ngọc - đã đi qua tour đặt trên web (TỰ ĐỘNG)
@@ -22,12 +23,99 @@ const COLORS = {
   ARCHIPELAGO_LABEL: "#b45309",
 };
 
+// Ánh xạ tên 63 tỉnh/thành cũ (trước sáp nhập 2025) sang 1 trong 34 tỉnh/thành hiện tại.
+// Áp dụng cho dữ liệu cũ từ server/localStorage (tour, check-in...) còn lưu tên tỉnh cũ.
 const MERGED_PROVINCE_ALIASES: Record<string, string> = {
   "ha giang": "tuyen quang",
+
+  "yen bai": "lao cai",
+
+  "bac kan": "thai nguyen",
+
+  "vinh phuc": "phu tho",
+  "hoa binh": "phu tho",
+
+  "bac giang": "bac ninh",
+
+  "hai duong": "tp. hai phong",
+  "hai phong": "tp. hai phong",
+
+  "thai binh": "hung yen",
+
+  "ha nam": "ninh binh",
+  "nam dinh": "ninh binh",
+
+  "quang binh": "quang tri",
+
+  "thua thien hue": "tp. hue",
+  "hue": "tp. hue",
+
+  "quang nam": "tp. da nang",
+  "da nang": "tp. da nang",
+
+  "kon tum": "quang ngai",
+
+  "binh dinh": "gia lai",
+
+  "phu yen": "dak lak",
+
+  "ninh thuan": "khanh hoa",
+
+  "dak nong": "lam dong",
+  "binh thuan": "lam dong",
+
+  "binh phuoc": "dong nai",
+
+  "long an": "tay ninh",
+
+  "binh duong": "tp. ho chi minh",
+  "ba ria - vung tau": "tp. ho chi minh",
+  "ba ria-vung tau": "tp. ho chi minh",
+  "ba ria vung tau": "tp. ho chi minh",
+  "ho chi minh": "tp. ho chi minh",
+  "tp ho chi minh": "tp. ho chi minh",
+  "sai gon": "tp. ho chi minh",
+
+  "tien giang": "dong thap",
+
+  "kien giang": "an giang",
+
+  "ben tre": "vinh long",
+  "tra vinh": "vinh long",
+
+  "hau giang": "tp. can tho",
+  "soc trang": "tp. can tho",
+  "can tho": "tp. can tho",
+
+  "bac lieu": "ca mau",
+
+  "ha noi": "tp. ha noi",
 };
 
 const MERGED_PROVINCE_LABELS: Record<string, string> = {
   "tuyen quang": "Tuyên Quang (gồm Hà Giang)",
+  "lao cai": "Lào Cai (gồm Yên Bái)",
+  "thai nguyen": "Thái Nguyên (gồm Bắc Kạn)",
+  "phu tho": "Phú Thọ (gồm Vĩnh Phúc, Hòa Bình)",
+  "bac ninh": "Bắc Ninh (gồm Bắc Giang)",
+  "tp. hai phong": "TP. Hải Phòng (gồm Hải Dương)",
+  "hung yen": "Hưng Yên (gồm Thái Bình)",
+  "ninh binh": "Ninh Bình (gồm Hà Nam, Nam Định)",
+  "quang tri": "Quảng Trị (gồm Quảng Bình)",
+  "tp. da nang": "TP. Đà Nẵng (gồm Quảng Nam)",
+  "quang ngai": "Quảng Ngãi (gồm Kon Tum)",
+  "gia lai": "Gia Lai (gồm Bình Định)",
+  "dak lak": "Đắk Lắk (gồm Phú Yên)",
+  "khanh hoa": "Khánh Hòa (gồm Ninh Thuận)",
+  "lam dong": "Lâm Đồng (gồm Đắk Nông, Bình Thuận)",
+  "dong nai": "Đồng Nai (gồm Bình Phước)",
+  "tay ninh": "Tây Ninh (gồm Long An)",
+  "tp. ho chi minh": "TP. Hồ Chí Minh (gồm Bình Dương, Bà Rịa - Vũng Tàu)",
+  "dong thap": "Đồng Tháp (gồm Tiền Giang)",
+  "an giang": "An Giang (gồm Kiên Giang)",
+  "vinh long": "Vĩnh Long (gồm Bến Tre, Trà Vinh)",
+  "tp. can tho": "TP. Cần Thơ (gồm Hậu Giang, Sóc Trăng)",
+  "ca mau": "Cà Mau (gồm Bạc Liêu)",
 };
 
 const normalizeProvince = (provinceName: string) =>
@@ -102,12 +190,15 @@ const ARCHIPELAGO_LABELS = [
   { id: "truong-sa", label: "Quần đảo Trường Sa", x: 754, y: 858 },
 ];
 
-const MANUAL_STORAGE_KEY = "ahh_manual_provinces";
+const MANUAL_STORAGE_KEY_PREFIX = "ahh_manual_provinces";
 
-const getStoredManualProvinces = (): Set<string> => {
+const getManualStorageKey = (userId?: string | null) =>
+  userId ? `${MANUAL_STORAGE_KEY_PREFIX}_${userId}` : MANUAL_STORAGE_KEY_PREFIX;
+
+const getStoredManualProvinces = (userId?: string | null): Set<string> => {
   if (typeof window === "undefined") return new Set();
   try {
-    const stored = localStorage.getItem(MANUAL_STORAGE_KEY);
+    const stored = localStorage.getItem(getManualStorageKey(userId));
     if (stored) {
       const arr = JSON.parse(stored);
       return new Set(arr.map((p: string) => getMergedProvinceKey(p)));
@@ -118,11 +209,11 @@ const getStoredManualProvinces = (): Set<string> => {
   return new Set();
 };
 
-const saveManualProvince = (provinceName: string) => {
+const saveManualProvince = (provinceName: string, userId?: string | null) => {
   try {
-    const current = getStoredManualProvinces();
+    const current = getStoredManualProvinces(userId);
     current.add(getMergedProvinceKey(provinceName));
-    localStorage.setItem(MANUAL_STORAGE_KEY, JSON.stringify(Array.from(current)));
+    localStorage.setItem(getManualStorageKey(userId), JSON.stringify(Array.from(current)));
   } catch (e) {
     console.error("Error saving manual province:", e);
   }
@@ -132,6 +223,7 @@ export default function VietnamJourneyMap() {
   const router = useRouter();
   const { user } = useAuthStore();
   const mapRef = useRef<SVGSVGElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Tỉnh từ booking đã hoàn thành trên web (TỰ ĐỘNG - xanh ngọc)
   const [bookingProvinces, setBookingProvinces] = useState<Set<string>>(
@@ -190,6 +282,12 @@ export default function VietnamJourneyMap() {
 
   // 1. FETCH DATA - Lấy dữ liệu hành trình từ 2 nguồn
   useEffect(() => {
+    // Reset ngay khi đổi tài khoản để không hiển thị nhầm hành trình của tài khoản cũ
+    // trong lúc đang chờ dữ liệu mới (hoặc nếu fetch bên dưới lỗi).
+    setBookingProvinces(new Set());
+    setManualProvinces(new Set());
+    setProvinceProgress({});
+
     const fetchJourney = async () => {
       if (!user) return;
       try {
@@ -238,15 +336,17 @@ export default function VietnamJourneyMap() {
         console.log("Tự đánh dấu (thủ công):", Array.from(fromManualSet));
       } catch (error) {
         console.error("Lỗi tải hành trình:", error);
-        // Fallback: chỉ lấy từ localStorage
-        const storedManual = getStoredManualProvinces();
+        // Fallback: chỉ lấy từ localStorage (đã được scope theo userId)
+        // và đảm bảo không còn sót dữ liệu booking của tài khoản trước.
+        setBookingProvinces(new Set());
+        const storedManual = getStoredManualProvinces(user.id);
         setManualProvinces(storedManual);
         setProvinceProgress({});
       }
     };
 
     fetchJourney();
-  }, [user]);
+  }, [user?.id]);
 
   // 2. Xem tour tại tỉnh này (dẫn đến trang destination)
   const handleViewTours = () => {
@@ -271,8 +371,8 @@ export default function VietnamJourneyMap() {
         console.log("API manual mark không available, lưu local");
       }
 
-      // Lưu vào localStorage
-      saveManualProvince(selectedProvince);
+      // Lưu vào localStorage (scope theo tài khoản hiện tại)
+      saveManualProvince(selectedProvince, user?.id);
 
       // Tô màu xanh dương cho tỉnh đánh dấu thủ công
       setManualProvinces((prev) =>
@@ -312,9 +412,32 @@ export default function VietnamJourneyMap() {
     e.stopPropagation();
     setSelectedProvince(title);
     setPopupTab("me");
-    const x = Math.min(e.clientX, window.innerWidth - 320);
-    const y = Math.min(e.clientY, window.innerHeight - 250);
-    setPopupPos({ x, y });
+
+    const rect = containerRef.current?.getBoundingClientRect();
+    const POPUP_WIDTH = 320;
+    // Chiều cao tối đa thực tế của popup (xem maxHeight ở JSX) - dùng để quyết định
+    // lật popup lên TRÊN điểm bấm khi không đủ chỗ phía dưới, tránh bị che/mất phần dưới.
+    const POPUP_MAX_HEIGHT = Math.min(480, window.innerHeight * 0.7);
+    const MARGIN = 12;
+
+    const spaceBelow = window.innerHeight - e.clientY;
+    const shouldFlipUp = spaceBelow < POPUP_MAX_HEIGHT + MARGIN && e.clientY > POPUP_MAX_HEIGHT;
+
+    // Toạ độ theo viewport trước, sau đó quy đổi về toạ độ tương đối với khung bản đồ
+    // (để popup vẫn cuộn theo trang, không "đứng yên" khi scroll như fixed).
+    const viewportY = shouldFlipUp
+      ? Math.max(MARGIN, e.clientY - POPUP_MAX_HEIGHT)
+      : Math.min(e.clientY, window.innerHeight - MARGIN - 60);
+    const viewportX = Math.min(
+      Math.max(MARGIN, e.clientX),
+      window.innerWidth - POPUP_WIDTH - MARGIN
+    );
+
+    if (rect) {
+      setPopupPos({ x: viewportX - rect.left, y: viewportY - rect.top });
+    } else {
+      setPopupPos({ x: viewportX, y: viewportY });
+    }
   };
 
   const selectedProvinceKey = selectedProvince
@@ -326,26 +449,29 @@ export default function VietnamJourneyMap() {
 
   return (
     <section className="w-full max-w-5xl mx-auto px-4 mt-8 select-none">
-      <div className="relative w-full aspect-[4/3] bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+      <div
+        ref={containerRef}
+        className="relative w-full aspect-[4/3] bg-white rounded-3xl shadow-xl border border-slate-100"
+      >
         {/* Controls */}
         <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 bg-white/90 backdrop-blur p-2 rounded-xl shadow-sm border border-slate-200">
           <button
             onClick={zoomIn}
             className="p-2 hover:bg-slate-100 rounded-lg text-slate-700"
           >
-            <FaSearchPlus />
+            <ZoomIn />
           </button>
           <button
             onClick={zoomOut}
             className="p-2 hover:bg-slate-100 rounded-lg text-slate-700"
           >
-            <FaSearchMinus />
+            <ZoomOut />
           </button>
           <button
             onClick={resetMap}
             className="p-2 hover:bg-slate-100 rounded-lg text-slate-700"
           >
-            <FaRedo />
+            <RotateCcw />
           </button>
         </div>
         <div className="absolute bottom-4 left-4 z-20 bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-lg border border-slate-100 flex flex-col gap-3 text-xs font-semibold text-slate-600">
@@ -369,7 +495,7 @@ export default function VietnamJourneyMap() {
 
         {/* SVG Area */}
         <div
-          className="w-full h-full cursor-grab active:cursor-grabbing"
+          className="w-full h-full cursor-grab active:cursor-grabbing rounded-3xl overflow-hidden"
           onMouseDown={(e) => {
             setIsDragging(true);
             setLastPos({ x: e.clientX, y: e.clientY });
@@ -490,17 +616,21 @@ export default function VietnamJourneyMap() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="fixed z-50 bg-white rounded-2xl shadow-2xl p-6 w-80 border border-slate-100"
-              style={{ left: popupPos.x, top: popupPos.y }}
+              className="absolute z-50 bg-white rounded-2xl shadow-2xl w-80 border border-slate-100 flex flex-col"
+              style={{
+                left: popupPos.x,
+                top: popupPos.y,
+                maxHeight: "min(480px, 70vh)",
+              }}
             >
               <button
                 onClick={() => setSelectedProvince(null)}
-                className="absolute top-3 right-3 text-slate-400 hover:text-red-500"
+                className="absolute top-3 right-3 z-10 text-slate-400 hover:text-red-500 bg-white/80 backdrop-blur rounded-full p-1"
               >
-                <FaTimes />
+                <X />
               </button>
-              
-              <div className="flex flex-col items-center w-full">
+
+              <div className="flex flex-col items-center w-full p-6 overflow-y-auto custom-scrollbar">
                 {/* Tabs */}
                 <div className="flex w-full mb-4 bg-slate-100 rounded-lg p-1">
                   <button
@@ -522,7 +652,7 @@ export default function VietnamJourneyMap() {
                 </div>
 
                 <div className="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 mb-3">
-                  <FaMapMarkerAlt size={24} />
+                  <MapPin size={24} />
                 </div>
                 <h3 className="text-xl font-bold text-slate-800 text-center">
                   {getProvinceLabel(selectedProvince)}
@@ -539,19 +669,19 @@ export default function VietnamJourneyMap() {
                 {bookingProvinces.has(getMergedProvinceKey(selectedProvince)) ? (
                   <div className="mt-3 px-4 py-3 bg-emerald-100/50 text-emerald-700 rounded-lg text-sm font-bold flex flex-col items-center gap-2 w-full">
                     <div className="flex items-center gap-2">
-                      <FaCheck className="text-emerald-500" />
+                      <Check className="text-emerald-500" />
                       Đã xác thực qua tour AHH Travel
                     </div>
                     {/* Province Stamp */}
                     <div className="mt-2 w-full max-w-[220px] border-[3px] border-emerald-500/60 border-dashed rounded-lg p-2 text-center transform -rotate-3 bg-emerald-50/50 relative overflow-hidden shadow-sm">
                       <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
                       <div className="absolute -right-4 -bottom-4 opacity-10">
-                        <FaMapMarkerAlt size={40} className="text-emerald-600" />
+                        <MapPin size={40} className="text-blue-950" />
                       </div>
-                      <p className="text-[13px] uppercase tracking-[0.15em] font-black text-emerald-600 mb-0.5 relative z-10">
+                      <p className="text-[13px] uppercase tracking-[0.15em] font-black text-blue-950 mb-0.5 relative z-10">
                         Đã chinh phục
                       </p>
-                      <p className="text-[9px] text-emerald-600/70 font-semibold uppercase relative z-10">
+                      <p className="text-[9px] text-blue-950/70 font-semibold uppercase relative z-10">
                         Xác thực: Tour AHH Travel
                       </p>
                     </div>
@@ -559,14 +689,14 @@ export default function VietnamJourneyMap() {
                 ) : manualProvinces.has(getMergedProvinceKey(selectedProvince)) ? (
                   <div className="mt-3 px-4 py-3 bg-blue-100/50 text-blue-700 rounded-lg text-sm font-bold flex flex-col items-center gap-2 w-full">
                     <div className="flex items-center gap-2">
-                      <FaCheck className="text-blue-500" />
+                      <Check className="text-blue-500" />
                       Đã tự đánh dấu
                     </div>
                     {/* Province Stamp */}
                     <div className="mt-2 w-full max-w-[220px] border-[3px] border-blue-500/60 border-dashed rounded-lg p-2 text-center transform rotate-2 bg-blue-50/50 relative overflow-hidden shadow-sm">
                       <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
                       <div className="absolute -right-4 -bottom-4 opacity-10">
-                        <FaCheck size={40} className="text-blue-600" />
+                        <Check size={40} className="text-blue-600" />
                       </div>
                       <p className="text-[13px] uppercase tracking-[0.15em] font-black text-blue-600 mb-0.5 relative z-10">
                         Đã ghé thăm
@@ -589,7 +719,7 @@ export default function VietnamJourneyMap() {
                     onClick={() => setIsMemoryModalOpen(true)}
                     className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold shadow-lg active:scale-95 flex items-center justify-center gap-2"
                   >
-                    <FaCheck />
+                    <Check />
                     Thêm kỷ niệm
                   </button>
 
@@ -604,7 +734,7 @@ export default function VietnamJourneyMap() {
                         onClick={handleViewTours}
                         className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold shadow-lg active:scale-95 flex items-center justify-center gap-2"
                       >
-                        <FaGift />
+                        <Gift />
                         Xem tour tại {selectedProvince}
                       </button>
                       <p className="text-xs text-slate-400 mt-2 italic">
@@ -642,26 +772,34 @@ export default function VietnamJourneyMap() {
                                )}
                                <span className="text-xs font-bold text-slate-700">{m.userId?.fullName || "Người dùng"}</span>
                              </div>
-                             <span className="text-[10px] text-slate-400">{new Date(m.visitedAt).toLocaleDateString("vi-VN")}</span>
+                             <span className="text-[10px] text-slate-400">{formatTimeAgo(m.createdAt)}</span>
                            </div>
-                           
+
                            {m.images && m.images.length > 0 && (
                              <img src={m.images[0]} className="w-full h-24 object-cover rounded-lg" />
                            )}
-                           
+
                            {m.caption && <p className="text-xs text-slate-600 line-clamp-2">"{m.caption}"</p>}
-                           
+
                            <div className="flex items-center justify-between mt-1">
                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${m.source === "tour" ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"}`}>
                                {m.source === "tour" ? "Qua tour AHH" : "Tự đánh dấu"}
                              </span>
-                             
+
                              <button onClick={() => handlePopupLike(m._id, !!m.isLikedByMe)} className={`flex items-center gap-1 text-[10px] font-bold transition-transform active:scale-90 ${m.isLikedByMe ? "text-rose-500" : "text-slate-400 hover:text-slate-600"}`}>
-                               <FaHeart /> {m.likesCount || 0}
+                               <Heart /> {m.likesCount || 0}
                              </button>
                            </div>
                         </div>
                       ))
+                    )}
+                    {communityMemories.length > 0 && (
+                      <a
+                        href="/user/map?tab=newsfeed"
+                        className="text-center text-xs font-semibold text-indigo-600 hover:text-indigo-800 mt-1"
+                      >
+                        Xem và bình luận trên Bảng tin →
+                      </a>
                     )}
                   </div>
                 )}
@@ -681,7 +819,7 @@ export default function VietnamJourneyMap() {
             className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3"
           >
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <FaCheck size={20} />
+              <Check size={20} />
             </div>
             <div>
               <p className="font-bold">Đã đánh dấu thành công!</p>

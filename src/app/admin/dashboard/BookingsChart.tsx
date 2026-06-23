@@ -176,7 +176,7 @@ const BookingsChart: React.FC<BookingsChartProps> = ({ data }) => {
             Booking theo tháng
           </h3>
           <p className="mt-1 text-xs text-slate-500">
-            TB: <span className="font-semibold text-emerald-600">{avgGuestsPerBooking}</span> khách/booking
+            TB: <span className="font-semibold text-blue-950">{avgGuestsPerBooking}</span> khách/booking
           </p>
         </div>
         <div className="flex gap-4">
@@ -186,7 +186,7 @@ const BookingsChart: React.FC<BookingsChartProps> = ({ data }) => {
           </div>
           <div className="text-center">
             <p className="text-xs text-slate-500">Khách</p>
-            <p className="text-lg font-bold text-emerald-600">{currentMonthData?.guests || 0}</p>
+            <p className="text-lg font-bold text-blue-950">{currentMonthData?.guests || 0}</p>
           </div>
         </div>
       </div>
@@ -202,7 +202,7 @@ const BookingsChart: React.FC<BookingsChartProps> = ({ data }) => {
         </div>
         <div className="text-center">
           <p className="text-xs text-slate-500">Tổng khách</p>
-          <p className="text-sm font-semibold text-emerald-600">{totalGuests}</p>
+          <p className="text-sm font-semibold text-blue-950">{totalGuests}</p>
         </div>
         <div className="text-center">
           <p className="text-xs text-slate-500">TB/booking</p>

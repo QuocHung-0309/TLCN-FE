@@ -1,0 +1,153 @@
+import {
+  Award,
+  Star,
+  Map,
+  Compass,
+  Mountain,
+  Waves,
+  TreePine,
+  Building,
+  Sparkles,
+} from "lucide-react";
+
+// Phai khop voi PROVINCE_ACHIEVEMENTS o TLCN-BE/src/constants/achievements.js
+export const ACHIEVEMENTS = [
+  {
+    id: "first_step",
+    name: "Bước chân đầu tiên",
+    description: "Check-in địa điểm đầu tiên",
+    icon: Map,
+    requirement: 1,
+    type: "provinces",
+    color: "from-green-400 to-emerald-500",
+    rarity: "common",
+  },
+  {
+    id: "explorer_5",
+    name: "Lữ khách mới",
+    description: "Chinh phục 5 tỉnh thành",
+    icon: Compass,
+    requirement: 5,
+    type: "provinces",
+    color: "from-blue-400 to-cyan-500",
+    rarity: "common",
+  },
+  {
+    id: "explorer_10",
+    name: "Phượt thủ tập sự",
+    description: "Chinh phục 10 tỉnh thành",
+    icon: Mountain,
+    requirement: 10,
+    type: "provinces",
+    color: "from-purple-400 to-violet-500",
+    rarity: "uncommon",
+  },
+  {
+    id: "explorer_20",
+    name: "Thám hiểm gia",
+    description: "Chinh phục 20 tỉnh thành",
+    icon: TreePine,
+    requirement: 20,
+    type: "provinces",
+    color: "from-teal-400 to-emerald-500",
+    rarity: "uncommon",
+  },
+  {
+    id: "explorer_35",
+    name: "Chinh phục nửa Việt Nam",
+    description: "Chinh phục 35 tỉnh thành",
+    icon: Star,
+    requirement: 35,
+    type: "provinces",
+    color: "from-amber-400 to-orange-500",
+    rarity: "rare",
+  },
+  {
+    id: "explorer_50",
+    name: "Thổ địa",
+    description: "Chinh phục 50 tỉnh thành",
+    icon: Award,
+    requirement: 50,
+    type: "provinces",
+    color: "from-rose-400 to-pink-500",
+    rarity: "epic",
+  },
+  {
+    id: "explorer_63",
+    name: "Huyền thoại Việt Nam",
+    description: "Chinh phục toàn bộ 34 tỉnh thành",
+    icon: Sparkles,
+    requirement: 63,
+    type: "provinces",
+    color: "from-yellow-400 to-amber-500",
+    rarity: "legendary",
+  },
+  {
+    id: "coastal",
+    name: "Người con của biển",
+    description: "Ghé thăm 5 tỉnh ven biển",
+    icon: Waves,
+    requirement: 5,
+    type: "coastal",
+    color: "from-cyan-400 to-blue-500",
+    rarity: "uncommon",
+  },
+  {
+    id: "highlands",
+    name: "Chinh phục cao nguyên",
+    description: "Ghé thăm 5 tỉnh Tây Nguyên",
+    icon: Mountain,
+    requirement: 5,
+    type: "highlands",
+    color: "from-orange-400 to-red-500",
+    rarity: "uncommon",
+  },
+  {
+    id: "cities",
+    name: "Người thành phố",
+    description: "Ghé thăm 5 thành phố trực thuộc TW",
+    icon: Building,
+    requirement: 5,
+    type: "cities",
+    color: "from-slate-400 to-zinc-500",
+    rarity: "uncommon",
+  },
+];
+
+export const RARITY_STYLES = {
+  common: {
+    border: "border-slate-200",
+    bg: "bg-slate-50",
+    text: "text-slate-600",
+    label: "Thường",
+  },
+  uncommon: {
+    border: "border-green-200",
+    bg: "bg-green-50",
+    text: "text-green-600",
+    label: "Không phổ biến",
+  },
+  rare: {
+    border: "border-blue-200",
+    bg: "bg-blue-50",
+    text: "text-blue-600",
+    label: "Hiếm",
+  },
+  epic: {
+    border: "border-purple-200",
+    bg: "bg-purple-50",
+    text: "text-purple-600",
+    label: "Sử thi",
+  },
+  legendary: {
+    border: "border-amber-300",
+    bg: "bg-gradient-to-br from-amber-50 to-yellow-50",
+    text: "text-amber-600",
+    label: "Huyền thoại",
+  },
+};
+
+export function getAchievementById(id?: string | null) {
+  if (!id) return null;
+  return ACHIEVEMENTS.find((a) => a.id === id) || null;
+}

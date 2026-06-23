@@ -89,7 +89,7 @@ const FEATURES = [
   {
     icon: MapIcon,
     title: "Bản đồ tương tác",
-    description: "Theo dõi hành trình chinh phục 63 tỉnh thành Việt Nam",
+    description: "Theo dõi hành trình chinh phục 34 tỉnh thành Việt Nam",
     color: "from-blue-500 to-cyan-500",
     bgColor: "bg-blue-50",
   },
@@ -125,6 +125,25 @@ export default function UserHomeMapPage() {
   const [activeTab, setActiveTab] = useState<
     "map" | "timeline" | "achievements" | "collections" | "newsfeed"
   >("map");
+  const [highlightPostId, setHighlightPostId] = useState<string | null>(null);
+
+  // Cho phép deep-link vào 1 tab cụ thể, vd link "Xem trên Bảng tin" từ popup tỉnh
+  // hoặc mở đúng 1 bài viết khi mở link đã được chia sẻ (?postId=...)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    const postId = params.get("postId");
+
+    if (postId) {
+      setHighlightPostId(postId);
+      setActiveTab("newsfeed");
+      return;
+    }
+
+    if (tab === "timeline" || tab === "achievements" || tab === "collections" || tab === "newsfeed") {
+      setActiveTab(tab);
+    }
+  }, []);
 
   /* ================= Fetch tours ================= */
   useEffect(() => {
@@ -155,14 +174,16 @@ export default function UserHomeMapPage() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    return tours.filter((t) => {
-      if (t.startDate) {
-        const startDate = new Date(t.startDate);
-        startDate.setHours(0, 0, 0, 0);
-        if (startDate < today) return false;
-      }
-      return true;
-    }).slice(0, 4); // Giới hạn 4 tour
+    return tours
+      .filter((t) => {
+        if (t.startDate) {
+          const startDate = new Date(t.startDate);
+          startDate.setHours(0, 0, 0, 0);
+          if (startDate < today) return false;
+        }
+        return true;
+      })
+      .slice(0, 4); // Giới hạn 4 tour
   }, [tours]);
 
   /* ================= Loading user ================= */
@@ -224,7 +245,7 @@ export default function UserHomeMapPage() {
               Chinh phục
               <br />
               <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-400 bg-clip-text text-transparent">
-                63 tỉnh thành
+                34 tỉnh thành
               </span>
             </h1>
 
@@ -352,7 +373,7 @@ export default function UserHomeMapPage() {
               </h2>
               <p className="mb-6 text-sm text-slate-600 sm:text-base">
                 Mỗi địa điểm bạn ghé thăm sẽ được tô sáng trên bản đồ. Theo dõi
-                tiến độ chinh phục 63 tỉnh thành và nhận thưởng tương xứng.
+                tiến độ chinh phục 34 tỉnh thành và nhận thưởng tương xứng.
               </p>
 
               <div className="space-y-3 text-sm text-slate-700">
@@ -371,7 +392,7 @@ export default function UserHomeMapPage() {
                     className="flex items-center gap-3"
                   >
                     <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100">
-                      <Star size={14} className="text-emerald-600" />
+                      <Star size={14} className="text-blue-950" />
                     </div>
                     <span>{item}</span>
                   </motion.div>
@@ -413,7 +434,7 @@ export default function UserHomeMapPage() {
                     <div>
                       <p className="text-xs text-slate-500">Tiến độ mẫu</p>
                       <p className="text-2xl font-black text-slate-900">
-                        25/63 tỉnh
+                        25/34 tỉnh
                       </p>
                     </div>
                     <div className="text-right">
@@ -550,7 +571,7 @@ export default function UserHomeMapPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
             >
-              <JourneyTimeline />
+              <JourneyTimeline mode="me" />
             </motion.div>
           )}
 
@@ -583,7 +604,7 @@ export default function UserHomeMapPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
             >
-              <JourneyTimeline initialTab="community" />
+              <JourneyTimeline mode="community" highlightId={highlightPostId} />
             </motion.div>
           )}
         </AnimatePresence>

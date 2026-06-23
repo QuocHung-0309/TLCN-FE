@@ -65,36 +65,36 @@ export default function FavoritesTab() {
 
   return (
     <div className="space-y-6">
-      {/* --- Toolbar (Subtle Title Replacement) --- */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/50 backdrop-blur-md p-3 rounded-2xl border border-slate-100 shadow-sm">
+      {/* --- Toolbar --- */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-3 rounded-2xl border border-slate-200">
         <div className="relative flex-1 w-full max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            type="text" 
-            placeholder="Tìm kiếm trong danh sách yêu thích..." 
+          <input
+            type="text"
+            placeholder="Tìm kiếm trong danh sách yêu thích..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all outline-none"
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all outline-none"
           />
         </div>
-        
+
         <div className="flex items-center gap-2">
           <div className="flex p-1 bg-slate-100 rounded-xl">
-             <button 
+             <button
                onClick={() => setViewMode("grid")}
-               className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-white text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+               className={`p-1.5 rounded-lg transition-colors ${viewMode === "grid" ? "bg-white text-orange-600" : "text-slate-400 hover:text-slate-600"}`}
              >
                <LayoutGrid size={18} />
              </button>
-             <button 
+             <button
                onClick={() => setViewMode("list")}
-               className={`p-1.5 rounded-lg transition-all ${viewMode === "list" ? "bg-white text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+               className={`p-1.5 rounded-lg transition-colors ${viewMode === "list" ? "bg-white text-orange-600" : "text-slate-400 hover:text-slate-600"}`}
              >
                <ListIcon size={18} />
              </button>
           </div>
           <div className="h-6 w-px bg-slate-200 mx-2" />
-          <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-xl text-xs font-bold">
+          <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">
             <Heart size={14} fill="currentColor" />
             {favorites.length} Tours
           </div>
@@ -103,25 +103,23 @@ export default function FavoritesTab() {
 
       {/* --- Grid / List View --- */}
       {loading ? (
-        <div className="text-center py-24 bg-white rounded-3xl border border-slate-100">
-          <div className="animate-spin h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
+        <div className="text-center py-24 bg-white rounded-2xl border border-slate-200">
+          <div className="animate-spin h-8 w-8 border-4 border-slate-200 border-t-orange-500 rounded-full mx-auto mb-4" />
           <p className="text-slate-400 font-medium">Đang chuẩn bị hành trình...</p>
         </div>
       ) : filteredFavorites.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-3xl border border-slate-100">
-           <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-             <Heart size={40} className="text-slate-200" />
-           </div>
+        <div className="text-center py-20 bg-white rounded-2xl border border-slate-200">
+           <Heart size={28} className="mx-auto mb-3 text-slate-300" />
            <p className="text-slate-800 font-bold text-lg">Hành trình yêu thích trống</p>
            <p className="text-slate-400 text-sm mb-6">Bạn chưa lưu lại chuyến đi nào.</p>
-           <Link href="/user/tour-list" className="px-6 py-2.5 bg-blue-950 text-white rounded-xl text-sm font-bold hover:bg-blue-900 transition-all shadow-lg shadow-blue-900/20">
+           <Link href="/user/tour-list" className="px-6 py-2.5 bg-orange-600 text-white rounded-xl text-sm font-bold hover:bg-orange-500 transition-colors">
              Khám phá tour mới
            </Link>
         </div>
       ) : (
         <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
           <AnimatePresence>
-            {filteredFavorites.map((item, idx) => {
+            {filteredFavorites.map((item) => {
               const tour = item.tourId;
               if (!tour) return null;
 
@@ -129,11 +127,10 @@ export default function FavoritesTab() {
                 <motion.div
                   key={item._id}
                   layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className={`group bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300 ${viewMode === "list" ? "flex" : "flex flex-col"}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className={`group bg-white border border-slate-200 rounded-2xl overflow-hidden hover:border-slate-300 transition-colors ${viewMode === "list" ? "flex" : "flex flex-col"}`}
                 >
                   {/* Thumbnail */}
                   <Link 
@@ -169,20 +166,20 @@ export default function FavoritesTab() {
                     <div className="flex flex-wrap gap-3 mb-3">
                        {tour.destination && (
                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 text-slate-500 rounded-lg text-[10px] font-bold uppercase tracking-wider">
-                           <Plane size={12} className="text-blue-400" />
+                           <Plane size={12} className="text-slate-400" />
                            {tour.destination}
                          </span>
                        )}
                        {tour.time && (
                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 text-slate-500 rounded-lg text-[10px] font-bold uppercase tracking-wider">
-                           <Clock3 size={12} className="text-blue-400" />
+                           <Clock3 size={12} className="text-slate-400" />
                            {tour.time}
                          </span>
                        )}
                     </div>
 
                     <Link href={`/user/destination/tour/${tour._id}`} className="block mb-4">
-                      <h3 className="font-bold text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
+                      <h3 className="font-bold text-slate-800 group-hover:text-[var(--brand-navy)] transition-colors line-clamp-2 leading-tight">
                         {tour.title}
                       </h3>
                     </Link>
@@ -194,9 +191,9 @@ export default function FavoritesTab() {
                             {vnd(tour.priceAdult)}
                           </span>
                        </div>
-                       <Link 
+                       <Link
                          href={`/user/destination/tour/${tour._id}`}
-                         className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-blue-600 transition-colors"
+                         className="px-4 py-2 bg-orange-600 text-white text-xs font-bold rounded-xl hover:bg-orange-500 transition-colors"
                        >
                          Khám phá
                        </Link>

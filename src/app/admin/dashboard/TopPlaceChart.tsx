@@ -143,7 +143,7 @@ const TopPlacesBarChart: React.FC<TopPlaceChartProps> = ({ data }) => {
         </div>
         <div className="text-right">
           <p className="text-xs text-slate-500">Doanh thu</p>
-          <p className="text-lg font-bold text-emerald-600">{formatCurrency(totalRevenue)}</p>
+          <p className="text-lg font-bold text-blue-950">{formatCurrency(totalRevenue)}</p>
         </div>
       </div>
 

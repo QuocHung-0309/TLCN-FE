@@ -28,7 +28,8 @@ type UserProfile = {
   fullName: string;
   avatar: string;
   email: string;
-  // Thêm các trường khác nếu cần
+  points?: number;
+  memberStatus?: string;
 };
 
 // Component Sidebar (Menu bên trái)
@@ -58,32 +59,43 @@ function UserSidebar({ user }: { user: UserProfile | null }) {
   ];
 
   return (
-    <aside className="w-64 flex-shrink-0 border-r border-gray-200 bg-white shadow-sm">
-      <div className="p-4 flex items-center gap-3 border-b border-gray-200">
-        <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-white shadow-sm ring-1 ring-gray-100 flex-shrink-0">
+    <aside className="flex h-full w-64 flex-shrink-0 flex-col bg-blue-950">
+      {/* Thông tin người dùng */}
+      <div className="flex items-center gap-3 border-b border-white/10 p-5">
+        <div className="h-11 w-11 flex-shrink-0 overflow-hidden rounded-full border-2 border-white/20">
           <Image
             src={user?.avatar || "/Image.svg"}
             alt="Avatar"
             width={44}
             height={44}
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover"
           />
         </div>
-        <div>
-          <h4 className="font-semibold text-gray-900">
+        <div className="min-w-0">
+          <h4 className="truncate font-semibold text-white">
             {user?.fullName || "User"}
           </h4>
-         {/* <span className="text-sm text-gray-500">Facebook</span> */}
+          <p className="truncate text-xs text-white/50">{user?.email}</p>
         </div>
       </div>
 
       {/* Thẻ thành viên */}
-      <div className="p-4">
-        
+      <div className="border-b border-white/10 px-5 py-4">
+        <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3.5 py-3">
+          <div className="flex items-center gap-2">
+            <Award size={16} className="text-[var(--brand-accent)]" />
+            <span className="text-xs font-medium text-white/70">
+              Hạng {user?.memberStatus || "Thành viên"}
+            </span>
+          </div>
+          <span className="text-sm font-bold text-[var(--brand-accent)]">
+            {(user?.points ?? 0).toLocaleString("vi-VN")} đ
+          </span>
+        </div>
       </div>
 
       {/* Menu Navigation */}
-      <nav className="flex flex-col p-4 space-y-1">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-3">
         {navItems.map((item) => {
           let isActive = false;
           if (item.href.includes("?tab=")) {
@@ -98,30 +110,35 @@ function UserSidebar({ user }: { user: UserProfile | null }) {
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 transition-colors duration-150 ${
+              className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors duration-150 ${
                 isActive
-                  ? "bg-blue-100 text-blue-700 font-semibold"
-                  : "hover:bg-gray-100"
+                  ? "bg-white/10 font-semibold text-white"
+                  : "text-white/60 hover:bg-white/5 hover:text-white"
               }`}
             >
+              {isActive && (
+                <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-[var(--brand-accent)]" />
+              )}
               <item.icon
                 size={18}
-                className={isActive ? "text-blue-700" : "text-gray-500"}
+                className={isActive ? "text-[var(--brand-accent)]" : "text-white/40"}
               />
               <span>{item.name}</span>
             </Link>
           );
         })}
+      </nav>
 
-        {/* Nút Đăng xuất */}
+      {/* Nút Đăng xuất - cố định ở cuối */}
+      <div className="border-t border-white/10 p-3">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 mt-4"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/60 transition-colors duration-150 hover:bg-white/5 hover:text-white"
         >
-          <LogOut size={18} className="text-gray-500" />
+          <LogOut size={18} className="text-white/40" />
           <span>Đăng xuất</span>
         </button>
-      </nav>
+      </div>
     </aside>
   );
 }
@@ -167,19 +184,19 @@ export default function UserDashboardLayout({
 
   if (!mounted || loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-gray-50">
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
-          <p className="text-slate-500 font-medium animate-pulse">Đang tải dashboard...</p>
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-950"></div>
+          <p className="text-slate-500 font-medium">Đang tải dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-slate-50">
       <UserSidebar user={user} />
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto p-8">
         {children}
       </main>
     </div>

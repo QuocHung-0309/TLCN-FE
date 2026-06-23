@@ -4,7 +4,7 @@ import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Legend, Chart } from 'chart.js';
 import type { Plugin, LinearScale as LinearScaleType } from 'chart.js';
 import Image from 'next/image';
-import { FaChevronDown } from 'react-icons/fa';
+import { ChevronDown } from 'lucide-react';
 import { placeApi } from '@/lib/place/placeApi';
 import { checkinApi } from '@/lib/checkin/checkinApi';
 
@@ -164,7 +164,7 @@ export default function ScoreSection() {
               >
                 Checkin nhiều nhất:
                 <span className="bg-white rounded-full p-[3px] flex items-center justify-center">
-                  <FaChevronDown className="w-3 h-3 text-gray-800" />
+                  <ChevronDown className="w-3 h-3 text-gray-800" />
                 </span>
               </button>
               {openDropdown && (

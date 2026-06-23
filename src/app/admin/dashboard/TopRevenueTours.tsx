@@ -36,7 +36,7 @@ const TopRevenueTours: React.FC<TopRevenueToursProps> = ({ data }) => {
         </h3>
         <Link
           href="/admin/tours"
-          className="text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-300 dark:hover:text-emerald-200"
+          className="text-xs font-medium text-blue-950 hover:text-emerald-700 dark:text-emerald-300 dark:hover:text-emerald-200"
         >
           Xem tất cả →
         </Link>

@@ -32,7 +32,7 @@ function LoadingFallback() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50">
       <div className="text-center">
-        <div className="mx-auto h-14 w-14 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" />
+        <div className="mx-auto h-14 w-14 animate-spin rounded-full border-4 border-emerald-200 border-t-blue-950" />
         <p className="mt-4 text-slate-600">Đang xử lý kết quả thanh toán…</p>
       </div>
     </div>
@@ -99,7 +99,7 @@ function VNPaySuccessContent() {
           <div
             className={`py-8 px-6 text-center ${
               isSuccess
-                ? "bg-gradient-to-r from-emerald-500 to-emerald-600"
+                ? "bg-gradient-to-r from-emerald-500 to-blue-950"
                 : isPending
                 ? "bg-gradient-to-r from-amber-500 to-amber-600"
                 : "bg-gradient-to-r from-red-500 to-red-600"
@@ -154,7 +154,7 @@ function VNPaySuccessContent() {
 
                 <div className="flex justify-between py-2 border-b border-slate-200">
                   <span className="text-slate-500">Số tiền</span>
-                  <span className="font-bold text-emerald-600 text-lg">
+                  <span className="font-bold text-blue-950 text-lg">
                     {vnd(amount)}
                   </span>
                 </div>
@@ -182,7 +182,7 @@ function VNPaySuccessContent() {
                   <span
                     className={`font-semibold ${
                       isSuccess
-                        ? "text-emerald-600"
+                        ? "text-blue-950"
                         : isPending
                         ? "text-amber-600"
                         : "text-red-600"
@@ -211,7 +211,7 @@ function VNPaySuccessContent() {
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Link
                 href="/user/bookings"
-                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-blue-950 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors"
               >
                 <FileText size={18} />
                 Xem đơn đặt tour
@@ -230,7 +230,7 @@ function VNPaySuccessContent() {
         {/* Help Text */}
         <p className="text-center text-sm text-slate-500 mt-6">
           Nếu bạn cần hỗ trợ, vui lòng liên hệ hotline:{" "}
-          <a href="tel:1900xxxx" className="text-emerald-600 font-medium">
+          <a href="tel:1900xxxx" className="text-blue-950 font-medium">
             1900 xxxx
           </a>
         </p>

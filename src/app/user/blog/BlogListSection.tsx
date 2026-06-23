@@ -5,7 +5,7 @@ import BlogCard from "./BlogCard";
 import { getBlogs } from "@/lib/blog/blogApi";
 import { Post } from "@/types/blog";
 import { mapBlogToPost } from "@/lib/blog/mapBlogToPost";
-import { MdNavigateBefore, MdNavigateNext } from "react-icons/md";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type BlogListSectionProps = {
   activeCategoryKey: string;
@@ -67,7 +67,7 @@ const BlogListSection = ({ activeCategoryKey }: BlogListSectionProps) => {
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
         >
-          <MdNavigateBefore size={24} />
+          <ChevronLeft size={24} />
         </button>
         <span className="text-sm text-[var(--gray-2)]">
           {currentPage} / {totalPages}
@@ -79,7 +79,7 @@ const BlogListSection = ({ activeCategoryKey }: BlogListSectionProps) => {
           }
           disabled={currentPage === totalPages}
         >
-          <MdNavigateNext size={24} />
+          <ChevronRight size={24} />
         </button>
       </div>
     </section>

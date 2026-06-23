@@ -194,7 +194,7 @@ function BookingSuccessPageContent() {
                     }
                     valueClass={
                       showSuccess
-                        ? "font-semibold text-emerald-600"
+                        ? "font-semibold text-blue-950"
                         : showPendingPayment
                         ? "font-semibold text-amber-600"
                         : "font-semibold text-slate-600"

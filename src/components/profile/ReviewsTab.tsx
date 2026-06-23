@@ -66,13 +66,11 @@ export default function ReviewsTab() {
 
   return (
     <div className="space-y-6">
-      {/* --- Stats Strip (Thay thế cho Title) --- */}
-      <div className="relative z-30 flex flex-wrap items-center justify-between gap-4 bg-white/50 backdrop-blur-md p-4 rounded-2xl border border-slate-100 shadow-sm">
+      {/* --- Stats Strip --- */}
+      <div className="relative z-30 flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
-              <Star size={20} fill="currentColor" />
-            </div>
+            <Star size={18} className="text-orange-500" fill="currentColor" />
             <div>
               <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Trung bình</p>
               <p className="text-lg font-black text-slate-700">{avgRating}</p>
@@ -80,9 +78,7 @@ export default function ReviewsTab() {
           </div>
           <div className="h-8 w-px bg-slate-200" />
           <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-500">
-              <MessageSquare size={20} fill="currentColor" />
-            </div>
+            <MessageSquare size={18} className="text-slate-400" />
             <div>
               <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Đánh giá</p>
               <p className="text-lg font-black text-slate-700">{reviews.length}</p>
@@ -91,9 +87,9 @@ export default function ReviewsTab() {
         </div>
 
         <div className="relative">
-          <button 
+          <button
             onClick={() => setShowSortMenu(!showSortMenu)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 text-slate-600 text-sm font-semibold hover:bg-slate-100 transition-colors border border-slate-100"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 text-slate-600 text-sm font-semibold hover:bg-slate-100 transition-colors border border-slate-200"
           >
             <Filter size={16} />
             {sortLabels[sortBy]}
@@ -103,7 +99,7 @@ export default function ReviewsTab() {
           {showSortMenu && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setShowSortMenu(false)} />
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-2xl shadow-xl z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl z-20 overflow-hidden">
                 {(Object.keys(sortLabels) as Array<keyof typeof sortLabels>).map((key) => (
                   <button
                     key={key}
@@ -111,7 +107,7 @@ export default function ReviewsTab() {
                       setSortBy(key);
                       setShowSortMenu(false);
                     }}
-                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-slate-50 ${sortBy === key ? "text-blue-600 font-bold bg-blue-50/50" : "text-slate-600"}`}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-slate-50 ${sortBy === key ? "text-orange-600 font-bold bg-orange-50" : "text-slate-600"}`}
                   >
                     {sortLabels[key]}
                   </button>
@@ -125,27 +121,25 @@ export default function ReviewsTab() {
       {/* --- Reviews List --- */}
       <div className="grid grid-cols-1 gap-4">
         {loading ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-slate-100">
-            <div className="animate-spin h-10 w-10 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4" />
+          <div className="text-center py-20 bg-white rounded-2xl border border-slate-200">
+            <div className="animate-spin h-8 w-8 border-4 border-slate-200 border-t-orange-500 rounded-full mx-auto mb-4" />
             <p className="text-slate-400 font-medium">Đang truy xuất dữ liệu...</p>
           </div>
         ) : sortedReviews.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-slate-100">
-            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Star size={40} className="text-slate-200" />
-            </div>
+          <div className="text-center py-20 bg-white rounded-2xl border border-slate-200">
+            <Star size={28} className="mx-auto mb-3 text-slate-300" />
             <p className="text-slate-500 font-bold text-lg">Chưa có đánh giá nào</p>
             <p className="text-slate-400 text-sm">Hãy chia sẻ trải nghiệm của bạn sau mỗi chuyến đi nhé!</p>
           </div>
         ) : (
           <AnimatePresence mode="popLayout">
-            {sortedReviews.map((review, idx) => (
-              <motion.div 
+            {sortedReviews.map((review) => (
+              <motion.div
                 key={review._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="group relative bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="group relative bg-white p-5 rounded-2xl border border-slate-200 hover:border-slate-300 transition-colors"
               >
                 <div className="flex flex-col md:flex-row gap-6">
                   {/* Tour Info & Image */}
@@ -167,7 +161,7 @@ export default function ReviewsTab() {
                   <div className="flex-1 flex flex-col">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <h3 className="font-bold text-slate-800 text-lg group-hover:text-blue-600 transition-colors line-clamp-1">
+                        <h3 className="font-bold text-slate-800 text-lg group-hover:text-[var(--brand-navy)] transition-colors line-clamp-1">
                           {review.tourId?.title || "Tour đã xóa"}
                         </h3>
                         <div className="flex items-center gap-1 mt-1">
@@ -185,9 +179,9 @@ export default function ReviewsTab() {
                       </div>
 
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
+                        <button
                           onClick={() => setEditingReview(review)}
-                          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                          className="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-colors"
                         >
                           <Edit size={18} />
                         </button>

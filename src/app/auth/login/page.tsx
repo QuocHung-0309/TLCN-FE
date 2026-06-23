@@ -4,9 +4,8 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { FaFacebookF, FaApple } from "react-icons/fa";
-import { FcGoogle } from "react-icons/fc";
-import { Mail, Lock, Eye, EyeOff, LogIn, CheckCircle, AlertCircle } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, LogIn, CheckCircle, AlertCircle, Facebook, Apple } from "lucide-react";
+import GoogleIcon from "@/components/icons/GoogleIcon";
 import { useSignin } from "#/hooks/auth-hook/useAuth";
 import { useAuthStore } from "#/stores/auth";
 import { setUserToken, setRefreshToken } from "@/lib/auth/tokenManager";
@@ -49,6 +48,11 @@ function LoginPageContent() {
 
   const { mutate: signinMutate, isPending } = useSignin();
 
+  const startOAuth = (provider: "facebook" | "google" | "apple") => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+    window.location.href = `${API_URL}/auth/${provider}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setApiError("");
@@ -60,19 +64,23 @@ function LoginPageContent() {
         setUserToken(data.accessToken);
         setRefreshToken(data.refreshToken);
 
-        if (data.user) {
-          setUser({
-            id: data.user.id,
-            fullName: data.user.fullName,
-            username: data.user.username,
-            email: data.user.email,
-            phone: data.user.phone,
-            avatar: data.user.avatar,
-            points: data.user.points,
-            memberStatus: data.user.memberStatus,
-          });
-          setUserId(data.user.id);
-        }
+        // Luôn ghi đè user (kể cả null) để không bao giờ sót lại user của tài khoản
+        // đăng nhập trước đó trong store khi response không trả về data.user.
+        setUser(
+          data.user
+            ? {
+                id: data.user.id,
+                fullName: data.user.fullName,
+                username: data.user.username,
+                email: data.user.email,
+                phone: data.user.phone,
+                avatar: data.user.avatar,
+                points: data.user.points,
+                memberStatus: data.user.memberStatus,
+              }
+            : null
+        );
+        setUserId(data.user?.id ?? null);
 
         // Lưu hoặc xóa thông tin đã ghi nhớ
         if (rememberMe) {
@@ -228,13 +236,17 @@ function LoginPageContent() {
       {/* Social Login */}
       <div className="flex justify-center gap-4">
         <button className="w-14 h-14 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all">
-          <FaFacebookF className="text-[#1877F2] text-xl" />
+          <Facebook className="text-[#1877F2] text-xl" />
+        </button>
+        <button
+          type="button"
+          onClick={() => startOAuth("google")}
+          className="w-14 h-14 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all"
+        >
+          <GoogleIcon className="w-5 h-5" />
         </button>
         <button className="w-14 h-14 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all">
-          <FcGoogle className="text-xl" />
-        </button>
-        <button className="w-14 h-14 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all">
-          <FaApple className="text-slate-900 text-xl" />
+          <Apple className="text-slate-900 text-xl" />
         </button>
       </div>
     </div>

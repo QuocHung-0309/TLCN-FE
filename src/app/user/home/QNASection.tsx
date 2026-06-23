@@ -2,14 +2,13 @@
 
 import QnaCard from "@/components/cards/QnaCard";
 import Button from "@/components/ui/Button";
-import { BsChatDots } from "react-icons/bs";
 
 const qnaData = [
   {
     id: 1,
     title: '"Xin kinh nghiệm Xuyên Việt 30 ngày"',
     description:
-      "Mình dự kiến giữa tháng 04 này làm chuyến xuyên Việt: gửi xe từ TP.HCM ra Hà Nội rồi đi cung Đông Bắc – Tây Bắc, vòng về chạy xe vào lại HCM.",
+      "Mình dự kiến giữa tháng 04 này làm chuyến xuyên Việt: gửi xe từ TP.HCM ra Hà Nội rồi đi cung Đông Bắc, Tây Bắc, vòng về chạy xe vào lại HCM.",
     author: "Minh Tuấn",
     source: "Facebook",
     image: "/city-2.svg",
@@ -50,11 +49,8 @@ export default function QNASection() {
         {/* header */}
         <div className="mb-6 sm:mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-1 text-[12px] font-semibold text-sky-700 ring-1 ring-sky-200">
-              <BsChatDots /> Cộng đồng hỏi đáp
-            </div>
-            <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-              Q/A – Hỏi đáp du lịch
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--brand-navy)]">
+              Hỏi đáp du lịch
             </h2>
             <p className="text-sm text-slate-600">
               Những câu hỏi được quan tâm gần đây

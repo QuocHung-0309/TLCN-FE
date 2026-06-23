@@ -215,7 +215,7 @@ export default function LeaderForm({ leader, onSubmit }: LeaderFormProps) {
       <div className="flex gap-3 pt-4 border-t border-slate-200">
         <button
           type="submit"
-          className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium"
+          className="flex-1 px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-emerald-700 transition font-medium"
         >
           {leader ? "Cập nhật" : "Tạo mới"}
         </button>

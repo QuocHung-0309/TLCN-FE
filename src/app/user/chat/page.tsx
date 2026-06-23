@@ -555,7 +555,7 @@ export default function UserChatPage() {
                         <div
                           className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full ${
                             thread.type === "tour"
-                              ? "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white"
+                              ? "bg-gradient-to-br from-emerald-400 to-blue-950 text-white"
                               : thread.type === "support"
                               ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white"
                               : "bg-gradient-to-br from-blue-400 to-blue-600 text-white"
@@ -576,7 +576,7 @@ export default function UserChatPage() {
                             {thread.title}
                           </p>
                           {thread.type === "tour" && thread.startDate ? (
-                            <span className="text-[10px] text-emerald-600 flex-shrink-0 ml-2 flex items-center gap-1">
+                            <span className="text-[10px] text-blue-950 flex-shrink-0 ml-2 flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
                               {new Date(thread.startDate).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })}
                             </span>
@@ -705,7 +705,7 @@ export default function UserChatPage() {
                         <div
                           className={`flex h-11 w-11 items-center justify-center rounded-full ${
                             selectedThread.type === "tour"
-                              ? "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white"
+                              ? "bg-gradient-to-br from-emerald-400 to-blue-950 text-white"
                               : selectedThread.type === "support"
                               ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white"
                               : "bg-gradient-to-br from-blue-400 to-blue-600 text-white"
@@ -728,7 +728,7 @@ export default function UserChatPage() {
                           {selectedThread.type === "tour" && <MapPin className="h-3 w-3" />}
                           {selectedThread.subtitle}
                           {selectedThread.type === "tour" && selectedThread.startDate && (
-                            <span className="ml-2 text-emerald-600">
+                            <span className="ml-2 text-blue-950">
                               • {new Date(selectedThread.startDate).toLocaleDateString("vi-VN")}
                             </span>
                           )}

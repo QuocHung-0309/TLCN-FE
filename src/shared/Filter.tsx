@@ -1,7 +1,7 @@
 "use client";
 import { Popover, Transition } from "@headlessui/react";
 import { Fragment } from "react";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import { ChevronDown } from "lucide-react";
 
 interface FilterDropdownProps {
   options: string[];
@@ -17,7 +17,7 @@ export default function FilterDropdown({ options, value, onChange }: FilterDropd
           {/* Nút bấm */}
           <Popover.Button className="flex gap-2 border border-gray-200 rounded-md py-2 px-3 items-center bg-white shadow-sm">
             <span>{value || "Bộ lọc"}</span>
-            <ChevronDownIcon
+            <ChevronDown
               className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`}
             />
           </Popover.Button>
