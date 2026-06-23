@@ -24,6 +24,7 @@
     "confetti": "^2.0.6",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.25",
+    "isomorphic-dompurify": "^3.18.0",
     "lucide-react": "^0.541.0",
     "next": "^15.4.5",
     "rc-motion": "^2.9.5",
