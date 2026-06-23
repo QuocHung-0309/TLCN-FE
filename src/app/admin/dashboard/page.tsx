@@ -72,35 +72,11 @@ export default function AdminDashboard() {
                 Theo dõi hiệu suất kinh doanh, quản lý các tour sắp khởi hành và phản hồi nhanh chóng các yêu cầu đặt tour từ khách hàng.
               </p>
             </div>
-<<<<<<< HEAD
-            
+
             {pendingCountTotal > 0 ? (
               <div className="flex items-center gap-4 rounded-2xl bg-orange-50 border border-orange-100 p-4 pr-6 shadow-sm">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
                   <i className="ri-notification-3-line text-xl" />
-=======
-
-            <div className="mt-3 flex flex-col items-start gap-3 md:mt-0 md:items-end">
-              <div className="inline-flex items-center gap-2 rounded-2xl bg-white/10 px-4 py-2 text-xs font-medium text-emerald-100 backdrop-blur">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-                </span>
-                Hệ thống hoạt động ổn định
-              </div>
-              <div className="flex flex-wrap gap-2 text-xs text-blue-100 md:text-sm">
-                <span className="rounded-full bg-blue-900/60 px-3 py-1">
-                  Tổng tours:{" "}
-                  <b>{overview.totalTours?.toLocaleString() || 0}</b>
-                </span>
-                <span className="rounded-full bg-blue-900/60 px-3 py-1">
-                  Đặt tour tháng này:{" "}
-                  <b>{overview.monthlyBookings?.toLocaleString() || 0}</b>
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* ===== OVERVIEW STATS (nền trắng, viền nhẹ) ===== */}
         <section className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">

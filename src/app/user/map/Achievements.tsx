@@ -247,7 +247,60 @@ export default function Achievements() {
 
         const total = Math.min(provinceKeys.size, 34);
         setProvincesCount(total);
-      </AnimatePresence>
+      } catch (error) {
+        console.error("Lỗi tải achievements:", error);
+      }
+    };
+    fetchData();
+  }, [isAuthenticated]);
+
+  return (
+    <section className="p-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {ACHIEVEMENTS.map((achievement) => {
+          const unlocked = provincesCount >= achievement.requirement;
+          const rarity = RARITY_STYLES[achievement.rarity as keyof typeof RARITY_STYLES];
+          const Icon = achievement.icon;
+          return (
+            <div
+              key={achievement.id}
+              onClick={() => setSelectedAchievement(achievement)}
+              className={`relative cursor-pointer rounded-2xl p-4 border-2 transition-all duration-300 ${
+                unlocked
+                  ? `${rarity.border} ${rarity.bg} hover:shadow-lg hover:-translate-y-1`
+                  : "border-slate-200 bg-slate-50/50 opacity-60 hover:opacity-80"
+              }`}
+            >
+              <div className={`w-12 h-12 mx-auto rounded-xl flex items-center justify-center mb-3 ${
+                unlocked ? `bg-gradient-to-br ${achievement.color} text-white shadow-lg` : "bg-slate-200 text-slate-400"
+              }`}>
+                {unlocked ? <Icon size={24} /> : <Lock size={20} />}
+              </div>
+              <h4 className={`text-sm font-bold text-center mb-1 line-clamp-2 ${unlocked ? "text-slate-800" : "text-slate-400"}`}>
+                {achievement.name}
+              </h4>
+              {!unlocked && (
+                <div className="mt-2">
+                  <div className="h-1 bg-slate-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-slate-400 rounded-full transition-all"
+                      style={{ width: `${Math.min((provincesCount / achievement.requirement) * 100, 100)}%` }}
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-400 text-center mt-1">
+                    {provincesCount}/{achievement.requirement}
+                  </p>
+                </div>
+              )}
+              {unlocked && (
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-md">
+                  <CheckCircle size={14} />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </section>
   );
 }
