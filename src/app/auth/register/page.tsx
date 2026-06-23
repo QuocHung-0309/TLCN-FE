@@ -361,27 +361,14 @@ export default function RegisterPage() {
       </div>
 
       {/* Social */}
-      <div className="flex justify-center gap-3">
-        <button
-          type="button"
-          onClick={() => startOAuth("facebook")}
-          className="w-12 h-12 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all"
-        >
-          <FaFacebookF className="text-[#1877F2]" />
-        </button>
+      <div className="flex justify-center">
         <button
           type="button"
           onClick={() => startOAuth("google")}
-          className="w-12 h-12 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all"
+          className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
         >
-          <FcGoogle />
-        </button>
-        <button
-          type="button"
-          onClick={() => startOAuth("apple")}
-          className="w-12 h-12 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all"
-        >
-          <FaApple className="text-slate-900" />
+          <FcGoogle className="text-2xl" />
+          <span className="text-slate-700 font-medium">Đăng ký với Google</span>
         </button>
       </div>
     </div>

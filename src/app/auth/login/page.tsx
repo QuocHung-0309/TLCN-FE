@@ -49,6 +49,11 @@ function LoginPageContent() {
 
   const { mutate: signinMutate, isPending } = useSignin();
 
+  const startOAuth = (provider: "facebook" | "google" | "apple") => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+    window.location.href = `${API_URL}/auth/${provider}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setApiError("");
@@ -226,15 +231,14 @@ function LoginPageContent() {
       </div>
 
       {/* Social Login */}
-      <div className="flex justify-center gap-4">
-        <button className="w-14 h-14 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all">
-          <FaFacebookF className="text-[#1877F2] text-xl" />
-        </button>
-        <button className="w-14 h-14 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all">
-          <FcGoogle className="text-xl" />
-        </button>
-        <button className="w-14 h-14 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all">
-          <FaApple className="text-slate-900 text-xl" />
+      <div className="flex justify-center">
+        <button 
+          type="button" 
+          onClick={() => startOAuth("google")} 
+          className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+        >
+          <FcGoogle className="text-2xl" />
+          <span className="text-slate-700 font-medium">Đăng nhập với Google</span>
         </button>
       </div>
     </div>

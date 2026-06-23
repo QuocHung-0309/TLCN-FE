@@ -13,49 +13,6 @@ import useUser from "#/src/hooks/useUser";
 
 const TOTAL_PROVINCES = 34;
 
-const MERGED_PROVINCE_ALIASES: Record<string, string> = {
-  "yen bai": "lao cai",
-  "bac kan": "thai nguyen",
-  "vinh phuc": "phu tho",
-  "hoa binh": "phu tho",
-  "bac giang": "bac ninh",
-  "thai binh": "hung yen",
-  "hai duong": "hai phong",
-  "ha nam": "ninh binh",
-  "nam dinh": "ninh binh",
-  "quang binh": "quang tri",
-  "quang nam": "da nang",
-  "kon tum": "quang ngai",
-  "binh dinh": "gia lai",
-  "ninh thuan": "khanh hoa",
-  "dak nong": "lam dong",
-  "binh thuan": "lam dong",
-  "phu yen": "dak lak",
-  "ba ria vung tau": "ho chi minh",
-  "binh duong": "ho chi minh",
-  "tp ho chi minh": "ho chi minh",
-  "thanh pho ho chi minh": "ho chi minh",
-  "ho chi minh city": "ho chi minh",
-  "binh phuoc": "dong nai",
-  "long an": "tay ninh",
-  "soc trang": "can tho",
-  "hau giang": "can tho",
-  "ben tre": "vinh long",
-  "tra vinh": "vinh long",
-  "tien giang": "dong thap",
-  "bac lieu": "ca mau",
-  "kien giang": "an giang",
-  "ha giang": "tuyen quang",
-  "thua thien hue": "hue",
-  "a nang": "da nang",
-  "ak lak": "dak lak",
-  "ak nong": "lam dong",
-  "ien bien": "dien bien",
-  "ong nai": "dong nai",
-  "ong thap": "dong thap",
-  "lam ong": "lam dong",
-};
-
 const normalizeProvince = (provinceName: string) =>
   provinceName
     .normalize("NFD")
@@ -66,10 +23,10 @@ const normalizeProvince = (provinceName: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-const getMergedProvinceKey = (provinceName: string) => {
-  const normalized = normalizeProvince(provinceName || "");
-  return MERGED_PROVINCE_ALIASES[normalized] || normalized;
-};
+// DB chỉ còn 34 tỉnh mới (sau sáp nhập 2025), không cần alias mapping nữa.
+const getMergedProvinceKey = (provinceName: string) =>
+  normalizeProvince(provinceName || "");
+
 
 // Animated counter component
 function AnimatedCounter({

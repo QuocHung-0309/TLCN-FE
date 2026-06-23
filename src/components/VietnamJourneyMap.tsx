@@ -21,79 +21,29 @@ const COLORS = {
   ARCHIPELAGO: "#f59e0b",
   ARCHIPELAGO_LABEL: "#b45309",
 };
-
+// SVG dùng "TP. Hà Nội", "TP. Hải Phòng"... còn DB lưu "Hà Nội", "Hải Phòng"...
+// Hàm normalizeProvince sẽ cho "tp ha noi", "tp hai phong"... → cần strip prefix "tp "
 const MERGED_PROVINCE_ALIASES: Record<string, string> = {
-  "yen bai": "lao cai",
-  "bac kan": "thai nguyen",
-  "vinh phuc": "phu tho",
-  "hoa binh": "phu tho",
-  "bac giang": "bac ninh",
-  "thai binh": "hung yen",
-  "hai duong": "hai phong",
-  "ha nam": "ninh binh",
-  "nam dinh": "ninh binh",
-  "quang binh": "quang tri",
-  "quang nam": "da nang",
-  "kon tum": "quang ngai",
-  "binh dinh": "gia lai",
-  "ninh thuan": "khanh hoa",
-  "dak nong": "lam dong",
-  "binh thuan": "lam dong",
-  "phu yen": "dak lak",
-  "ba ria vung tau": "ho chi minh",
-  "binh duong": "ho chi minh",
+  // Prefix "TP. " từ SVG map → tên DB (không có prefix)
+  "tp ha noi": "ha noi",
+  "tp hai phong": "hai phong",
+  "tp hue": "hue",
+  "tp da nang": "da nang",
   "tp ho chi minh": "ho chi minh",
-  "thanh pho ho chi minh": "ho chi minh",
-  "ho chi minh city": "ho chi minh",
-  "binh phuoc": "dong nai",
-  "long an": "tay ninh",
-  "soc trang": "can tho",
-  "hau giang": "can tho",
-  "ben tre": "vinh long",
-  "tra vinh": "vinh long",
-  "tien giang": "dong thap",
-  "bac lieu": "ca mau",
-  "kien giang": "an giang",
-  "ha giang": "tuyen quang",
-  "thua thien hue": "hue",
-  "a nang": "da nang",
-  "ak lak": "dak lak",
-  "ak nong": "lam dong",
-  "ien bien": "dien bien",
-  "ong nai": "dong nai",
-  "ong thap": "dong thap",
-  "lam ong": "lam dong",
+  "tp can tho": "can tho",
 };
 
 const MERGED_PROVINCE_LABELS: Record<string, string> = {
-  "lao cai": "Lào Cai",
-  "thai nguyen": "Thái Nguyên",
-  "phu tho": "Phú Thọ",
-  "bac ninh": "Bắc Ninh",
-  "hung yen": "Hưng Yên",
-  "hai phong": "Hải Phòng",
-  "ninh binh": "Ninh Bình",
-  "quang tri": "Quảng Trị",
-  "da nang": "Đà Nẵng",
-  "quang ngai": "Quảng Ngãi",
-  "gia lai": "Gia Lai",
-  "khanh hoa": "Khánh Hòa",
-  "lam dong": "Lâm Đồng",
-  "dak lak": "Đắk Lắk",
+  "ha noi": "TP. Hà Nội",
+  "hai phong": "TP. Hải Phòng",
+  "hue": "TP. Huế",
+  "da nang": "TP. Đà Nẵng",
   "ho chi minh": "TP. Hồ Chí Minh",
-  "dong nai": "Đồng Nai",
-  "tay ninh": "Tây Ninh",
-  "can tho": "Cần Thơ",
-  "vinh long": "Vĩnh Long",
-  "dong thap": "Đồng Tháp",
-  "ca mau": "Cà Mau",
-  "an giang": "An Giang",
-  "tuyen quang": "Tuyên Quang",
-  "hue": "Huế",
+  "can tho": "TP. Cần Thơ",
 };
 
 const normalizeProvince = (provinceName: string) =>
-  provinceName
+  (provinceName || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[đĐ]/g, "d")
@@ -178,12 +128,14 @@ const ARCHIPELAGO_LABELS = [
   { id: "truong-sa", label: "Quần đảo Trường Sa", x: 754, y: 858 },
 ];
 
-const MANUAL_STORAGE_KEY = "ahh_manual_provinces";
+// Key localStorage gắn theo userId để tránh dữ liệu bị chia sẻ giữa các tài khoản
+const getManualStorageKey = (userId?: string) =>
+  userId ? `ahh_manual_provinces_${userId}` : "ahh_manual_provinces_guest";
 
-const getStoredManualProvinces = (): Set<string> => {
+const getStoredManualProvinces = (userId?: string): Set<string> => {
   if (typeof window === "undefined") return new Set();
   try {
-    const stored = localStorage.getItem(MANUAL_STORAGE_KEY);
+    const stored = localStorage.getItem(getManualStorageKey(userId));
     if (stored) {
       const arr = JSON.parse(stored);
       return new Set(arr.map((p: string) => getMergedProvinceKey(p)));
@@ -194,11 +146,14 @@ const getStoredManualProvinces = (): Set<string> => {
   return new Set();
 };
 
-const saveManualProvince = (provinceName: string) => {
+const saveManualProvince = (provinceName: string, userId?: string) => {
   try {
-    const current = getStoredManualProvinces();
+    const current = getStoredManualProvinces(userId);
     current.add(getMergedProvinceKey(provinceName));
-    localStorage.setItem(MANUAL_STORAGE_KEY, JSON.stringify(Array.from(current)));
+    localStorage.setItem(
+      getManualStorageKey(userId),
+      JSON.stringify(Array.from(current))
+    );
   } catch (e) {
     console.error("Error saving manual province:", e);
   }
@@ -267,8 +222,17 @@ export default function VietnamJourneyMap() {
 
   // 1. FETCH DATA - Lấy dữ liệu hành trình từ 2 nguồn
   useEffect(() => {
+    // Reset toàn bộ state khi user thay đổi (tránh dữ liệu cũ hiện trên map)
+    setBookingProvinces(new Set());
+    setManualProvinces(new Set());
+    setProvinceProgress({});
+    setSelectedProvince(null);
+
     const fetchJourney = async () => {
       if (!user) return;
+
+      const userId = (user as any)?._id || (user as any)?.id || String(user);
+
       try {
         // Gọi API mới lấy dữ liệu kết hợp: booking (tự động) + manual (thủ công)
         const res = await checkinApi.getFullJourney();
@@ -322,17 +286,16 @@ export default function VietnamJourneyMap() {
           }
         }
 
-        // Kết hợp với localStorage (fallback nếu API chưa sync)
         setBookingProvinces(fromBookingsSet);
         setManualProvinces(fromManualSet);
         setProvinceProgress(progressByKey);
 
-        console.log("Từ booking (tự động):", Array.from(fromBookingsSet));
-        console.log("Tự đánh dấu (thủ công):", Array.from(fromManualSet));
+        console.log("[Map] userId:", userId);
+        console.log("[Map] Từ booking (tự động):", Array.from(fromBookingsSet));
+        console.log("[Map] Tự đánh dấu (thủ công):", Array.from(fromManualSet));
       } catch (error) {
         console.error("Lỗi tải hành trình:", error);
-        // Fallback: chỉ lấy từ localStorage
-        const storedManual = getStoredManualProvinces();
+        const storedManual = getStoredManualProvinces(userId);
         setManualProvinces(storedManual);
         setProvinceProgress({});
       }
@@ -341,10 +304,9 @@ export default function VietnamJourneyMap() {
     fetchJourney();
   }, [user]);
 
-  // 2. Xem tour tại tỉnh này (dẫn đến trang destination)
+  // 2. Xem tour tại tỉnh này
   const handleViewTours = () => {
     if (!selectedProvince) return;
-    // Encode tên tỉnh để search
     const searchQuery = encodeURIComponent(selectedProvince);
     router.push(`/user/destination?search=${searchQuery}`);
     setSelectedProvince(null);
@@ -353,26 +315,22 @@ export default function VietnamJourneyMap() {
   // 3. ĐÁNH DẤU THỦ CÔNG - Cho những địa điểm đã đi NGOÀI web này
   const handleManualMark = async () => {
     if (!selectedProvince || isLoadingAction) return;
-
     setIsLoadingAction(true);
     try {
-      // Gọi API đánh dấu thủ công (nếu có)
       try {
         await checkinApi.manualMarkProvince(selectedProvince);
       } catch {
-        // Nếu API lỗi, vẫn lưu local
         console.log("API manual mark không available, lưu local");
       }
 
-      // Lưu vào localStorage
-      saveManualProvince(selectedProvince);
+      // Lưu vào localStorage theo userId (để tránh chia sẻ giữa các tài khoản)
+      const userId = (user as any)?._id || (user as any)?.id || String(user);
+      saveManualProvince(selectedProvince, userId);
 
-      // Tô màu xanh dương cho tỉnh đánh dấu thủ công
       setManualProvinces((prev) =>
         new Set(prev).add(getMergedProvinceKey(selectedProvince))
       );
 
-      // Bắn pháo hoa nhẹ
       (confetti as any)({
         particleCount: 80,
         spread: 50,
@@ -380,10 +338,8 @@ export default function VietnamJourneyMap() {
         colors: ["#3b82f6", "#60a5fa", "#93c5fd"],
       });
 
-      // Hiện thông báo thành công
       setShowManualSuccess(true);
       setTimeout(() => setShowManualSuccess(false), 2000);
-
       setSelectedProvince(null);
     } catch (error: any) {
       console.error("Lỗi đánh dấu thủ công:", error);

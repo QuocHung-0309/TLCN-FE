@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:4000/api/comments";
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api"}/comments`;
 
 // Lấy tất cả comment theo blogId
 export const fetchCommentsByBlog = async (blogId: string) => {
