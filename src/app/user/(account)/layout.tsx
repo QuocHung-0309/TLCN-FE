@@ -21,6 +21,7 @@ import {
   Ticket,
   Award,
   Heart,
+  FileText,
 } from "lucide-react"; // Dùng icon của lucide-react
 
 // Kiểu dữ liệu
@@ -50,6 +51,7 @@ function UserSidebar({ user }: { user: UserProfile | null }) {
     { name: "Đặt chỗ của tôi", href: "/user/history", icon: List },
     { name: "Đánh giá của tôi", href: "/user/reviews", icon: Star },
     { name: "Tour yêu thích", href: "/user/favorites", icon: Heart },
+    { name: "Bài viết của tôi", href: "/user/my-posts", icon: FileText },
     { name: "Tài khoản", href: "/user/profile", icon: Settings },
   ];
 
