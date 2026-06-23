@@ -68,6 +68,41 @@ export const travelMemoryApi = {
     return res.data;
   },
 
+  // 1c. Cập nhật kỷ niệm
+  updateMemory: async (id: string, data: Partial<TravelMemoryPayload>) => {
+    const token = localStorage.getItem("accessToken");
+    const res = await axios.put(`${API_URL}/travel-memories/${id}`, data, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+    return res.data;
+  },
+
+  // 1d. Xóa kỷ niệm
+  deleteMemory: async (id: string) => {
+    const token = localStorage.getItem("accessToken");
+    const res = await axios.delete(`${API_URL}/travel-memories/${id}`, {
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+    return res.data;
+  },
+
+  // 3b. Lấy public memory của một user cụ thể
+  getUserPublicMemories: async (userId: string, page: number = 1, limit: number = 10) => {
+    const token = localStorage.getItem("accessToken");
+    const res = await axios.get(`${API_URL}/travel-memories/user/${userId}`, {
+      params: { page, limit },
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+    return res.data;
+  },
+
 
   // 2. Lấy timeline cá nhân
   getMyMemories: async (province?: string, page: number = 1, limit: number = 10) => {

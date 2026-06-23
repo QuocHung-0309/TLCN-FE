@@ -32,7 +32,7 @@ export default function TravelerProfilePage() {
     setNotFound(false);
     travelMemoryApi
       .getUserPublicMemories(userId, 1, 1)
-      .then((res) => {
+      .then((res: any) => {
         setHeader({
           user: res.user,
           totalProvinces: res.totalProvinces,

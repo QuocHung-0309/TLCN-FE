@@ -56,7 +56,7 @@ axiosInstance.interceptors.response.use(
       // Nếu Admin bị hết hạn token, hiện tại sẽ bị logout hoặc lỗi.
       // Để đơn giản, ta kiểm tra xem đang dùng token nào.
 
-      if (adminToken) {
+      if (getAdminToken()) {
         // Nếu là Admin mà bị 401 -> Thường là hết phiên -> Redirect về login admin
         if (typeof window !== "undefined") {
           window.location.href = "/admin/login";

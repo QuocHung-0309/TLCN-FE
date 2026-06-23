@@ -260,9 +260,13 @@ const CompactImageGrid = ({
 export default function JourneyTimeline({
   initialTab = "me",
   filterProvince,
+  mode,
+  targetUserId,
 }: {
   initialTab?: "me" | "community";
   filterProvince?: string;
+  mode?: "user" | "normal";
+  targetUserId?: string;
 }) {
   const { user, isAuthenticated } = useUser();
   const [timeline, setTimeline] = useState<TimelineItem[]>([]);
@@ -279,13 +283,19 @@ export default function JourneyTimeline({
 
   useEffect(() => {
     const fetchTimeline = async () => {
-      if (!isAuthenticated) return;
+      // If fetching "me" tab and not authenticated, return
+      if (!isCommunity && mode !== "user" && !isAuthenticated) return;
       setLoading(true);
 
       try {
-        const res = isCommunity
-          ? await travelMemoryApi.getPublicMemories(filterProvince, 1, 20)
-          : await travelMemoryApi.getMyMemories(filterProvince, 1, 30);
+        let res;
+        if (mode === "user" && targetUserId) {
+          res = await travelMemoryApi.getUserPublicMemories(targetUserId, 1, 30);
+        } else {
+          res = isCommunity
+            ? await travelMemoryApi.getPublicMemories(filterProvince, 1, 20)
+            : await travelMemoryApi.getMyMemories(filterProvince, 1, 30);
+        }
 
         setTimeline(res.data || []);
       } catch {
@@ -296,7 +306,7 @@ export default function JourneyTimeline({
     };
 
     fetchTimeline();
-  }, [isAuthenticated, isCommunity, filterProvince]);
+  }, [isAuthenticated, isCommunity, filterProvince, mode, targetUserId]);
 
   const communityStats = useMemo(() => {
     const provinceSet = new Set(timeline.map((item) => item.provinceName));
