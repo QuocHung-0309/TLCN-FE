@@ -1,7 +1,4 @@
-import axios from "axios";
-import { getUserToken, getAdminToken } from "@/lib/auth/tokenManager";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+import axiosInstance from "@/lib/axiosInstance";
 
 // ==================== TYPES ====================
 export type NotificationType =
@@ -55,32 +52,14 @@ export const notificationApi = {
     page = 1,
     limit = 20
   ): Promise<NotificationListResponse> => {
-    const token = getUserToken();
-
-    const res = await axios.get(
-      `${API_URL}/notifications/me?page=${page}&limit=${limit}`,
-      {
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      }
-    );
-
+    const res = await axiosInstance.get(`/notifications/me?page=${page}&limit=${limit}`);
     return res.data;
   },
 
   // Đếm số thông báo chưa đọc
   getUnreadCount: async (): Promise<number> => {
-    const token = getUserToken();
-
-    if (!token) return 0;
-
     try {
-      const res = await axios.get(`${API_URL}/notifications/unread-count`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await axiosInstance.get(`/notifications/unread-count`);
       return res.data.unreadCount || 0;
     } catch {
       return 0;
@@ -89,32 +68,12 @@ export const notificationApi = {
 
   // Đánh dấu đã đọc
   markAsRead: async (id: string): Promise<void> => {
-    const token = getUserToken();
-
-    await axios.patch(
-      `${API_URL}/notifications/${id}/read`,
-      {},
-      {
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      }
-    );
+    await axiosInstance.patch(`/notifications/${id}/read`, {});
   },
 
   // Đánh dấu tất cả đã đọc
   markAllAsRead: async (): Promise<void> => {
-    const token = getUserToken();
-
-    await axios.patch(
-      `${API_URL}/notifications/read-all`,
-      {},
-      {
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      }
-    );
+    await axiosInstance.patch(`/notifications/read-all`, {});
   },
 };
 
@@ -143,34 +102,19 @@ export const adminNotificationApi = {
   getAllNotifications: async (
     filters: AdminNotificationFilters = {}
   ): Promise<NotificationListResponse> => {
-    const token = getAdminToken();
-
     const params = new URLSearchParams();
     if (filters.page) params.set("page", String(filters.page));
     if (filters.limit) params.set("limit", String(filters.limit));
     if (filters.type) params.set("type", filters.type);
     if (filters.targetType) params.set("targetType", filters.targetType);
 
-    const res = await axios.get(
-      `${API_URL}/notifications/admin?${params.toString()}`,
-      {
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      }
-    );
+    const res = await axiosInstance.get(`/notifications/admin?${params.toString()}`);
     return res.data;
   },
 
   // Lấy chi tiết thông báo
   getNotificationById: async (id: string): Promise<Notification> => {
-    const token = getAdminToken();
-
-    const res = await axios.get(`${API_URL}/notifications/admin/${id}`, {
-      headers: {
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-    });
+    const res = await axiosInstance.get(`/notifications/admin/${id}`);
     return res.data.data || res.data;
   },
 
@@ -178,14 +122,7 @@ export const adminNotificationApi = {
   createNotification: async (
     data: CreateNotificationInput
   ): Promise<Notification> => {
-    const token = getAdminToken();
-
-    const res = await axios.post(`${API_URL}/notifications/admin`, data, {
-      headers: {
-        "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-    });
+    const res = await axiosInstance.post(`/notifications/admin`, data);
     return res.data.data || res.data;
   },
 
@@ -194,26 +131,13 @@ export const adminNotificationApi = {
     id: string,
     data: Partial<CreateNotificationInput & { isActive?: boolean }>
   ): Promise<Notification> => {
-    const token = getAdminToken();
-
-    const res = await axios.put(`${API_URL}/notifications/admin/${id}`, data, {
-      headers: {
-        "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-    });
+    const res = await axiosInstance.put(`/notifications/admin/${id}`, data);
     return res.data.data || res.data;
   },
 
   // Xóa thông báo
   deleteNotification: async (id: string): Promise<void> => {
-    const token = getAdminToken();
-
-    await axios.delete(`${API_URL}/notifications/admin/${id}`, {
-      headers: {
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-    });
+    await axiosInstance.delete(`/notifications/admin/${id}`);
   },
 };
 
