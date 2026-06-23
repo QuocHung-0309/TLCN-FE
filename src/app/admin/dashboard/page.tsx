@@ -505,7 +505,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       <p className="text-xs font-medium text-slate-500 mb-2 truncate">{review.tourTitle}</p>
-                      <p className="text-sm text-slate-700 italic line-clamp-2">"{review.comment || "Không có nội dung đánh giá"}"</p>
+                      <p className="text-sm text-slate-700 italic line-clamp-2">&quot;{review.comment || "Không có nội dung đánh giá"}&quot;</p>
                     </div>
                   ))}
                 </div>
