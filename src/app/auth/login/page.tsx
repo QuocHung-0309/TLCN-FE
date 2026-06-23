@@ -5,7 +5,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, Eye, EyeOff, LogIn, CheckCircle, AlertCircle, Facebook, Apple } from "lucide-react";
-import GoogleIcon from "@/components/icons/GoogleIcon";
+import { FcGoogle } from "react-icons/fc";
 import { useSignin } from "#/hooks/auth-hook/useAuth";
 import { useAuthStore } from "#/stores/auth";
 import { setUserToken, setRefreshToken } from "@/lib/auth/tokenManager";
