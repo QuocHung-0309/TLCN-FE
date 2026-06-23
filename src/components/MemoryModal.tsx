@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FaCalendarAlt,
@@ -14,13 +14,17 @@ import {
 } from "react-icons/fa";
 import { travelMemoryApi } from "@/lib/checkin/travelMemoryApi";
 import { toast } from "react-hot-toast";
+import { VIETNAM_PATHS } from "./VietnamMapPaths";
 
 interface MemoryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  provinceName: string;
+  /** Bỏ trống khi mở từ Bảng tin (không có tỉnh chọn trước) - khi đó hiện dropdown để tự chọn tỉnh */
+  provinceName?: string;
   onSuccess: (provinceUnlocked: boolean) => void;
   bookingId?: string;
+  /** Chế độ hiển thị mặc định. Mặc định "private" (giữ hành vi cũ khi tạo từ bản đồ) */
+  defaultPrivacy?: "private" | "public";
 }
 
 export default function MemoryModal({
@@ -29,14 +33,22 @@ export default function MemoryModal({
   provinceName,
   onSuccess,
   bookingId,
+  defaultPrivacy = "private",
 }: MemoryModalProps) {
+  const [selectedProvince, setSelectedProvince] = useState("");
   const [visitedAt, setVisitedAt] = useState("");
   const [caption, setCaption] = useState("");
   const [images, setImages] = useState<string[]>([]);
-  const [privacy, setPrivacy] = useState<"private" | "public">("private");
+  const [privacy, setPrivacy] = useState<"private" | "public">(defaultPrivacy);
   const [isLoading, setIsLoading] = useState(false);
   const [imageUrlInput, setImageUrlInput] = useState("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  const effectiveProvince = provinceName || selectedProvince;
+  const provinceOptions = useMemo(
+    () => Array.from(new Set(VIETNAM_PATHS.map((p) => p.title))).sort((a, b) => a.localeCompare(b, "vi")),
+    []
+  );
 
   const remainingImageSlots = 3 - images.length;
   const isBusy = isLoading || isUploadingImage;
@@ -135,6 +147,10 @@ export default function MemoryModal({
       toast.error("Vui lòng chờ ảnh upload xong");
       return;
     }
+    if (!bookingId && !effectiveProvince) {
+      toast.error("Vui lòng chọn tỉnh/thành");
+      return;
+    }
     if (!visitedAt) {
       toast.error("Vui lòng chọn ngày đi");
       return;
@@ -156,7 +172,7 @@ export default function MemoryModal({
         });
       } else {
         res = await travelMemoryApi.createMemory({
-          provinceName,
+          provinceName: effectiveProvince,
           visitedAt,
           caption,
           images,
@@ -206,7 +222,7 @@ export default function MemoryModal({
                     Nhật ký hành trình
                   </p>
                   <h3 className="text-2xl font-black leading-tight text-slate-900 sm:text-3xl">
-                    Lưu kỷ niệm tại {provinceName}
+                    {provinceName ? `Lưu kỷ niệm tại ${provinceName}` : "Lưu kỷ niệm"}
                   </h3>
                   <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
                     Lưu lại ngày đi, ảnh và vài dòng cảm nhận để bản đồ của bạn
@@ -235,6 +251,30 @@ export default function MemoryModal({
               className="flex-1 overflow-y-auto bg-slate-50 px-5 py-5 sm:px-7 sm:py-6"
             >
               <div className="space-y-5">
+                {!provinceName && (
+                  <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60">
+                    <label className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
+                      <FaMapMarkerAlt className="text-orange-500" />
+                      Tỉnh/thành <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      required
+                      value={selectedProvince}
+                      onChange={(e) => setSelectedProvince(e.target.value)}
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-800 outline-none transition focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-100"
+                    >
+                      <option value="" disabled>
+                        Chọn tỉnh/thành bạn đã đến
+                      </option>
+                      {provinceOptions.map((name) => (
+                        <option key={name} value={name}>
+                          {name}
+                        </option>
+                      ))}
+                    </select>
+                  </section>
+                )}
+
                 <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60">
                   <label className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
                     <FaCalendarAlt className="text-orange-500" />
@@ -244,6 +284,8 @@ export default function MemoryModal({
                     <input
                       type="date"
                       required
+                      max={new Date().toISOString().split("T")[0]}
+                      min="2000-01-01"
                       value={visitedAt}
                       onChange={(e) => setVisitedAt(e.target.value)}
                       className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-100"

@@ -23,7 +23,6 @@ import {
 import VietnamJourneyMap from "@/components/VietnamJourneyMap";
 import JourneyStats from "./JourneyStats";
 import JourneyTimeline from "./JourneyTimeline";
-import Collections from "./Collections";
 import CheckinAccordion from "./CheckinAccordion";
 import Achievements from "./Achievements";
 import useUser from "#/src/hooks/useUser";
@@ -121,8 +120,25 @@ export default function UserHomeMapPage() {
   const [tours, setTours] = useState<any[]>([]);
   const [tourLoading, setTourLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
-    "map" | "timeline" | "achievements" | "collections" | "newsfeed"
+    "map" | "timeline" | "achievements" | "newsfeed"
   >("map");
+
+  // Cho phép deep-link vào 1 tab cụ thể, vd link "Xem trên Bảng tin" từ popup tỉnh
+  // hoặc mở Bảng tin khi mở link đã được chia sẻ (?postId=...)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    const postId = params.get("postId");
+
+    if (postId) {
+      setActiveTab("newsfeed");
+      return;
+    }
+
+    if (tab === "timeline" || tab === "achievements" || tab === "newsfeed") {
+      setActiveTab(tab);
+    }
+  }, []);
 
   /* ================= Fetch tours ================= */
   useEffect(() => {
@@ -506,7 +522,6 @@ export default function UserHomeMapPage() {
             { key: "map", label: "Bản đồ", icon: MapIcon },
             { key: "timeline", label: "Dòng thời gian", icon: Clock },
             { key: "achievements", label: "Thành tựu", icon: Trophy },
-            { key: "collections", label: "Bộ sưu tập", icon: Sparkles },
             { key: "newsfeed", label: "Bảng tin", icon: Activity },
           ].map((tab) => {
             const active = activeTab === tab.key;
@@ -560,17 +575,6 @@ export default function UserHomeMapPage() {
               exit={{ opacity: 0, y: -16 }}
             >
               <Achievements />
-            </motion.div>
-          )}
-
-          {activeTab === "collections" && (
-            <motion.div
-              key="collections"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-            >
-              <Collections />
             </motion.div>
           )}
 

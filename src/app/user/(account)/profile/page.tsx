@@ -658,7 +658,14 @@ function ProfileContent() {
             <p className="text-slate-500 text-sm mt-0.5">{user.email}</p>
           </div>
 
-
+          {currentUserId && (
+            <Link
+              href={`/user/traveler/${currentUserId}`}
+              className="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-2 text-xs font-bold text-indigo-600 hover:bg-indigo-100 transition flex-shrink-0"
+            >
+              <Eye size={14} /> Xem trang công khai của tôi
+            </Link>
+          )}
         </div>
       </div>
 

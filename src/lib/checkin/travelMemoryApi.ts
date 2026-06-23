@@ -16,6 +16,7 @@ export interface TravelMemoryComment {
   _id: string;
   content: string;
   createdAt: string;
+  parentCommentId?: string | null;
   userId?: {
     _id: string;
     fullName?: string;
@@ -72,7 +73,7 @@ export const travelMemoryApi = {
   // 1c. Cập nhật kỷ niệm
   updateMemory: async (id: string, data: Partial<TravelMemoryPayload>) => {
     const token = localStorage.getItem("accessToken");
-    const res = await axiosInstance.put(`/travel-memories/${id}`, data, {
+    const res = await axiosInstance.patch(`/travel-memories/${id}`, data, {
       headers: {
         "Content-Type": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -95,7 +96,7 @@ export const travelMemoryApi = {
   // 3b. Lấy public memory của một user cụ thể
   getUserPublicMemories: async (userId: string, page: number = 1, limit: number = 10) => {
     const token = localStorage.getItem("accessToken");
-    const res = await axiosInstance.get(`/travel-memories/user/${userId}`, {
+    const res = await axiosInstance.get(`/travel-memories/profile/${userId}`, {
       params: { page, limit },
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -177,11 +178,11 @@ export const travelMemoryApi = {
     };
   },
 
-  createComment: async (memoryId: string, content: string) => {
+  createComment: async (memoryId: string, content: string, parentCommentId?: string) => {
     const token = localStorage.getItem("accessToken");
     const res = await axiosInstance.post(
       `/travel-memories/${memoryId}/comments`,
-      { content },
+      { content, parentCommentId },
       {
         headers: {
           "Content-Type": "application/json",
@@ -206,6 +207,32 @@ export const travelMemoryApi = {
         },
       }
     );
+    return res.data;
+  },
+
+  // Chia sẻ nhẹ: tăng lượt chia sẻ
+  shareMemory: async (memoryId: string) => {
+    const token = localStorage.getItem("accessToken");
+    const res = await axiosInstance.post(
+      `/travel-memories/${memoryId}/share`,
+      {},
+      {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      }
+    );
+    return res.data;
+  },
+
+  // Lấy 1 bài theo id (mở đúng bài từ link chia sẻ)
+  getMemoryById: async (memoryId: string) => {
+    const token = localStorage.getItem("accessToken");
+    const res = await axiosInstance.get(`/travel-memories/${memoryId}`, {
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
     return res.data;
   },
 };

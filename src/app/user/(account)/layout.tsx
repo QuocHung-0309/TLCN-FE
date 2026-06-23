@@ -22,6 +22,7 @@ import {
   Award,
   Heart,
   FileText,
+  Camera,
 } from "lucide-react"; // Dùng icon của lucide-react
 
 // Kiểu dữ liệu
@@ -52,6 +53,7 @@ function UserSidebar({ user }: { user: UserProfile | null }) {
     { name: "Đánh giá của tôi", href: "/user/reviews", icon: Star },
     { name: "Tour yêu thích", href: "/user/favorites", icon: Heart },
     { name: "Bài viết của tôi", href: "/user/my-posts", icon: FileText },
+    { name: "Kỷ niệm của tôi", href: "/user/my-memories", icon: Camera },
     { name: "Tài khoản", href: "/user/profile", icon: Settings },
   ];
 

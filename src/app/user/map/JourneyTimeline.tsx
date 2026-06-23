@@ -3,6 +3,7 @@
 import React, { FormEvent, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 import {
   BadgeCheck,
   Calendar,
@@ -14,12 +15,15 @@ import {
   Lock,
   MapPin,
   MessageCircle,
+  MoreVertical,
+  Pencil,
   Send,
   Share2,
   Sparkles,
   Trash2,
   TrendingUp,
   Users,
+  X,
 } from "lucide-react";
 import {
   travelMemoryApi,
@@ -27,6 +31,8 @@ import {
 } from "@/lib/checkin/travelMemoryApi";
 import useUser from "#/src/hooks/useUser";
 import { toast } from "react-hot-toast";
+import MemoryModal from "@/components/MemoryModal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 interface TimelineItem {
   _id: string;
@@ -43,6 +49,7 @@ interface TimelineItem {
   };
   likesCount?: number;
   commentsCount?: number;
+  sharesCount?: number;
   isLikedByMe?: boolean;
 }
 
@@ -278,35 +285,62 @@ export default function JourneyTimeline({
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
   const [loadingComments, setLoadingComments] = useState<Record<string, boolean>>({});
   const [postingComment, setPostingComment] = useState<Record<string, boolean>>({});
+  const [replyTarget, setReplyTarget] = useState<{ commentId: string; name: string } | null>(null);
+  const [replyInput, setReplyInput] = useState("");
+  const [submittingReply, setSubmittingReply] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [editingItem, setEditingItem] = useState<TimelineItem | null>(null);
+  const [editCaption, setEditCaption] = useState("");
+  const [editPrivacy, setEditPrivacy] = useState<"private" | "public">("public");
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [isComposeOpen, setIsComposeOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const PAGE_SIZE = 20;
 
-  const isCommunity = initialTab === "community";
+  const isCommunity = initialTab === "community" || mode === "user";
+
+  const fetchTimeline = async (pageToLoad = 1) => {
+    // If fetching "me" tab and not authenticated, return
+    if (!isCommunity && !isAuthenticated) return;
+    if (pageToLoad === 1) setLoading(true);
+    else setLoadingMore(true);
+
+    try {
+      let res;
+      if (mode === "user" && targetUserId) {
+        res = await travelMemoryApi.getUserPublicMemories(targetUserId, pageToLoad, PAGE_SIZE);
+      } else {
+        res = isCommunity
+          ? await travelMemoryApi.getPublicMemories(filterProvince, pageToLoad, PAGE_SIZE)
+          : await travelMemoryApi.getMyMemories(filterProvince, pageToLoad, PAGE_SIZE);
+      }
+
+      setTimeline((prev) => (pageToLoad === 1 ? res.data || [] : [...prev, ...(res.data || [])]));
+      setPage(pageToLoad);
+      setHasMore(pageToLoad < (res.pagination?.totalPages || 1));
+    } catch {
+      toast.error("Không thể tải dữ liệu hành trình.");
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchTimeline = async () => {
-      // If fetching "me" tab and not authenticated, return
-      if (!isCommunity && mode !== "user" && !isAuthenticated) return;
-      setLoading(true);
-
-      try {
-        let res;
-        if (mode === "user" && targetUserId) {
-          res = await travelMemoryApi.getUserPublicMemories(targetUserId, 1, 30);
-        } else {
-          res = isCommunity
-            ? await travelMemoryApi.getPublicMemories(filterProvince, 1, 20)
-            : await travelMemoryApi.getMyMemories(filterProvince, 1, 30);
-        }
-
-        setTimeline(res.data || []);
-      } catch {
-        toast.error("Không thể tải dữ liệu hành trình.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTimeline();
+    fetchTimeline(1);
   }, [isAuthenticated, isCommunity, filterProvince, mode, targetUserId]);
+
+  const handleLoadMore = () => fetchTimeline(page + 1);
+
+  const handleMemoryCreated = () => {
+    setIsComposeOpen(false);
+    toast.success("Đã lưu kỷ niệm!");
+    fetchTimeline(1);
+  };
 
   const communityStats = useMemo(() => {
     const provinceSet = new Set(timeline.map((item) => item.provinceName));
@@ -422,8 +456,9 @@ export default function JourneyTimeline({
       await travelMemoryApi.deleteComment(memoryId, commentId);
       setCommentsByMemory((prev) => ({
         ...prev,
+        // Xoá luôn các reply thuộc comment này để tránh hiển thị reply "mồ côi"
         [memoryId]: (prev[memoryId] || []).filter(
-          (comment) => comment._id !== commentId
+          (comment) => comment._id !== commentId && comment.parentCommentId !== commentId
         ),
       }));
       setTimeline((prev) =>
@@ -442,7 +477,7 @@ export default function JourneyTimeline({
   };
 
   const handleShare = async (memoryId: string) => {
-    const shareUrl = `${window.location.origin}${window.location.pathname}#memory-${memoryId}`;
+    const shareUrl = `${window.location.origin}/user/map?tab=newsfeed&postId=${memoryId}`;
 
     try {
       if (navigator.share) {
@@ -457,6 +492,90 @@ export default function JourneyTimeline({
     } catch {
       await navigator.clipboard.writeText(shareUrl);
       toast.success("Đã sao chép liên kết bài viết.");
+    }
+
+    setTimeline((prev) =>
+      prev.map((item) =>
+        item._id === memoryId ? { ...item, sharesCount: (item.sharesCount || 0) + 1 } : item
+      )
+    );
+    try {
+      await travelMemoryApi.shareMemory(memoryId);
+    } catch {
+      // Chia sẻ nhẹ: không quan trọng nếu đếm lượt chia sẻ lỗi
+    }
+  };
+
+  const handleSubmitReply = async (memoryId: string) => {
+    const content = replyInput.trim();
+    if (!content || !replyTarget) return;
+
+    setSubmittingReply(true);
+    try {
+      const res = await travelMemoryApi.createComment(memoryId, content, replyTarget.commentId);
+      setCommentsByMemory((prev) => ({
+        ...prev,
+        [memoryId]: [...(prev[memoryId] || []), res.comment],
+      }));
+      setReplyInput("");
+      setReplyTarget(null);
+      setTimeline((prev) =>
+        prev.map((item) =>
+          item._id === memoryId
+            ? { ...item, commentsCount: (item.commentsCount || 0) + 1 }
+            : item
+        )
+      );
+    } catch {
+      toast.error("Không thể gửi trả lời.");
+    } finally {
+      setSubmittingReply(false);
+    }
+  };
+
+  const openEditModal = (item: TimelineItem) => {
+    setOpenMenuId(null);
+    setEditingItem(item);
+    setEditCaption(item.caption || "");
+    setEditPrivacy(item.privacy);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingItem) return;
+    setSavingEdit(true);
+    try {
+      await travelMemoryApi.updateMemory(editingItem._id, {
+        caption: editCaption,
+        privacy: editPrivacy,
+      });
+      setTimeline((prev) =>
+        prev.map((item) =>
+          item._id === editingItem._id
+            ? { ...item, caption: editCaption, privacy: editPrivacy }
+            : item
+        )
+      );
+      toast.success("Đã cập nhật bài viết");
+      setEditingItem(null);
+    } catch {
+      toast.error("Không cập nhật được bài viết, vui lòng thử lại.");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingId) return;
+    setDeleting(true);
+    try {
+      await travelMemoryApi.deleteMemory(deletingId);
+      setTimeline((prev) => prev.filter((item) => item._id !== deletingId));
+      toast.success("Đã xóa bài viết");
+    } catch {
+      toast.error("Không xóa được bài viết, vui lòng thử lại.");
+    } finally {
+      setDeleting(false);
+      setDeletingId(null);
     }
   };
 
@@ -489,12 +608,18 @@ export default function JourneyTimeline({
           {isCommunity ? <Users size={30} /> : <ImageIcon size={30} />}
         </div>
         <h2 className="text-xl font-bold text-slate-900">
-          {isCommunity ? "Chưa có bài đăng cộng đồng" : "Chưa có kỷ niệm nào"}
+          {mode === "user"
+            ? "Người này chưa có bài viết công khai"
+            : isCommunity
+              ? "Chưa có bài đăng cộng đồng"
+              : "Chưa có kỷ niệm nào"}
         </h2>
         <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
-          {isCommunity
-            ? "Khi người dùng chia sẻ kỷ niệm ở chế độ công khai, bài viết sẽ xuất hiện tại đây."
-            : "Hãy lưu kỷ niệm đầu tiên để dòng thời gian cá nhân bắt đầu có dấu chân của bạn."}
+          {mode === "user"
+            ? "Khi họ chia sẻ kỷ niệm ở chế độ công khai, bài viết sẽ xuất hiện tại đây."
+            : isCommunity
+              ? "Khi người dùng chia sẻ kỷ niệm ở chế độ công khai, bài viết sẽ xuất hiện tại đây."
+              : "Hãy lưu kỷ niệm đầu tiên để dòng thời gian cá nhân bắt đầu có dấu chân của bạn."}
         </p>
       </section>
     );
@@ -502,34 +627,60 @@ export default function JourneyTimeline({
 
   if (isCommunity) {
     return (
+      <>
       <section className="mx-auto grid max-w-6xl grid-cols-1 gap-5 lg:grid-cols-[minmax(0,680px)_280px] lg:justify-center">
         <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="mb-2 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-blue-700">
-                  <Users size={14} />
-                  Cộng đồng AHH Travel
-                </p>
-                <h2 className="text-xl font-black text-slate-900 md:text-2xl">
-                  Bảng tin cộng đồng
-                </h2>
-                <p className="mt-1 text-sm leading-6 text-slate-500">
-                  Những kỷ niệm công khai từ mọi người, có thể thả tim và bình luận.
-                </p>
-              </div>
-              <div className="w-fit rounded-xl bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 ring-1 ring-slate-200">
-                {communityStats.posts} bài viết mới nhất
+          {initialTab === "community" && (
+            <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="mb-2 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-blue-700">
+                    <Users size={14} />
+                    Cộng đồng AHH Travel
+                  </p>
+                  <h2 className="text-xl font-black text-slate-900 md:text-2xl">
+                    Bảng tin cộng đồng
+                  </h2>
+                  <p className="mt-1 text-sm leading-6 text-slate-500">
+                    Những kỷ niệm công khai từ mọi người, có thể thả tim và bình luận.
+                  </p>
+                </div>
+                <div className="w-fit rounded-xl bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 ring-1 ring-slate-200">
+                  {communityStats.posts} bài viết mới nhất
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {initialTab === "community" && (
+          <button
+            onClick={() => setIsComposeOpen(true)}
+            className="flex w-full items-center gap-3 rounded-2xl border border-slate-100 bg-white p-4 text-left shadow-sm transition hover:border-blue-200 hover:shadow-md"
+          >
+            <Avatar src={user?.avatar} name={user?.fullName} size="md" />
+            <span className="flex-1 rounded-full bg-slate-100 px-4 py-2.5 text-sm text-slate-500">
+              Chia sẻ kỷ niệm du lịch của bạn...
+            </span>
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700">
+              <Camera size={16} /> Đăng kỷ niệm
+            </span>
+          </button>
+          )}
 
           {timeline.map((item, index) => {
             const meta = sourceMeta(item.source);
             const SourceIcon = meta.icon;
             const caption = cleanCaption(item.caption, item.provinceName);
             const comments = commentsByMemory[item._id] || [];
+            const rootComments = comments.filter((c) => !c.parentCommentId);
+            const repliesByParent = comments.reduce<Record<string, TravelMemoryComment[]>>((acc, c) => {
+              if (c.parentCommentId) {
+                (acc[c.parentCommentId] ||= []).push(c);
+              }
+              return acc;
+            }, {});
             const displayName = getDisplayName(item);
+            const isOwner = !!user && item.userId?._id === user.id;
 
             return (
               <motion.article
@@ -543,11 +694,16 @@ export default function JourneyTimeline({
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 gap-3">
-                      <Avatar src={item.userId?.avatar} name={displayName} size="md" />
+                      <Link href={`/user/traveler/${item.userId?._id}`} className="shrink-0">
+                        <Avatar src={item.userId?.avatar} name={displayName} size="md" />
+                      </Link>
                       <div className="min-w-0">
-                        <h3 className="truncate text-base font-bold text-slate-900">
+                        <Link
+                          href={`/user/traveler/${item.userId?._id}`}
+                          className="truncate text-base font-bold text-slate-900 hover:underline"
+                        >
                           {displayName}
-                        </h3>
+                        </Link>
                         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                           <span>{formatRelativeTime(item.visitedAt)}</span>
                           <span className="h-1 w-1 rounded-full bg-slate-300" />
@@ -559,12 +715,47 @@ export default function JourneyTimeline({
                       </div>
                     </div>
 
-                    <span
-                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${meta.className}`}
-                    >
-                      <SourceIcon size={13} />
-                      {meta.shortLabel}
-                    </span>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${meta.className}`}
+                      >
+                        <SourceIcon size={13} />
+                        {meta.shortLabel}
+                      </span>
+
+                      {isOwner && (
+                        <div className="relative">
+                          <button
+                            onClick={() => setOpenMenuId(openMenuId === item._id ? null : item._id)}
+                            className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                          >
+                            <MoreVertical size={18} />
+                          </button>
+                          {openMenuId === item._id && (
+                            <>
+                              <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
+                              <div className="absolute right-0 top-9 z-20 w-40 overflow-hidden rounded-xl border border-slate-100 bg-white shadow-lg">
+                                <button
+                                  onClick={() => openEditModal(item)}
+                                  className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
+                                >
+                                  <Pencil size={15} /> Sửa bài
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    setDeletingId(item._id);
+                                  }}
+                                  className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+                                >
+                                  <Trash2 size={15} /> Xóa bài
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {caption && (
@@ -625,7 +816,7 @@ export default function JourneyTimeline({
                       className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-50"
                     >
                       <Share2 size={16} />
-                      Chia sẻ
+                      Chia sẻ {item.sharesCount ? `(${item.sharesCount})` : ""}
                     </button>
                   </div>
 
@@ -642,43 +833,140 @@ export default function JourneyTimeline({
                         </div>
                       ) : comments.length ? (
                         <div className="space-y-2.5">
-                          {comments.map((comment) => {
+                          {rootComments.map((comment) => {
                             const commentOwnerId = comment.userId?._id;
                             const canDelete = commentOwnerId && commentOwnerId === user?.id;
+                            const replies = repliesByParent[comment._id] || [];
 
                             return (
-                              <div key={comment._id} className="flex gap-2.5">
-                                <Avatar
-                                  src={comment.userId?.avatar}
-                                  name={comment.userId?.fullName}
-                                  size="sm"
-                                />
-                                <div className="min-w-0 flex-1">
-                                  <div className="rounded-xl bg-slate-50 px-3 py-2.5">
-                                    <div className="mb-1 flex items-center justify-between gap-2">
-                                      <p className="truncate text-sm font-bold text-slate-900">
-                                        {comment.userId?.fullName || "Người dùng AHH"}
+                              <div key={comment._id}>
+                                <div className="flex gap-2.5">
+                                  <Avatar
+                                    src={comment.userId?.avatar}
+                                    name={comment.userId?.fullName}
+                                    size="sm"
+                                  />
+                                  <div className="min-w-0 flex-1">
+                                    <div className="rounded-xl bg-slate-50 px-3 py-2.5">
+                                      <div className="mb-1 flex items-center justify-between gap-2">
+                                        <p className="truncate text-sm font-bold text-slate-900">
+                                          {comment.userId?.fullName || "Người dùng AHH"}
+                                        </p>
+                                        {canDelete && (
+                                          <button
+                                            onClick={() =>
+                                              handleDeleteComment(item._id, comment._id)
+                                            }
+                                            className="rounded-full p-1 text-slate-400 hover:bg-white hover:text-rose-500"
+                                            title="Xóa bình luận"
+                                          >
+                                            <Trash2 size={14} />
+                                          </button>
+                                        )}
+                                      </div>
+                                      <p className="whitespace-pre-line text-sm leading-6 text-slate-700">
+                                        {comment.content}
                                       </p>
-                                      {canDelete && (
-                                        <button
-                                          onClick={() =>
-                                            handleDeleteComment(item._id, comment._id)
-                                          }
-                                          className="rounded-full p-1 text-slate-400 hover:bg-white hover:text-rose-500"
-                                          title="Xóa bình luận"
-                                        >
-                                          <Trash2 size={14} />
-                                        </button>
-                                      )}
                                     </div>
-                                    <p className="whitespace-pre-line text-sm leading-6 text-slate-700">
-                                      {comment.content}
-                                    </p>
+                                    <div className="mt-1 flex items-center gap-3 px-2">
+                                      <p className="text-xs text-slate-400">
+                                        {formatRelativeTime(comment.createdAt)}
+                                      </p>
+                                      <button
+                                        onClick={() =>
+                                          setReplyTarget({
+                                            commentId: comment._id,
+                                            name: comment.userId?.fullName || "Người dùng AHH",
+                                          })
+                                        }
+                                        className="text-xs font-semibold text-slate-500 hover:text-blue-700"
+                                      >
+                                        Trả lời
+                                      </button>
+                                    </div>
                                   </div>
-                                  <p className="mt-1 px-2 text-xs text-slate-400">
-                                    {formatRelativeTime(comment.createdAt)}
-                                  </p>
                                 </div>
+
+                                {replies.length > 0 && (
+                                  <div className="ml-9 mt-2 space-y-2">
+                                    {replies.map((reply) => {
+                                      const replyOwnerId = reply.userId?._id;
+                                      const canDeleteReply = replyOwnerId && replyOwnerId === user?.id;
+
+                                      return (
+                                        <div key={reply._id} className="flex gap-2">
+                                          <Avatar
+                                            src={reply.userId?.avatar}
+                                            name={reply.userId?.fullName}
+                                            size="sm"
+                                          />
+                                          <div className="min-w-0 flex-1">
+                                            <div className="rounded-xl bg-slate-50 px-2.5 py-2">
+                                              <div className="mb-0.5 flex items-center justify-between gap-2">
+                                                <p className="truncate text-xs font-bold text-slate-900">
+                                                  {reply.userId?.fullName || "Người dùng AHH"}
+                                                </p>
+                                                {canDeleteReply && (
+                                                  <button
+                                                    onClick={() =>
+                                                      handleDeleteComment(item._id, reply._id)
+                                                    }
+                                                    className="rounded-full p-1 text-slate-400 hover:bg-white hover:text-rose-500"
+                                                    title="Xóa trả lời"
+                                                  >
+                                                    <Trash2 size={12} />
+                                                  </button>
+                                                )}
+                                              </div>
+                                              <p className="whitespace-pre-line text-xs leading-5 text-slate-700">
+                                                {reply.content}
+                                              </p>
+                                            </div>
+                                            <p className="mt-0.5 px-2 text-[11px] text-slate-400">
+                                              {formatRelativeTime(reply.createdAt)}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+
+                                {replyTarget?.commentId === comment._id && (
+                                  <div className="ml-9 mt-2 flex items-center gap-2">
+                                    <input
+                                      autoFocus
+                                      value={replyInput}
+                                      onChange={(e) => setReplyInput(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter") handleSubmitReply(item._id);
+                                        if (e.key === "Escape") {
+                                          setReplyTarget(null);
+                                          setReplyInput("");
+                                        }
+                                      }}
+                                      maxLength={500}
+                                      placeholder={`Trả lời ${replyTarget.name}...`}
+                                      className="min-w-0 flex-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-700 outline-none focus:border-blue-300 focus:bg-white"
+                                    />
+                                    <button
+                                      onClick={() => handleSubmitReply(item._id)}
+                                      disabled={submittingReply || !replyInput.trim()}
+                                      className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white disabled:opacity-40"
+                                    >
+                                      <Send size={12} />
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setReplyTarget(null);
+                                        setReplyInput("");
+                                      }}
+                                      className="flex h-7 w-7 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100"
+                                    >
+                                      <X size={12} />
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
@@ -722,6 +1010,18 @@ export default function JourneyTimeline({
               </motion.article>
             );
           })}
+
+          {hasMore && (
+            <div className="flex justify-center pt-2">
+              <button
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                className="rounded-full border border-slate-200 bg-white px-6 py-2.5 text-sm font-bold text-slate-600 shadow-sm transition hover:border-blue-300 hover:text-blue-700 disabled:opacity-50"
+              >
+                {loadingMore ? "Đang tải..." : "Tải thêm bài viết"}
+              </button>
+            </div>
+          )}
         </div>
 
         <aside className="space-y-3 lg:sticky lg:top-24 lg:h-fit">
@@ -768,6 +1068,96 @@ export default function JourneyTimeline({
           </div>
         </aside>
       </section>
+
+      <MemoryModal
+        isOpen={isComposeOpen}
+        onClose={() => setIsComposeOpen(false)}
+        onSuccess={handleMemoryCreated}
+        defaultPrivacy="public"
+      />
+
+      {editingItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => setEditingItem(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <h3 className="font-bold text-slate-800">Sửa bài viết</h3>
+              <button
+                onClick={() => setEditingItem(null)}
+                className="rounded-full p-1 text-slate-500 hover:bg-slate-100"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="space-y-4 p-5">
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700">Cảm nhận</label>
+                <textarea
+                  value={editCaption}
+                  onChange={(e) => setEditCaption(e.target.value)}
+                  maxLength={500}
+                  rows={3}
+                  placeholder="Vài dòng đáng nhớ về chuyến đi..."
+                  className="w-full resize-none rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">Chế độ hiển thị</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditPrivacy("private")}
+                    className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
+                      editPrivacy === "private"
+                        ? "border-indigo-400 bg-indigo-50 text-indigo-700"
+                        : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                    }`}
+                  >
+                    <Lock size={15} /> Chỉ mình tôi
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditPrivacy("public")}
+                    className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
+                      editPrivacy === "public"
+                        ? "border-indigo-400 bg-indigo-50 text-indigo-700"
+                        : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                    }`}
+                  >
+                    <Globe2 size={15} /> Công khai
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="border-t border-slate-100 p-4">
+              <button
+                onClick={handleSaveEdit}
+                disabled={savingEdit}
+                className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-blue-500 py-2.5 font-bold text-white shadow-lg shadow-indigo-200 transition hover:brightness-105 disabled:opacity-50"
+              >
+                {savingEdit ? "Đang lưu..." : "Lưu thay đổi"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ConfirmDialog
+        isOpen={!!deletingId}
+        title="Xóa bài viết"
+        message="Bạn có chắc muốn xóa bài viết này? Hành động này không thể hoàn tác."
+        confirmText={deleting ? "Đang xóa..." : "Xóa"}
+        cancelText="Hủy"
+        type="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeletingId(null)}
+      />
+    </>
     );
   }
 
@@ -868,6 +1258,18 @@ export default function JourneyTimeline({
           })}
         </div>
       </div>
+
+      {hasMore && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+            className="rounded-full border border-slate-200 bg-slate-50 px-6 py-2.5 text-sm font-bold text-slate-600 transition hover:border-blue-300 hover:text-blue-700 disabled:opacity-50"
+          >
+            {loadingMore ? "Đang tải..." : "Tải thêm"}
+          </button>
+        </div>
+      )}
     </section>
   );
 }
