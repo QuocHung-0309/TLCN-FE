@@ -1,7 +1,8 @@
 import axios from "axios";
+import axiosInstance from "@/lib/axiosInstance";
 import { getUserToken, getAdminToken } from "@/lib/auth/tokenManager";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+
 
 // ==================== TYPES ====================
 export interface Voucher {
@@ -63,13 +64,13 @@ export interface PublicVoucher {
 // ==================== USER API ====================
 export const voucherApi = {
   getPublicVouchers: async (limit = 6): Promise<PublicVoucher[]> => {
-    const res = await axios.get(`${API_URL}/vouchers/public?limit=${limit}`);
+    const res = await axiosInstance.get(`/vouchers/public?limit=${limit}`);
     const payload = res.data;
     return payload.data || payload || [];
   },
 
   getPublicVoucherById: async (id: string): Promise<PublicVoucher> => {
-    const res = await axios.get(`${API_URL}/vouchers/public/${id}`);
+    const res = await axiosInstance.get(`/vouchers/public/${id}`);
     return res.data.data || res.data;
   },
 
@@ -80,7 +81,7 @@ export const voucherApi = {
     const params = new URLSearchParams();
     if (status && status !== "all") params.set("status", status);
 
-    const res = await axios.get(`${API_URL}/vouchers/me?${params.toString()}`, {
+    const res = await axiosInstance.get(`/vouchers/me?${params.toString()}`, {
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
@@ -104,8 +105,8 @@ export const voucherApi = {
   }> => {
     const token = getUserToken();
 
-    const res = await axios.post(
-      `${API_URL}/vouchers/validate`,
+    const res = await axiosInstance.post(
+      `/vouchers/validate`,
       { code, totalPrice, tourId },
       {
         headers: {
@@ -179,8 +180,8 @@ export const voucherApi = {
   }> => {
     const token = getUserToken();
 
-    const res = await axios.post(
-      `${API_URL}/vouchers/apply`,
+    const res = await axiosInstance.post(
+      `/vouchers/apply`,
       { code, bookingId },
       {
         headers: {
@@ -230,8 +231,8 @@ export const adminVoucherApi = {
     if (filters.search) params.set("search", filters.search);
     if (filters.type) params.set("type", filters.type);
 
-    const res = await axios.get(
-      `${API_URL}/vouchers/admin?${params.toString()}`,
+    const res = await axiosInstance.get(
+      `/vouchers/admin?${params.toString()}`,
       {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` }),
@@ -245,7 +246,7 @@ export const adminVoucherApi = {
     const token =
       getAdminToken();
 
-    const res = await axios.get(`${API_URL}/vouchers/admin/${id}`, {
+    const res = await axiosInstance.get(`/vouchers/admin/${id}`, {
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
@@ -257,7 +258,7 @@ export const adminVoucherApi = {
     const token =
       getAdminToken();
 
-    const res = await axios.post(`${API_URL}/vouchers/admin`, data, {
+    const res = await axiosInstance.post(`/vouchers/admin`, data, {
       headers: {
         "Content-Type": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -272,7 +273,7 @@ export const adminVoucherApi = {
     const token =
       getAdminToken();
 
-    const res = await axios.post(`${API_URL}/vouchers/admin/batch`, data, {
+    const res = await axiosInstance.post(`/vouchers/admin/batch`, data, {
       headers: {
         "Content-Type": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -288,7 +289,7 @@ export const adminVoucherApi = {
     const token =
       getAdminToken();
 
-    const res = await axios.put(`${API_URL}/vouchers/admin/${id}`, data, {
+    const res = await axiosInstance.put(`/vouchers/admin/${id}`, data, {
       headers: {
         "Content-Type": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -301,7 +302,7 @@ export const adminVoucherApi = {
     const token =
       getAdminToken();
 
-    await axios.delete(`${API_URL}/vouchers/admin/${id}`, {
+    await axiosInstance.delete(`/vouchers/admin/${id}`, {
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
@@ -318,7 +319,7 @@ export const adminVoucherApi = {
     const token =
       getAdminToken();
 
-    const res = await axios.get(`${API_URL}/vouchers/admin/stats`, {
+    const res = await axiosInstance.get(`/vouchers/admin/stats`, {
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
@@ -333,8 +334,8 @@ export const adminVoucherApi = {
     const token =
       getAdminToken();
 
-    const res = await axios.post(
-      `${API_URL}/vouchers/admin/${voucherId}/send`,
+    const res = await axiosInstance.post(
+      `/vouchers/admin/${voucherId}/send`,
       { userId },
       {
         headers: {

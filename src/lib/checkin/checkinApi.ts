@@ -1,6 +1,7 @@
 import axios from "axios";
+import axiosInstance from "@/lib/axiosInstance";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+
 
 interface CheckinPayload {
   note?: string;
@@ -32,7 +33,7 @@ export const checkinApi = {
   // 1. Lấy lịch sử check-in
   getUserCheckins: async () => {
     const token = localStorage.getItem("accessToken");
-    const res = await axios.get(`${API_URL}/me/checkins`, {
+    const res = await axiosInstance.get(`/me/checkins`, {
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
@@ -50,8 +51,8 @@ export const checkinApi = {
       imgList: data.imgList || [],
     };
 
-    const res = await axios.post(
-      `${API_URL}/places/${placeId}/checkin`,
+    const res = await axiosInstance.post(
+      `/places/${placeId}/checkin`,
       payload,
       {
         headers: {
@@ -66,7 +67,7 @@ export const checkinApi = {
   // 3. Lấy dữ liệu tô màu Map
   getUserJourney: async () => {
     const token = localStorage.getItem("accessToken");
-    const res = await axios.get(`${API_URL}/checkin/journey`, {
+    const res = await axiosInstance.get(`/checkin/journey`, {
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
@@ -83,7 +84,7 @@ export const checkinApi = {
       note: `Khám phá ${provinceName} qua Bản đồ hành trình`,
     };
 
-    const res = await axios.post(`${API_URL}/checkin`, payload, {
+    const res = await axiosInstance.post(`/checkin`, payload, {
       headers: {
         "Content-Type": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -95,7 +96,7 @@ export const checkinApi = {
   // 5. Lấy danh sách Voucher (Đã tách ra ngoài)
   getMyVouchers: async () => {
     const token = localStorage.getItem("accessToken");
-    const res = await axios.get(`${API_URL}/checkin/vouchers`, {
+    const res = await axiosInstance.get(`/checkin/vouchers`, {
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
@@ -113,7 +114,7 @@ export const checkinApi = {
     };
 
     // Gọi cùng API /checkins nhưng với type khác để phân biệt
-    const res = await axios.post(`${API_URL}/checkin`, payload, {
+    const res = await axiosInstance.post(`/checkin`, payload, {
       headers: {
         "Content-Type": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -128,7 +129,7 @@ export const checkinApi = {
   getBookingProvinces: async (): Promise<{ provinces: string[]; bookings: any[] }> => {
     const token = localStorage.getItem("accessToken");
     try {
-      const res = await axios.get(`${API_URL}/bookings/me/provinces`, {
+      const res = await axiosInstance.get(`/bookings/me/provinces`, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` }),
         },
@@ -145,7 +146,7 @@ export const checkinApi = {
   getFullJourney: async (): Promise<FullJourneyResponse> => {
     const token = localStorage.getItem("accessToken");
     try {
-      const res = await axios.get(`${API_URL}/checkin/full-journey`, {
+      const res = await axiosInstance.get(`/checkin/full-journey`, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` }),
         },
@@ -156,10 +157,10 @@ export const checkinApi = {
       console.log("API full-journey chưa có, gọi riêng từng API");
       try {
         const [journeyRes, bookingRes] = await Promise.all([
-          axios.get(`${API_URL}/checkin/journey`, {
+          axiosInstance.get(`/checkin/journey`, {
             headers: { ...(token && { Authorization: `Bearer ${token}` }) },
           }).catch(() => ({ data: { provinces: [] } })),
-          axios.get(`${API_URL}/bookings/me`, {
+          axiosInstance.get(`/bookings/me`, {
             headers: { ...(token && { Authorization: `Bearer ${token}` }) },
             params: { limit: 100 }
           }).catch(() => ({ data: { data: [] } })),

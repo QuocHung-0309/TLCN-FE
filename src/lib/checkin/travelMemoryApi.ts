@@ -1,6 +1,7 @@
 import axios from "axios";
+import axiosInstance from "@/lib/axiosInstance";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+
 
 export interface TravelMemoryPayload {
   provinceName: string;
@@ -28,8 +29,8 @@ export const travelMemoryApi = {
     const formData = new FormData();
     files.forEach((file) => formData.append("images", file));
 
-    const res = await axios.post(
-      `${API_URL}/travel-memories/upload-images`,
+    const res = await axiosInstance.post(
+      `/travel-memories/upload-images`,
       formData,
       {
         headers: {
@@ -47,7 +48,7 @@ export const travelMemoryApi = {
   // 1. Tạo kỷ niệm mới
   createMemory: async (data: TravelMemoryPayload) => {
     const token = localStorage.getItem("accessToken");
-    const res = await axios.post(`${API_URL}/travel-memories`, data, {
+    const res = await axiosInstance.post(`/travel-memories`, data, {
       headers: {
         "Content-Type": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -59,7 +60,7 @@ export const travelMemoryApi = {
   // 1b. Tạo kỷ niệm từ booking đã hoàn thành
   createMemoryFromBooking: async (bookingId: string, data: Omit<TravelMemoryPayload, "provinceName" | "source">) => {
     const token = localStorage.getItem("accessToken");
-    const res = await axios.post(`${API_URL}/travel-memories/from-booking/${bookingId}`, data, {
+    const res = await axiosInstance.post(`/travel-memories/from-booking/${bookingId}`, data, {
       headers: {
         "Content-Type": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -71,7 +72,7 @@ export const travelMemoryApi = {
   // 1c. Cập nhật kỷ niệm
   updateMemory: async (id: string, data: Partial<TravelMemoryPayload>) => {
     const token = localStorage.getItem("accessToken");
-    const res = await axios.put(`${API_URL}/travel-memories/${id}`, data, {
+    const res = await axiosInstance.put(`/travel-memories/${id}`, data, {
       headers: {
         "Content-Type": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -83,7 +84,7 @@ export const travelMemoryApi = {
   // 1d. Xóa kỷ niệm
   deleteMemory: async (id: string) => {
     const token = localStorage.getItem("accessToken");
-    const res = await axios.delete(`${API_URL}/travel-memories/${id}`, {
+    const res = await axiosInstance.delete(`/travel-memories/${id}`, {
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
@@ -94,7 +95,7 @@ export const travelMemoryApi = {
   // 3b. Lấy public memory của một user cụ thể
   getUserPublicMemories: async (userId: string, page: number = 1, limit: number = 10) => {
     const token = localStorage.getItem("accessToken");
-    const res = await axios.get(`${API_URL}/travel-memories/user/${userId}`, {
+    const res = await axiosInstance.get(`/travel-memories/user/${userId}`, {
       params: { page, limit },
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -110,7 +111,7 @@ export const travelMemoryApi = {
     const params: any = { page, limit };
     if (province) params.province = province;
 
-    const res = await axios.get(`${API_URL}/travel-memories/me`, {
+    const res = await axiosInstance.get(`/travel-memories/me`, {
       params,
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -125,7 +126,7 @@ export const travelMemoryApi = {
     const params: any = { page, limit };
     if (province) params.province = province;
 
-    const res = await axios.get(`${API_URL}/travel-memories/public`, {
+    const res = await axiosInstance.get(`/travel-memories/public`, {
       params,
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -137,7 +138,7 @@ export const travelMemoryApi = {
   // 4. Thích kỷ niệm
   likeMemory: async (id: string) => {
     const token = localStorage.getItem("accessToken");
-    const res = await axios.post(`${API_URL}/travel-memories/${id}/like`, {}, {
+    const res = await axiosInstance.post(`/travel-memories/${id}/like`, {}, {
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
@@ -148,7 +149,7 @@ export const travelMemoryApi = {
   // 5. Bỏ thích kỷ niệm
   unlikeMemory: async (id: string) => {
     const token = localStorage.getItem("accessToken");
-    const res = await axios.delete(`${API_URL}/travel-memories/${id}/like`, {
+    const res = await axiosInstance.delete(`/travel-memories/${id}/like`, {
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
@@ -158,7 +159,7 @@ export const travelMemoryApi = {
 
   getComments: async (memoryId: string, page: number = 1, limit: number = 20) => {
     const token = localStorage.getItem("accessToken");
-    const res = await axios.get(`${API_URL}/travel-memories/${memoryId}/comments`, {
+    const res = await axiosInstance.get(`/travel-memories/${memoryId}/comments`, {
       params: { page, limit },
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -178,8 +179,8 @@ export const travelMemoryApi = {
 
   createComment: async (memoryId: string, content: string) => {
     const token = localStorage.getItem("accessToken");
-    const res = await axios.post(
-      `${API_URL}/travel-memories/${memoryId}/comments`,
+    const res = await axiosInstance.post(
+      `/travel-memories/${memoryId}/comments`,
       { content },
       {
         headers: {
@@ -197,8 +198,8 @@ export const travelMemoryApi = {
 
   deleteComment: async (memoryId: string, commentId: string) => {
     const token = localStorage.getItem("accessToken");
-    const res = await axios.delete(
-      `${API_URL}/travel-memories/${memoryId}/comments/${commentId}`,
+    const res = await axiosInstance.delete(
+      `/travel-memories/${memoryId}/comments/${commentId}`,
       {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` }),

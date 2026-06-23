@@ -1,30 +1,31 @@
 import axios from "axios";
+import axiosInstance from "@/lib/axiosInstance";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+
 
 // Lấy danh sách địa điểm
 export const getDestinations = async (params?: any) => {
   console.log("🚀 Fetching destinations with params:", params);
-  const res = await axios.get(`${API_URL}/places`, { params });
+  const res = await axiosInstance.get(`/places`, { params });
   return res.data;
 };
 
 // Lấy chi tiết địa điểm theo ID
 export const getDestinationById = async (id: string) => {
-  const res = await axios.get(`${API_URL}/places/${id}`);
+  const res = await axiosInstance.get(`/places/${id}`);
   return res.data;
 };
 
 // Tìm kiếm địa điểm
 export const searchDestinations = async (query: string) => {
-  const res = await axios.get(`${API_URL}/places/search`, { params: { q: query } });
+  const res = await axiosInstance.get(`/places/search`, { params: { q: query } });
   return res.data;
 };
 
 // Like địa điểm
 export const likeDestination = async (id: string, token: string) => {
-  const res = await axios.patch(
-    `${API_URL}/places/${id}`,
+  const res = await axiosInstance.patch(
+    `/places/${id}`,
     {},
     { headers: { Authorization: `Bearer ${token}` } }
   );
@@ -33,8 +34,8 @@ export const likeDestination = async (id: string, token: string) => {
 
 // Thêm vào danh sách yêu thích
 export const addToFavorites = async (id: string, token: string) => {
-  const res = await axios.post(
-    `${API_URL}/places/${id}/favorite`,
+  const res = await axiosInstance.post(
+    `/places/${id}/favorite`,
     {},
     { headers: { Authorization: `Bearer ${token}` } }
   );
@@ -43,30 +44,30 @@ export const addToFavorites = async (id: string, token: string) => {
 
 // Lấy review theo placeId
 export const getReviewsByPlaceId = async (placeId: string) => {
-  const res = await axios.get(`${API_URL}/reviews/place/${placeId}`);
+  const res = await axiosInstance.get(`/reviews/place/${placeId}`);
   return res.data;
 };
 
 // Tạo review mới
 export const createReview = async (reviewData: any) => {
-  const res = await axios.post(`${API_URL}/reviews`, reviewData);
+  const res = await axiosInstance.post(`/reviews`, reviewData);
   return res.data;
 };
 
 // Xóa review
 export const deleteReview = async (reviewId: string, userId: string) => {
-  const res = await axios.delete(`${API_URL}/reviews/${reviewId}`, { data: { userId } });
+  const res = await axiosInstance.delete(`/reviews/${reviewId}`, { data: { userId } });
   return res.data;
 };
 
 // Cập nhật review
 export const updateReview = async (reviewId: string, reviewData: any) => {
-  const res = await axios.put(`${API_URL}/reviews/${reviewId}`, reviewData);
+  const res = await axiosInstance.put(`/reviews/${reviewId}`, reviewData);
   return res.data;
 };
 
 // Like review
 export const likeReview = async (reviewId: string, userId: string) => {
-  const res = await axios.post(`${API_URL}/reviews/${reviewId}/like`, { userId });
+  const res = await axiosInstance.post(`/reviews/${reviewId}/like`, { userId });
   return res.data;
 };
