@@ -663,7 +663,7 @@ function ProfileContent() {
       </div>
 
       {/* --- Navigation Tabs --- */}
-      <div className="flex w-full gap-6 overflow-x-auto border-b border-slate-200 scrollbar-hide">
+      <div className="flex w-full gap-6 border-b border-slate-200">
         <TabButton
           active={activeTab === "info"}
           onClick={() => setActiveTab("info")}
