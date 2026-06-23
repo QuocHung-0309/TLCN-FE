@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Edit2, Trash2, Globe, Lock, MessageSquare, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Plus, Edit2, Trash2, Globe, Lock, MessageSquare, Clock, CheckCircle, XCircle, Eye } from "lucide-react";
 import { blogApi, BlogSummary } from "@/lib/blog/blogApi";
 import { toast } from "react-hot-toast";
 
@@ -138,7 +138,7 @@ export default function MyPostsPage() {
           {filteredPosts.map(post => (
             <div key={post._id} className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-300 flex flex-col">
               {/* Thumbnail */}
-              <div className="relative h-48 w-full overflow-hidden bg-slate-100">
+              <Link href={`/user/blog/preview/${post.slug}`} className="relative h-48 w-full block overflow-hidden bg-slate-100">
                 <Image 
                   src={post.thumbnail || "/hot1.jpg"} 
                   alt={post.title} 
@@ -174,7 +174,7 @@ export default function MyPostsPage() {
                   {post.privacy === "public" ? <Globe size={12} /> : <Lock size={12} />}
                   {post.privacy === "public" ? "Công khai" : "Riêng tư"}
                 </button>
-              </div>
+              </Link>
 
               {/* Content */}
               <div className="p-5 flex-1 flex flex-col">
@@ -187,12 +187,14 @@ export default function MyPostsPage() {
                   </span>
                 </div>
                 
-                <h3 className="font-bold text-slate-800 text-lg leading-tight mb-2 line-clamp-2 group-hover:text-orange-600 transition-colors">
-                  {post.title}
-                </h3>
+                <Link href={`/user/blog/preview/${post.slug}`} className="block mb-2">
+                  <h3 className="font-bold text-slate-800 text-lg leading-tight line-clamp-2 group-hover:text-orange-600 transition-colors">
+                    {post.title}
+                  </h3>
+                </Link>
                 
                 <p className="text-slate-500 text-sm line-clamp-2 mb-4 flex-1">
-                  {post.excerpt || "Không có tóm tắt."}
+                  {post.excerpt || ""}
                 </p>
 
                 {/* Actions */}
@@ -201,6 +203,13 @@ export default function MyPostsPage() {
                     <span className="flex items-center gap-1"><MessageSquare size={14} /> {post.commentsCount || 0}</span>
                   </div>
                   <div className="flex items-center gap-2">
+                    <Link
+                      href={`/user/blog/preview/${post.slug}`}
+                      className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                      title="Xem bài viết"
+                    >
+                      <Eye size={16} />
+                    </Link>
                     <Link
                       href={`/user/post-blog/edit/${post._id}`}
                       className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
