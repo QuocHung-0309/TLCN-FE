@@ -1157,7 +1157,7 @@ export default function TourDetailPage() {
                       Vui lòng đăng nhập để đánh giá tour.
                     </p>
                     <Link
-                      href="/login"
+                      href="/auth/login"
                       className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-orange-600"
                     >
                       Đăng nhập

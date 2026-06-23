@@ -72,7 +72,7 @@ axiosInstance.interceptors.response.use(
       if (!refresh) {
         useAuthStore.getState().resetAuth();
         if (typeof window !== "undefined") {
-          window.location.href = "/login";
+          window.location.href = "/auth/login";
         }
         return Promise.reject(err);
       }
@@ -105,7 +105,7 @@ axiosInstance.interceptors.response.use(
           setUserToken(null);
           setRefreshToken(null);
           if (typeof window !== "undefined") {
-            window.location.href = "/login";
+            window.location.href = "/auth/login";
           }
           return Promise.reject(e);
         } finally {

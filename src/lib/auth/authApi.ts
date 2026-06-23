@@ -10,17 +10,30 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+// Các endpoint công khai: 401 ở đây là lỗi nghiệp vụ (sai mật khẩu, OTP sai...),
+// không phải hết phiên đăng nhập -> không được tự redirect, để form tự hiện lỗi.
+const PUBLIC_AUTH_PATHS = [
+  "/auth/login",
+  "/auth/register",
+  "/auth/verify",
+  "/auth/resend-otp",
+  "/auth/forgot-password",
+];
+
 // Thêm interceptor để xử lý lỗi 401 tập trung cho authApi
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const url: string = error.config?.url || "";
+    const isPublicAuthCall = PUBLIC_AUTH_PATHS.some((p) => url.startsWith(p));
+
+    if (error.response?.status === 401 && !isPublicAuthCall) {
       if (typeof window !== "undefined") {
         // Nếu URL chứa /admin thì redirect về admin login, ngược lại về user login
         if (window.location.pathname.startsWith("/admin")) {
           window.location.href = "/admin/login";
         } else {
-          window.location.href = "/login";
+          window.location.href = "/auth/login";
         }
       }
     }
