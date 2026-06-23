@@ -4,24 +4,55 @@ import React, { useState, useEffect } from "react";
 import { Star, Edit, Trash2, MessageSquare, Filter, ChevronDown, Calendar, MapPin } from "lucide-react";
 import toast from "react-hot-toast";
 import { getMyReviews, deleteReview } from "@/lib/reviews/reviewApi";
+import { getMyBookings } from "@/lib/bookings/bookingApi";
 import ReviewModal from "@/components/ReviewModal";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 export default function ReviewsTab() {
   const [reviews, setReviews] = useState<any[]>([]);
+  const [unreviewedBookings, setUnreviewedBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingReview, setEditingReview] = useState<any | null>(null);
+  const [creatingReviewTour, setCreatingReviewTour] = useState<any | null>(null);
+  const [activeTab, setActiveTab] = useState<"reviewed" | "unreviewed">("reviewed");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "rating-high" | "rating-low">("newest");
   const [showSortMenu, setShowSortMenu] = useState(false);
 
-  const fetchReviews = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await getMyReviews();
-      setReviews(res.data || []);
+      const [reviewsRes, bookingsRes] = await Promise.all([
+        getMyReviews(),
+        getMyBookings(1, 100)
+      ]);
+      const reviewsData = reviewsRes.data || [];
+      setReviews(reviewsData);
+
+      const reviewedTourIds = new Set(
+        reviewsData.map(r => (r.tourId as any)?._id || r.tourId).filter(Boolean)
+      );
+
+      const bookingsData = bookingsRes.data || [];
+      const unreviewed = bookingsData.filter(b => 
+        b.bookingStatus === "c" && 
+        b.tour && 
+        !reviewedTourIds.has(b.tourId)
+      );
+      
+      // Filter unique unreviewed tours
+      const uniqueUnreviewed = [];
+      const seenTourIds = new Set();
+      for (const b of unreviewed) {
+        if (!seenTourIds.has(b.tourId)) {
+          seenTourIds.add(b.tourId);
+          uniqueUnreviewed.push(b);
+        }
+      }
+      setUnreviewedBookings(uniqueUnreviewed);
+
     } catch (error) {
-      console.error("Lỗi tải đánh giá:", error);
+      console.error("Lỗi tải dữ liệu đánh giá:", error);
       toast.error("Không tải được danh sách đánh giá");
     } finally {
       setLoading(false);
@@ -29,7 +60,7 @@ export default function ReviewsTab() {
   };
 
   useEffect(() => {
-    fetchReviews();
+    fetchData();
   }, []);
 
   const sortedReviews = React.useMemo(() => {
@@ -55,7 +86,7 @@ export default function ReviewsTab() {
     try {
       await deleteReview(id);
       toast.success("Đã xóa đánh giá");
-      fetchReviews();
+      fetchData();
     } catch (err) {
       toast.error("Lỗi khi xóa đánh giá");
     }
@@ -67,8 +98,35 @@ export default function ReviewsTab() {
 
   return (
     <div className="space-y-6">
-      {/* --- Stats Strip (Thay thế cho Title) --- */}
-      <div className="relative z-30 flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-blue-50/80 to-white backdrop-blur-md p-4 rounded-2xl border border-slate-100 shadow-sm">
+      {/* --- Internal Tabs --- */}
+      <div className="flex items-center gap-4 border-b border-slate-200">
+        <button
+          onClick={() => setActiveTab("reviewed")}
+          className={`pb-3 text-sm font-bold border-b-2 transition-colors ${
+            activeTab === "reviewed" ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          Đã đánh giá ({reviews.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("unreviewed")}
+          className={`pb-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-1.5 ${
+            activeTab === "unreviewed" ? "border-orange-500 text-orange-600" : "border-transparent text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          Chờ đánh giá
+          {unreviewedBookings.length > 0 && (
+            <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+              {unreviewedBookings.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {activeTab === "reviewed" && (
+        <>
+          {/* --- Stats Strip (Thay thế cho Title) --- */}
+          <div className="relative z-30 flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-blue-50/80 to-white backdrop-blur-md p-4 rounded-2xl border border-slate-100 shadow-sm">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
@@ -219,6 +277,70 @@ export default function ReviewsTab() {
           </AnimatePresence>
         )}
       </div>
+        </>
+      )}
+
+      {activeTab === "unreviewed" && (
+        <div className="grid grid-cols-1 gap-4">
+          {loading ? (
+            <div className="text-center py-20 bg-white rounded-3xl border border-slate-100">
+              <div className="animate-spin h-10 w-10 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4" />
+              <p className="text-slate-400 font-medium">Đang truy xuất dữ liệu...</p>
+            </div>
+          ) : unreviewedBookings.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-3xl border border-slate-100">
+              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star size={40} className="text-slate-200" />
+              </div>
+              <p className="text-slate-500 font-bold text-lg mb-2">Tuyệt vời!</p>
+              <p className="text-slate-400 text-sm">Bạn đã đánh giá tất cả các chuyến đi hoàn thành.</p>
+            </div>
+          ) : (
+            <AnimatePresence mode="popLayout">
+              {unreviewedBookings.map((booking, idx) => (
+                <motion.div 
+                  key={booking._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  className="group relative bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-300"
+                >
+                  <div className="flex flex-col md:flex-row gap-6 items-center">
+                    {/* Tour Info & Image */}
+                    <div className="w-full md:w-32 h-24 rounded-xl overflow-hidden relative flex-shrink-0 shadow-inner bg-slate-100">
+                      <img 
+                        src={booking.tour?.cover || booking.tour?.images?.[0] || "/tour.jpg"} 
+                        alt="" 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-4">
+                      <div>
+                        <h3 className="font-bold text-slate-800 text-lg group-hover:text-orange-600 transition-colors line-clamp-2">
+                          {booking.tour?.title || "Tour"}
+                        </h3>
+                        <p className="text-sm font-semibold text-slate-500 mt-1 flex items-center gap-1.5">
+                          <Calendar size={14} className="text-slate-400" />
+                          Hoàn thành: {new Date(booking.createdAt).toLocaleDateString("vi-VN")}
+                        </p>
+                      </div>
+
+                      <button 
+                        onClick={() => setCreatingReviewTour(booking.tour)}
+                        className="flex-shrink-0 px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all active:scale-95"
+                      >
+                        Viết đánh giá
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          )}
+        </div>
+      )}
 
       {editingReview && (
         <ReviewModal
@@ -227,7 +349,19 @@ export default function ReviewsTab() {
           onClose={() => setEditingReview(null)}
           onSuccess={() => {
             setEditingReview(null);
-            fetchReviews();
+            fetchData();
+          }}
+        />
+      )}
+
+      {creatingReviewTour && (
+        <ReviewModal
+          tour={{ id: creatingReviewTour._id, title: creatingReviewTour.title }}
+          onClose={() => setCreatingReviewTour(null)}
+          onSuccess={() => {
+            setCreatingReviewTour(null);
+            setActiveTab("reviewed");
+            fetchData();
           }}
         />
       )}
