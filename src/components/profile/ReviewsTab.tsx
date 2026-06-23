@@ -199,7 +199,7 @@ export default function ReviewsTab() {
                         <MessageSquare size={40} fill="currentColor" className="opacity-50" />
                       </div>
                       <p className="relative text-slate-600 italic leading-relaxed text-sm z-10 pl-2">
-                        "{review.comment || "Không có bình luận"}"
+                        &quot;{review.comment || "Không có bình luận"}&quot;
                       </p>
                     </div>
                   </div>

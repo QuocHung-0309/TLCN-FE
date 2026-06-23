@@ -779,7 +779,7 @@ export default function VietnamJourneyMap() {
                              <img src={m.images[0]} className="w-full h-24 object-cover rounded-lg" />
                            )}
 
-                           {m.caption && <p className="text-xs text-slate-600 line-clamp-2">"{m.caption}"</p>}
+                           {m.caption && <p className="text-xs text-slate-600 line-clamp-2">&quot;{m.caption}&quot;</p>}
 
                            <div className="flex items-center justify-between mt-1">
                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${m.source === "tour" ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"}`}>

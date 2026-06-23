@@ -1159,15 +1159,15 @@ export default function JourneyTimeline({
 
                       {item.caption && (
                         <p className="text-sm text-slate-600 mt-2 italic border-l-2 border-indigo-200 pl-2">
-                          "{item.caption.length > 80 ? item.caption.substring(0, 80) + "..." : item.caption}"
+                          &quot;{item.caption.length > 80 ? item.caption.substring(0, 80) + "..." : item.caption}&quot;
                         </p>
                       )}
 
                       {item.source === "tour" && (!item.images || item.images.length === 0) && (
                         <div className="mt-2 pt-2 border-t border-slate-100">
-                          <a href="/user/bookings" className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+                          <Link href="/user/bookings" className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800">
                             Thêm hình ảnh kỷ niệm <ChevronRight size={12} />
-                          </a>
+                          </Link>
                         </div>
                       )}
 
