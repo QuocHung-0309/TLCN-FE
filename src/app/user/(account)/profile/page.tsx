@@ -1177,22 +1177,7 @@ function ProfileContent() {
             <p className="text-slate-500 text-sm mt-0.5">{user.email}</p>
           </div>
 
-          <div className="flex items-center gap-2 pb-1">
-            <span className="inline-flex items-center gap-1 rounded-full border border-orange-100 bg-orange-50 px-3 py-1 text-xs font-bold text-orange-600">
-              {(user.points ?? 0).toLocaleString("vi-VN")} điểm
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-600">
-              Hạng {user.memberStatus || "Thành viên"}
-            </span>
-            {currentUserId && (
-              <Link
-                href={`/user/traveler/${currentUserId}`}
-                className="inline-flex items-center gap-1 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600 hover:bg-indigo-100 transition"
-              >
-                <Eye size={12} /> Xem trang công khai của tôi
-              </Link>
-            )}
-          </div>
+
         </div>
       </div>
 
