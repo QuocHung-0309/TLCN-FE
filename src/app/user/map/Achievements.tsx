@@ -153,10 +153,6 @@ const ACHIEVEMENTS = [
     id: "coastal",
     name: "Người con của biển",
     description: "Ghé thăm 5 tỉnh ven biển",
-  {
-    id: "coastal",
-    name: "Người con của biển",
-    description: "Ghé thăm 5 tỉnh ven biển",
     icon: Waves,
     requirement: 5,
     type: "coastal",
