@@ -232,7 +232,7 @@ export default function UserEditPage() {
             <button
               type="submit"
               disabled={updateMutation.isPending}
-              className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition font-medium"
+              className="flex-1 px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition font-medium"
             >
               {updateMutation.isPending ? "Đang xử lý..." : "Cập nhật"}
             </button>

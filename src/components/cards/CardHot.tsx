@@ -52,7 +52,7 @@ const vnd = (n?: number) =>
     ? new Intl.NumberFormat("vi-VN", {
         maximumFractionDigits: 0,
       }).format(n) + "đ"
-    : "—";
+    : "";
 
 // Kiểm tra tour đã khởi hành chưa
 const checkIsDeparted = (startDate?: string | Date): boolean => {

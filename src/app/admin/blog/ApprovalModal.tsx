@@ -61,7 +61,7 @@ export function ApprovalModal({
             <button
               onClick={onApprove}
               disabled={isSubmitting}
-              className="flex flex-col items-center gap-2 p-4 rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:border-emerald-200 transition"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl border border-emerald-100 bg-emerald-50 text-blue-950 hover:bg-emerald-100 hover:border-emerald-200 transition"
             >
               <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm text-lg font-bold">
                 ✓

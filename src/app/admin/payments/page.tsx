@@ -206,7 +206,7 @@ export default function PaymentManagementPage() {
 
           <div className="flex items-end">
             <button
-              className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-bold text-sm transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-blue-950 hover:from-blue-950 hover:to-emerald-700 text-white rounded-xl font-bold text-sm transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
             >
               <i className="ri-search-line"></i>
               Tìm kiếm
@@ -225,7 +225,7 @@ export default function PaymentManagementPage() {
                 setEndDate("");
                 setPage(1);
               }}
-              className="text-xs text-slate-400 hover:text-emerald-600 transition flex items-center gap-1.5"
+              className="text-xs text-slate-400 hover:text-blue-950 transition flex items-center gap-1.5"
             >
               <i className="ri-refresh-line"></i> Làm mới bộ lọc
             </button>
@@ -328,7 +328,7 @@ export default function PaymentManagementPage() {
                                 onClick={() => handleMarkPaid(booking)}
                                 disabled={updatePaymentMutation.isPending}
                                 title="Đánh dấu đã thanh toán"
-                                className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition disabled:opacity-50"
+                                className="p-2 text-blue-950 hover:bg-emerald-50 rounded-lg transition disabled:opacity-50"
                               >
                                 <i className="ri-check-line text-lg"></i>
                               </button>

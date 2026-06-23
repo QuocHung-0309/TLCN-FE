@@ -77,7 +77,7 @@ function CheckoutLoading() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50">
       <div className="text-center">
-        <div className="mx-auto h-14 w-14 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" />
+        <div className="mx-auto h-14 w-14 animate-spin rounded-full border-4 border-emerald-200 border-t-blue-950" />
         <p className="mt-4 text-slate-600">Đang tải trang thanh toán…</p>
       </div>
     </div>
@@ -217,6 +217,39 @@ function CheckoutContent() {
   const listed = adults * priceAdult + children * priceChild;
   const totalDisplay = Math.max(0, listed - discountAmount);
 
+  /* ---------- Chỗ trống còn lại của lịch khởi hành ---------- */
+  const remainingSeats =
+    departure?.max_guests != null
+      ? Math.max(0, Number(departure.max_guests) - Number(departure.current_guests || 0))
+      : undefined;
+  const isSoldOut = remainingSeats !== undefined && remainingSeats <= 0;
+  const maxAdults = remainingSeats !== undefined ? Math.max(1, remainingSeats - children) : undefined;
+  const maxChildren = remainingSeats !== undefined ? Math.max(0, remainingSeats - adults) : undefined;
+
+  // Khi lịch khởi hành tải xong, chốt lại số khách nếu vượt chỗ trống
+  React.useEffect(() => {
+    if (remainingSeats === undefined) return;
+    setAdults((a) => Math.max(1, Math.min(a, remainingSeats)));
+    setChildren((c) => Math.max(0, Math.min(c, Math.max(0, remainingSeats - Math.min(adults, remainingSeats)))));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remainingSeats]);
+
+  // Mã giảm giá đã áp dụng nhưng số khách thay đổi sau đó -> yêu cầu áp lại
+  const lastVoucherListedRef = React.useRef<number | null>(null);
+  React.useEffect(() => {
+    if (
+      voucher &&
+      lastVoucherListedRef.current !== null &&
+      lastVoucherListedRef.current !== listed
+    ) {
+      setVoucher(null);
+      setDiscountAmount(0);
+      setVoucherError("Số lượng khách đã thay đổi, vui lòng áp dụng lại mã giảm giá.");
+      lastVoucherListedRef.current = null;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listed]);
+
   /* ---------- Validation ---------- */
   const validateField = (name: keyof typeof formData, value: string) => {
     if (name !== "address" && name !== "note" && !value.trim()) return "Vui lòng không để trống.";
@@ -242,6 +275,7 @@ function CheckoutContent() {
       setDiscountAmount(res.discountAmount || 0);
       setVoucherError(null);
       setShowVoucherModal(false);
+      lastVoucherListedRef.current = listed;
     } catch (err: any) {
       console.error(err);
       setVoucherError(
@@ -274,7 +308,7 @@ function CheckoutContent() {
     const newErrors: typeof errors = {};
     let hasError = false;
     (Object.keys(formData) as Array<keyof typeof formData>).forEach((k) => {
-      if (k === "address") return;
+      if (k === "address" || k === "note") return;
       const msg = validateField(k, formData[k]);
       if (msg) {
         newErrors[k] = msg;
@@ -366,6 +400,8 @@ function CheckoutContent() {
 
   /* ---------- Loading / Error ---------- */
   // ... các đoạn logic phía trên giữ nguyên
+
+  if (isLoading) return <CheckoutLoading />;
 
   if (isError || !tour)
     return (
@@ -510,12 +546,24 @@ function CheckoutContent() {
 
             {/* 2. Guests */}
             <Card title="Số lượng hành khách" icon={<UsersIcon />}>
+              {remainingSeats !== undefined && (
+                <p
+                  className={`mb-4 text-xs font-semibold ${
+                    isSoldOut ? "text-red-600" : "text-slate-500"
+                  }`}
+                >
+                  {isSoldOut
+                    ? "Lịch khởi hành này đã hết chỗ. Vui lòng quay lại chọn lịch khác."
+                    : `Còn ${remainingSeats} chỗ trống cho lịch khởi hành này.`}
+                </p>
+              )}
               <div className="grid gap-6 md:grid-cols-2">
                 <QuantitySelector
                   label="Người lớn"
                   value={adults}
                   onChange={setAdults}
                   min={1}
+                  max={maxAdults}
                   price={priceAdult}
                 />
                 <QuantitySelector
@@ -523,6 +571,7 @@ function CheckoutContent() {
                   value={children}
                   onChange={setChildren}
                   min={0}
+                  max={maxChildren}
                   price={priceChild}
                 />
               </div>
@@ -531,7 +580,7 @@ function CheckoutContent() {
             {/* 3. Payment Method */}
             <Card
               title="Phương thức thanh toán"
-              icon={<Banknote size={18} className="text-emerald-600" />}
+              icon={<Banknote size={18} className="text-blue-950" />}
             >
               <div className="mb-8">
                 <p className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
@@ -578,11 +627,11 @@ function CheckoutContent() {
                         type="radio"
                         checked={paymentType === "full"}
                         readOnly
-                        className="w-4 h-4 text-emerald-600"
+                        className="w-4 h-4 text-blue-950"
                       />
                       <span className="text-sm font-bold text-slate-800">Toàn bộ 100%</span>
                     </div>
-                    <p className="text-base font-bold text-emerald-600">{vnd(totalDisplay)}</p>
+                    <p className="text-base font-bold text-blue-950">{vnd(totalDisplay)}</p>
                     <p className="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-wider">Thanh toán hết một lần</p>
                     {paymentType === "full" && (
                       <div className="absolute top-2 right-2">
@@ -667,7 +716,7 @@ function CheckoutContent() {
                   className="group flex w-full items-center justify-between rounded-2xl border border-dashed border-emerald-300 bg-emerald-50/60 p-3 text-left text-sm transition hover:bg-emerald-50"
                 >
                   <div className="flex items-center gap-2">
-                    <Ticket size={18} className="text-emerald-600" />
+                    <Ticket size={18} className="text-blue-950" />
                     <span className="font-medium text-slate-700">
                       {voucher ? (
                         <span className="font-bold text-emerald-700">
@@ -678,7 +727,7 @@ function CheckoutContent() {
                       )}
                     </span>
                   </div>
-                  <div className="flex items-center text-xs font-semibold text-emerald-600 group-hover:underline">
+                  <div className="flex items-center text-xs font-semibold text-blue-950 group-hover:underline">
                     {voucher ? "Đổi" : "Chọn hoặc nhập mã"}{" "}
                     <ChevronRight size={14} />
                   </div>
@@ -719,11 +768,13 @@ function CheckoutContent() {
                 <Button
                   type="submit"
                   full
-                  disabled={submitting}
+                  disabled={submitting || isSoldOut}
                   className="h-12 text-base mt-2"
                 >
                   {submitting
                     ? "Đang xử lý..."
+                    : isSoldOut
+                    ? "Lịch khởi hành đã hết chỗ"
                     : paymentType === "deposit"
                     ? `Thanh toán cọc ${vnd(totalDisplay / 2)}`
                     : "Thanh toán ngay"}
@@ -777,7 +828,7 @@ function CheckoutContent() {
                     type="button"
                     onClick={() => doApplyVoucher(voucherCode)}
                     disabled={!voucherCode || loadingVoucher}
-                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 disabled:opacity-50"
+                    className="px-4 py-2 bg-blue-950 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 disabled:opacity-50"
                   >
                     {loadingVoucher ? "Đang kiểm tra..." : "Áp dụng"}
                   </button>
@@ -814,7 +865,7 @@ function CheckoutContent() {
                           : "border-slate-200 hover:border-emerald-300 bg-white"
                       }`}
                     >
-                      <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 mr-3 shrink-0">
+                      <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center text-blue-950 mr-3 shrink-0">
                         {v.type === "percent" ? (
                           <Percent size={20} />
                         ) : (
@@ -838,7 +889,7 @@ function CheckoutContent() {
                         </p>
                       </div>
                       {voucher?.code === v.code && (
-                        <div className="text-emerald-600">
+                        <div className="text-blue-950">
                           <Check size={20} />
                         </div>
                       )}
@@ -1014,12 +1065,13 @@ function Input({ label, icon, error, ...props }: any) {
   );
 }
 
-function QuantitySelector({ label, value, onChange, min, price }: any) {
+function QuantitySelector({ label, value, onChange, min, max, price }: any) {
+  const atMax = max != null && value >= max;
   return (
     <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50/50">
       <div>
         <p className="font-bold text-slate-700 text-sm">{label}</p>
-        <p className="text-xs text-emerald-600 font-medium">
+        <p className="text-xs text-blue-950 font-medium">
           {vnd(price)}/khách
         </p>
       </div>
@@ -1035,8 +1087,10 @@ function QuantitySelector({ label, value, onChange, min, price }: any) {
         <span className="w-6 text-center font-bold text-sm">{value}</span>
         <button
           type="button"
-          onClick={() => onChange(value + 1)}
-          className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600"
+          onClick={() => onChange(max != null ? Math.min(max, value + 1) : value + 1)}
+          disabled={atMax}
+          title={atMax ? "Đã đạt số chỗ trống tối đa" : undefined}
+          className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30 text-slate-600"
         >
           +
         </button>
@@ -1085,7 +1139,7 @@ function PaymentMethods({ value, onChange, paymentType }: any) {
           <input
             type="radio"
             name="payment"
-            className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            className="w-5 h-5 text-blue-950 focus:ring-emerald-500"
             checked={value === m.id}
             disabled={m.disabled}
             readOnly

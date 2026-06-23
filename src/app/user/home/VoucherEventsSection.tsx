@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CalendarDays, Copy, TicketPercent } from "lucide-react";
 import { voucherApi, type PublicVoucher } from "@/lib/voucher/voucherApi";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 const vnd = (value?: number | null) =>
   typeof value === "number"
@@ -30,11 +31,13 @@ const discountLabel = (voucher: PublicVoucher) =>
 
 function SkeletonCard() {
   return (
-    <div className="h-full rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-      <div className="aspect-[16/9] w-full animate-pulse rounded-xl bg-slate-200" />
-      <div className="mt-4 h-5 w-3/4 animate-pulse rounded bg-slate-200" />
-      <div className="mt-3 h-4 w-full animate-pulse rounded bg-slate-200" />
-      <div className="mt-5 h-10 w-full animate-pulse rounded-full bg-slate-200" />
+    <div className="flex h-[110px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+      <div className="w-[100px] animate-pulse bg-slate-200 flex-shrink-0" />
+      <div className="flex flex-1 flex-col justify-between px-4 py-4">
+        <div className="h-4 w-3/4 animate-pulse rounded bg-slate-200" />
+        <div className="h-3 w-full animate-pulse rounded bg-slate-200" />
+        <div className="h-8 w-full animate-pulse rounded-lg bg-slate-200" />
+      </div>
     </div>
   );
 }
@@ -48,68 +51,73 @@ function VoucherCard({
   copiedCode: string | null;
   onCopy: (code: string) => void;
 }) {
-  return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-orange-100">
-      <Link href={`/user/vouchers/${voucher._id}`} className="block">
-        <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
-          {voucher.image ? (
-            <img
-              src={voucher.image}
-              alt={voucher.name}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center bg-gradient-to-br from-orange-50 via-white to-blue-50">
-              <TicketPercent className="h-14 w-14 text-orange-500" />
-            </div>
-          )}
+  const copied = copiedCode === voucher.code;
 
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-          <span className="absolute left-3 top-3 rounded-full bg-orange-500/95 px-3 py-1 text-[11px] font-semibold text-white shadow">
-            {discountLabel(voucher)}
-          </span>
-        </div>
+  return (
+    <article className="group relative flex overflow-hidden rounded-2xl border border-orange-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-orange-100/60">
+
+      {/* Left — discount highlight */}
+      <Link
+        href={`/user/vouchers/${voucher._id}`}
+        className="relative flex w-[100px] flex-shrink-0 flex-col items-center justify-center bg-gradient-to-b from-orange-500 to-amber-500 px-3 py-5 text-white"
+      >
+        {/* Notch circles */}
+        <span className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-white/90 border border-orange-100 z-10" />
+
+        <TicketPercent className="h-5 w-5 opacity-70 mb-2" />
+        <span className="text-2xl font-black tabular-nums leading-none">
+          {voucher.discountType === "percent"
+            ? `${voucher.discountValue}%`
+            : vnd(voucher.discountValue)}
+        </span>
+        <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider opacity-80">
+          {voucher.discountType === "percent" ? "Giảm" : "Tiết kiệm"}
+        </span>
       </Link>
 
-      <div className="flex flex-1 flex-col gap-3 px-5 pb-5 pt-4">
-        <Link href={`/user/vouchers/${voucher._id}`} className="block">
-          <h3 className="line-clamp-2 text-[16px] font-semibold leading-snug text-slate-900 transition group-hover:text-[#144d7e] sm:text-[17px]">
-            {voucher.name}
-          </h3>
-        </Link>
+      {/* Dashed separator */}
+      <div className="flex flex-col justify-center px-0.5">
+        <div className="h-full w-px border-l-2 border-dashed border-orange-100" />
+      </div>
 
-        <p className="line-clamp-2 text-[13px] leading-relaxed text-slate-500">
-          {voucher.description || "Ưu đãi đặc biệt dành cho khách hàng AHH Travel."}
-        </p>
-
-        <div className="mt-1 space-y-1.5 text-[13px] text-slate-700">
-          <div className="flex items-start gap-2">
-            <CalendarDays className="mt-[2px] h-4 w-4 text-orange-500" />
-            <span>Hạn dùng: {formatDate(voucher.validUntil)}</span>
-          </div>
-          <div className="flex items-start gap-2">
-            <TicketPercent className="mt-[2px] h-4 w-4 text-orange-500" />
-            <span>Đơn tối thiểu: {vnd(voucher.minOrderValue || 0)}</span>
-          </div>
-        </div>
-
-        <div className="mt-auto flex items-center justify-between gap-3 pt-3">
-          <button
-            type="button"
-            onClick={() => onCopy(voucher.code)}
-            className="inline-flex items-center gap-2 rounded-full border border-orange-100 bg-orange-50 px-4 py-2 text-[12px] font-semibold text-orange-700 transition hover:border-orange-200 hover:bg-orange-100"
-          >
-            <Copy className="h-3.5 w-3.5" />
-            {copiedCode === voucher.code ? "Đã copy" : voucher.code}
-          </button>
-
-          <Link
-            href={`/user/vouchers/${voucher._id}`}
-            className="inline-flex items-center justify-center rounded-full border border-orange-500 bg-white px-4 py-2 text-[12px] font-semibold text-orange-600 transition-all duration-200 group-hover:border-orange-600 group-hover:text-orange-700"
-          >
-            Xem chi tiết
+      {/* Right — info */}
+      <div className="flex flex-1 flex-col justify-between gap-2 px-4 py-4">
+        <div>
+          <Link href={`/user/vouchers/${voucher._id}`}>
+            <h3 className="line-clamp-1 text-[14px] font-bold text-slate-800 group-hover:text-orange-600 transition-colors">
+              {voucher.name}
+            </h3>
           </Link>
+          <p className="mt-0.5 line-clamp-1 text-[12px] text-slate-400">
+            {voucher.description || "Ưu đãi đặc biệt dành cho khách hàng Travela"}
+          </p>
         </div>
+
+        <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
+          <span className="inline-flex items-center gap-1">
+            <CalendarDays className="h-3 w-3 text-orange-400" />
+            HSD: {formatDate(voucher.validUntil)}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <TicketPercent className="h-3 w-3 text-orange-400" />
+            Tối thiểu {vnd(voucher.minOrderValue || 0)}
+          </span>
+        </div>
+
+        {/* Code bar */}
+        <button
+          type="button"
+          onClick={() => onCopy(voucher.code)}
+          className="flex w-full items-center justify-between rounded-lg border border-dashed border-orange-300 bg-orange-50 px-3 py-2 transition hover:bg-orange-100"
+        >
+          <span className="font-mono text-[13px] font-bold tracking-widest text-orange-700">
+            {voucher.code}
+          </span>
+          <span className={`inline-flex items-center gap-1 text-[11px] font-semibold transition-colors ${copied ? "text-blue-950" : "text-orange-500"}`}>
+            <Copy className="h-3 w-3" />
+            {copied ? "Đã copy!" : "Copy"}
+          </span>
+        </button>
       </div>
     </article>
   );
@@ -153,20 +161,12 @@ export default function VoucherEventsSection() {
   if (!loading && vouchers.length === 0) return null;
 
   return (
-    <section className="bg-slate-50 px-4 py-14 sm:py-16">
+    <section className="px-4 py-14 sm:py-16">
       <div className="mx-auto w-full max-w-7xl">
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-orange-100 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-orange-700">
-            <span className="h-2 w-2 rounded-full bg-orange-500" />
-            Ưu đãi đang diễn ra
-          </div>
-          <h2 className="mt-3 text-2xl font-extrabold text-[#144d7e] sm:text-3xl md:text-4xl">
-            VOUCHER DU LỊCH
-          </h2>
-          <p className="mx-auto mt-2 max-w-2xl text-sm text-slate-500">
-            Lưu mã ưu đãi và dùng ngay khi đặt tour phù hợp.
-          </p>
-        </div>
+        <SectionHeader
+          title="Voucher du lịch"
+          subtitle="Lưu mã ưu đãi và dùng ngay khi đặt tour phù hợp"
+        />
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {loading

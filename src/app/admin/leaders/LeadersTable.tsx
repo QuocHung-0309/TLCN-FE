@@ -117,7 +117,7 @@ export default function LeadersTable({ leaders }: LeadersTableProps) {
                     selectedLeaders.length === leaders.length
                   }
                   onChange={handleSelectAll}
-                  className="w-4 h-4 rounded accent-emerald-600"
+                  className="w-4 h-4 rounded accent-blue-950"
                 />
               </th>
               <th className="px-4 py-3 text-left font-semibold text-slate-700">
@@ -159,7 +159,7 @@ export default function LeadersTable({ leaders }: LeadersTableProps) {
                     type="checkbox"
                     checked={selectedLeaders.includes(leader._id)}
                     onChange={() => handleSelectLeader(leader._id)}
-                    className="w-4 h-4 rounded accent-emerald-600"
+                    className="w-4 h-4 rounded accent-blue-950"
                   />
                 </td>
                 <td className="px-4 py-3 font-medium text-slate-900">
@@ -169,7 +169,7 @@ export default function LeadersTable({ leaders }: LeadersTableProps) {
                 <td className="px-4 py-3 text-slate-600">
                   <a
                     href={`mailto:${leader.email}`}
-                    className="text-emerald-600 hover:underline"
+                    className="text-blue-950 hover:underline"
                   >
                     {leader.email}
                   </a>
@@ -210,7 +210,7 @@ export default function LeadersTable({ leaders }: LeadersTableProps) {
                         setIsFormOpen(true);
                       }}
                       disabled={updateMutation.isPending}
-                      className="text-emerald-600 hover:text-emerald-800 disabled:opacity-50"
+                      className="text-blue-950 hover:text-emerald-800 disabled:opacity-50"
                     >
                       <i className="ri-pencil-line text-lg"></i>
                     </button>

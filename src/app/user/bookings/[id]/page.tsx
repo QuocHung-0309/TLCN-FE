@@ -304,7 +304,7 @@ export default function BookingDetailPage() {
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 h-full flex flex-col">
               <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-5">
-                <CreditCard size={20} className="text-emerald-600" /> Thông tin
+                <CreditCard size={20} className="text-blue-950" /> Thông tin
                 thanh toán
               </h3>
 
@@ -316,7 +316,7 @@ export default function BookingDetailPage() {
                     {formatCurrency(booking.totalPrice)}
                   </span>
                 </div>
-                <div className="flex justify-between text-emerald-600 font-bold text-base items-center pt-2 border-t border-dashed border-slate-200">
+                <div className="flex justify-between text-blue-950 font-bold text-base items-center pt-2 border-t border-dashed border-slate-200">
                   <span>Đã thanh toán</span>
                   <span className="text-lg">
                     {formatCurrency(booking.paidAmount || 0)}
@@ -351,7 +351,7 @@ export default function BookingDetailPage() {
                           <span className="font-bold text-slate-800 uppercase">
                             {ref.provider || "Thanh toán"}
                           </span>
-                          <span className="text-emerald-600 font-bold">
+                          <span className="text-blue-950 font-bold">
                             +{formatCurrency(ref.amount)}
                           </span>
                         </div>

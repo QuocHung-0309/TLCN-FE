@@ -32,7 +32,7 @@ export function ConfirmDialog({
       case "info":
         return "bg-blue-600 hover:bg-blue-700 text-white";
       default:
-        return "bg-emerald-600 hover:bg-emerald-700 text-white";
+        return "bg-blue-950 hover:bg-emerald-700 text-white";
     }
   };
 

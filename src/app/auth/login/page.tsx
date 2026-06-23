@@ -4,9 +4,8 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { FaFacebookF, FaApple } from "react-icons/fa";
-import { FcGoogle } from "react-icons/fc";
-import { Mail, Lock, Eye, EyeOff, LogIn, CheckCircle, AlertCircle } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, LogIn, CheckCircle, AlertCircle, Facebook, Apple } from "lucide-react";
+import GoogleIcon from "@/components/icons/GoogleIcon";
 import { useSignin } from "#/hooks/auth-hook/useAuth";
 import { useAuthStore } from "#/stores/auth";
 import { setUserToken, setRefreshToken } from "@/lib/auth/tokenManager";
@@ -65,19 +64,23 @@ function LoginPageContent() {
         setUserToken(data.accessToken);
         setRefreshToken(data.refreshToken);
 
-        if (data.user) {
-          setUser({
-            id: data.user.id,
-            fullName: data.user.fullName,
-            username: data.user.username,
-            email: data.user.email,
-            phone: data.user.phone,
-            avatar: data.user.avatar,
-            points: data.user.points,
-            memberStatus: data.user.memberStatus,
-          });
-          setUserId(data.user.id);
-        }
+        // Luôn ghi đè user (kể cả null) để không bao giờ sót lại user của tài khoản
+        // đăng nhập trước đó trong store khi response không trả về data.user.
+        setUser(
+          data.user
+            ? {
+                id: data.user.id,
+                fullName: data.user.fullName,
+                username: data.user.username,
+                email: data.user.email,
+                phone: data.user.phone,
+                avatar: data.user.avatar,
+                points: data.user.points,
+                memberStatus: data.user.memberStatus,
+              }
+            : null
+        );
+        setUserId(data.user?.id ?? null);
 
         // Lưu hoặc xóa thông tin đã ghi nhớ
         if (rememberMe) {

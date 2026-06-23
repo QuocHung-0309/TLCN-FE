@@ -44,7 +44,7 @@ export default function SepayPayButton({
       // Call backend to init payment (SỬ DỤNG HÀM MỚI)
       const data = await initSepayPayment(bookingCode, amount || 10000);
       const redirectUrl =
-        data?.payUrl || data?.deeplink || data?.payment?.redirectUrl || null;
+        data?.payUrl || data?.deeplink || data?.qrUrl || null;
 
       if (redirectUrl) {
         // try open in new tab for better UX and fallback to same-tab

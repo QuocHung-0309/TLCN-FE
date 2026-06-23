@@ -193,7 +193,7 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
                     {formatVND(booking.totalPrice)}
                   </div>
                   <div className="text-xs text-slate-500 mt-1">
-                    Đã trả: <span className="text-emerald-600 font-medium">{formatVND(booking.paidAmount || 0)}</span>
+                    Đã trả: <span className="text-blue-950 font-medium">{formatVND(booking.paidAmount || 0)}</span>
                   </div>
                 </td>
 
@@ -235,7 +235,7 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
                           });
                         }}
                         disabled={paymentMutation.isPending}
-                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition disabled:opacity-50"
+                        className="p-2 text-blue-950 hover:bg-emerald-50 rounded-lg transition disabled:opacity-50"
                       >
                         <i className="ri-money-dollar-circle-line text-lg"></i>
                       </button>

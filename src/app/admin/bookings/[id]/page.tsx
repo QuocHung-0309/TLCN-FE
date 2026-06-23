@@ -158,7 +158,7 @@ export default function BookingDetailPage() {
           <p className="text-slate-600">Không tìm thấy đơn đặt tour</p>
           <Link
             href="/admin/bookings"
-            className="inline-block mt-4 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+            className="inline-block mt-4 px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-emerald-700 transition"
           >
             Quay lại danh sách
           </Link>
@@ -258,7 +258,7 @@ export default function BookingDetailPage() {
                   <h2 className="text-xl font-bold text-slate-900">Lịch sử thanh toán</h2>
                   <Link
                     href={`/admin/bookings/${booking._id}/payment-history`}
-                    className="text-emerald-600 hover:text-emerald-700 text-sm font-medium"
+                    className="text-blue-950 hover:text-emerald-700 text-sm font-medium"
                   >
                     Xem chi tiết →
                   </Link>
@@ -347,7 +347,7 @@ export default function BookingDetailPage() {
                           )
                         }
                         disabled={activeAction === "confirm"}
-                        className="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
+                        className="w-full px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
                       >
                         {activeAction === "confirm" ? "Đang xử lý..." : "Xác nhận đơn"}
                       </button>

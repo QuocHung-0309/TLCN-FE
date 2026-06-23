@@ -3,8 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaMapMarkerAlt } from 'react-icons/fa';
-import { FaRegCommentDots } from 'react-icons/fa6';
+import { MapPin, MessageCircle } from 'lucide-react';
 import { Post } from '@/types/blog';
 
 interface BlogCardProps {
@@ -66,11 +65,11 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
 
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-1">
-              <FaMapMarkerAlt className="text-[var(--secondary)]" />
+              <MapPin className="text-[var(--secondary)]" />
               <span>{post.ward}</span>
             </div>
             <div className="flex items-center gap-1">
-              <FaRegCommentDots className="text-[var(--gray-2)]" />
+              <MessageCircle className="text-[var(--gray-2)]" />
               <span>Bình luận ({post.totalComments})</span>
             </div>
           </div>

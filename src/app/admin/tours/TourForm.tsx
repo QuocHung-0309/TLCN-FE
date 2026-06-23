@@ -603,7 +603,7 @@ export default function TourForm({ tourId, mode }: TourFormProps) {
               <button
                 type="button"
                 onClick={addDay}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-2"
+                className="px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-2"
               >
                 <svg
                   className="w-4 h-4"
@@ -638,7 +638,7 @@ export default function TourForm({ tourId, mode }: TourFormProps) {
                   />
                 </svg>
                 <p className="text-slate-500">
-                  Chưa có lịch trình. Nhấn "Thêm ngày" để bắt đầu.
+                  Chưa có lịch trình. Nhấn &ldquo;Thêm ngày&rdquo; để bắt đầu.
                 </p>
               </div>
             ) : (

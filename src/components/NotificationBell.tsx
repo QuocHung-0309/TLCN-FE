@@ -37,7 +37,7 @@ const TYPE_ICONS: Record<NotificationType, React.ReactNode> = {
 const TYPE_COLORS: Record<NotificationType, string> = {
   system: "bg-slate-100 text-slate-600",
   booking: "bg-blue-100 text-blue-600",
-  tour: "bg-emerald-100 text-emerald-600",
+  tour: "bg-emerald-100 text-blue-950",
   payment: "bg-green-100 text-green-600",
   promotion: "bg-orange-100 text-orange-600",
   chat: "bg-purple-100 text-purple-600",

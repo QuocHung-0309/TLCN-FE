@@ -123,7 +123,7 @@ const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
         </div>
         <div className="text-right">
           <p className="text-xs text-slate-500">Tháng này</p>
-          <p className="text-lg font-bold text-emerald-600">{formatCurrency(currentMonthRevenue)}</p>
+          <p className="text-lg font-bold text-blue-950">{formatCurrency(currentMonthRevenue)}</p>
         </div>
       </div>
 
@@ -138,7 +138,7 @@ const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
         </div>
         <div className="text-center">
           <p className="text-xs text-slate-500">Tổng booking</p>
-          <p className="text-sm font-semibold text-emerald-600">{totalBookings}</p>
+          <p className="text-sm font-semibold text-blue-950">{totalBookings}</p>
         </div>
         <div className="text-center">
           <p className="text-xs text-slate-500">TB/booking</p>

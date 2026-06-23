@@ -2,144 +2,118 @@
 
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Pagination, Autoplay } from "swiper/modules";
+import { Pagination, Autoplay, EffectFade } from "swiper/modules";
+import { ArrowRight } from "lucide-react";
 import "swiper/css";
 import "swiper/css/pagination";
-import { ArrowRight, Sparkles } from "lucide-react";
+import "swiper/css/effect-fade";
+
+const slides = [
+  {
+    image: "/banner.jpg",
+    label: "Miền Tây sông nước",
+    title: "Khám phá vùng đất",
+    titleAccent: "Miền Tây huyền thoại",
+    desc: "Tiền Giang, Mỹ Tho, Bến Tre, Cần Thơ trong một hành trình không thể quên.",
+    href: "/user/destination?destination=mien-tay",
+  },
+  {
+    image: "/banner3.jpg",
+    label: "Trọn gói tiết kiệm",
+    title: "Tour du lịch",
+    titleAccent: "theo cách của bạn",
+    desc: "Hành trình được thiết kế riêng, giá tốt nhất, trải nghiệm đáng nhớ nhất.",
+    href: "/user/destination",
+  },
+  {
+    image: "/banner4.jpg",
+    label: "Đặt tour dễ dàng",
+    title: "Đi ngay hôm nay,",
+    titleAccent: "lo gì ngày mai",
+    desc: "Đặt tour nhanh chóng, thanh toán tiện lợi, hỗ trợ 24/7 trên mọi hành trình.",
+    href: "/user/destination",
+  },
+];
 
 const HomeBanner = () => {
-  const slides = [
-    {
-      image: "/banner.jpg",
-      title: "TOUR MIỀN TÂY 2 NGÀY 1 ĐÊM",
-      desc: "Tiền Giang – Mỹ Tho – Bến Tre – Cần Thơ",
-      href: "/user/destination?destination=mien-tay",
-    },
-    {
-      image: "/banner3.jpg",
-      title: "Tour trọn gói hấp dẫn",
-      desc: "Tận hưởng kỳ nghỉ theo cách của bạn",
-      href: "/user/destination",
-    },
-    {
-      image: "/banner4.jpg",
-      title: "Đặt tour dễ dàng – Đi ngay hôm nay",
-      desc: "Nhanh chóng, tiện lợi và an toàn",
-      href: "/user/destination",
-    },
-  ];
-
   return (
     <>
-      {/* CSS custom cho animation & pagination của Swiper */}
       <style jsx global>{`
-        @keyframes slideUpFade {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+        @keyframes hb-up {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
+        .hb-up { animation: hb-up 0.65s cubic-bezier(.22,1,.36,1) both; }
 
-        @keyframes floatBanner {
-          0%,
-          100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-20px);
-          }
-        }
-
-        .animate-slideUp {
-          animation: slideUpFade 0.6s ease-out forwards;
-        }
-
-        .animate-float {
-          animation: floatBanner 3s ease-in-out infinite;
-        }
-
-        .swiper-pagination-bullets {
-          bottom: 24px !important;
-        }
-
+        .swiper-pagination-bullets { bottom: 32px !important; }
         .swiper-pagination-bullet {
-          background-color: rgba(255, 255, 255, 0.5) !important;
+          background: rgba(255,255,255,0.45) !important;
           opacity: 1 !important;
+          transition: all 0.3s !important;
         }
-
         .swiper-pagination-bullet-active {
-          background-color: rgba(255, 255, 255, 1) !important;
+          background: #fff !important;
           width: 28px !important;
-          border-radius: 12px !important;
+          border-radius: 99px !important;
         }
       `}</style>
 
-      <section className="relative w-full h-[500px] sm:h-[600px] lg:h-[700px] rounded-3xl overflow-hidden shadow-2xl">
+      <section className="relative w-full min-h-[88vh] rounded-3xl overflow-hidden shadow-2xl">
         <Swiper
-          modules={[Pagination, Autoplay]}
-          pagination={{ clickable: true, dynamicBullets: false }}
-          autoplay={{ delay: 5000, disableOnInteraction: false }}
+          modules={[Pagination, Autoplay, EffectFade]}
+          effect="fade"
+          pagination={{ clickable: true }}
+          autoplay={{ delay: 6000, disableOnInteraction: false }}
           loop
-          className="w-full h-full"
+          className="w-full min-h-[88vh]"
         >
-          {slides.map((slide, index) => (
-            <SwiperSlide key={index}>
+          {slides.map((slide, i) => (
+            <SwiperSlide key={i} className="min-h-[88vh]">
               <div
-                className="w-full h-full bg-cover bg-center relative flex items-center justify-start"
+                className="w-full min-h-[88vh] bg-cover bg-center relative flex flex-col justify-end pb-28 sm:pb-32"
                 style={{ backgroundImage: `url(${slide.image})` }}
               >
-                {/* Overlay nhẹ, không tô xanh ảnh nữa */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
+                {/* Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-black/5" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-transparent to-transparent" />
 
-                {/* Floating shapes giữ cho vui, màu rất nhẹ */}
-                <div className="absolute top-10 right-20 w-32 h-32 bg-white/10 rounded-full blur-2xl animate-float" />
-                <div
-                  className="absolute bottom-20 left-10 w-40 h-40 bg-white/5 rounded-full blur-3xl animate-float"
-                  style={{ animationDelay: "1s" }}
-                />
+                {/* Content — left-aligned, max 4 elements */}
+                <div className="relative z-10 px-6 sm:px-12 lg:px-16 max-w-2xl">
 
-                {/* Content */}
-                <div className="relative z-10 ml-6 sm:ml-12 lg:ml-16 max-w-2xl">
-                  {/* Badge */}
+                  {/* 1. Label chip (nhỏ, không phải eyebrow to) */}
                   <div
-                    className="mb-6 inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md rounded-full text-white text-sm font-medium border border-white/30 animate-slideUp"
-                    style={{ animationDelay: "0.1s" }}
+                    className="hb-up mb-5 text-[11px] font-semibold uppercase tracking-[0.15em] text-white/70"
+                    style={{ animationDelay: "0.05s" }}
                   >
-                    <Sparkles size={16} />
-                    Ưu đãi hôm nay
+                    {slide.label}
                   </div>
 
-                  {/* Title */}
+                  {/* 2. Headline */}
                   <h1
-                    className="text-3xl sm:text-4xl lg:text-6xl font-bold text-white drop-shadow-lg animate-slideUp"
-                    style={{ animationDelay: "0.2s" }}
+                    className="hb-up text-4xl sm:text-5xl lg:text-[3.75rem] font-black text-white leading-[1.08] tracking-tight drop-shadow-sm"
+                    style={{ animationDelay: "0.15s" }}
                   >
                     {slide.title}
+                    <br />
+                    <span className="text-amber-400">{slide.titleAccent}</span>
                   </h1>
 
-                  {/* Description */}
+                  {/* 3. Subtext */}
                   <p
-                    className="mt-4 text-base sm:text-lg lg:text-xl text-white/95 drop-shadow-md max-w-xl animate-slideUp"
-                    style={{ animationDelay: "0.3s" }}
+                    className="hb-up mt-4 text-[15px] text-white/80 leading-relaxed max-w-md"
+                    style={{ animationDelay: "0.25s" }}
                   >
                     {slide.desc}
                   </p>
 
-                  {/* CTA Button – vẫn cam cho đúng brand */}
+                  {/* 4. CTA */}
                   <a
+                    className="hb-up mt-7 inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold shadow-lg hover:shadow-orange-500/40 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 group"
                     href={slide.href}
-                    className="mt-8 inline-flex items-center gap-2 px-8 py-4 text-lg font-bold bg-gradient-to-r from-orange-500 to-amber-400 text-white rounded-2xl hover:shadow-xl hover:-translate-y-1 transition-all duration-300 drop-shadow-lg animate-slideUp group"
-                    style={{ animationDelay: "0.4s" }}
+                    style={{ animationDelay: "0.35s" }}
                   >
                     Khám phá ngay
-                    <ArrowRight
-                      size={20}
-                      className="group-hover:translate-x-1 transition-transform"
-                    />
+                    <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
                   </a>
                 </div>
               </div>

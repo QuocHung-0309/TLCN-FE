@@ -19,80 +19,71 @@ export default function UserHomePage() {
     <div className="relative overflow-hidden">
       <ScrollProgress />
 
-      <div className="pointer-events-none absolute inset-0 -z-10">
+      {/* Ambient blobs — ít và tinh tế hơn */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div
-          className="absolute w-[500px] h-[450px] bg-[var(--secondary)] opacity-50 blur-[250px]"
-          style={{ top: "400px", left: "-420px" }}
+          className="absolute w-[600px] h-[600px] rounded-full bg-blue-300/20 blur-[120px]"
+          style={{ top: "-100px", left: "-200px" }}
         />
         <div
-          className="absolute w-[500px] h-[550px] bg-[var(--primary)] opacity-50 blur-[250px]"
-          style={{ top: "770px", left: "1470px" }}
-        />
-        <div
-          className="absolute w-[400px] h-[300px] bg-[var(--primary)] opacity-50 blur-[250px]"
-          style={{ top: "1350px", left: "-300px" }}
-        />
-        <div
-          className="absolute w-[500px] h-[450px] bg-[var(--secondary)] opacity-50 blur-[250px]"
-          style={{ top: "2050px", left: "1470px" }}
-        />
-        <div
-          className="absolute w-[400px] h-[300px] bg-[var(--primary)] opacity-50 blur-[250px]"
-          style={{ top: "2980px", left: "-150px" }}
-        />
-        <div
-          className="absolute w-[500px] h-[550px] bg-[var(--secondary)] opacity-50 blur-[250px]"
-          style={{ top: "4750px", left: "1470px" }}
+          className="absolute w-[500px] h-[500px] rounded-full bg-orange-200/20 blur-[120px]"
+          style={{ bottom: "0px", right: "-150px" }}
         />
       </div>
 
+      {/* Hero + SearchBox floating */}
       <FadeInWhenVisible>
         <HomeBanner />
       </FadeInWhenVisible>
-
-      <FadeInWhenVisible delay={0.1}>
+      <FadeInWhenVisible delay={0.15}>
         <SearchBox />
       </FadeInWhenVisible>
 
-      <section>
-        <SlideIn dir="left">
-          <ServiceSection />
-        </SlideIn>
-      </section>
+      {/* Services */}
+      <SlideIn dir="left">
+        <ServiceSection />
+      </SlideIn>
 
-      <section>
+      {/* Tour nổi bật */}
+      <div className="bg-slate-50/70">
         <StaggerContainer delay={0.1} interval={0.07}>
           <StaggerItem>
             <HotDestinations />
           </StaggerItem>
         </StaggerContainer>
-      </section>
+      </div>
 
-      {/* Tour gợi ý cá nhân hóa */}
+      {/* Voucher */}
       <FadeInWhenVisible delay={0.1}>
         <VoucherEventsSection />
       </FadeInWhenVisible>
 
-      <FadeInWhenVisible delay={0.1}>
-        <TourRecommendations
-          type="homepage"
-          heading="TOUR GỢI Ý CHO BẠN"
-          limit={6}
-          showViewAll={true}
-        />
-      </FadeInWhenVisible>
+      {/* Tour gợi ý cá nhân hóa */}
+      <div className="bg-slate-50/70">
+        <FadeInWhenVisible delay={0.1}>
+          <TourRecommendations
+            type="homepage"
+            heading="Tour gợi ý cho bạn"
+            limit={8}
+            columns={4}
+            showViewAll={true}
+          />
+        </FadeInWhenVisible>
+      </div>
 
-      <section>
-        <SlideIn dir="right">
-          <BlogSection />
-        </SlideIn>
-      </section>
+      {/* Blog */}
+      <SlideIn dir="right">
+        <BlogSection />
+      </SlideIn>
 
-      <StaggerContainer delay={0.1} interval={0.06}>
-        <StaggerItem>
-          <QNASection />
-        </StaggerItem>
-      </StaggerContainer>
+      {/* Q&A */}
+      <div className="bg-slate-50/70">
+        <StaggerContainer delay={0.1} interval={0.06}>
+          <StaggerItem>
+            <QNASection />
+          </StaggerItem>
+        </StaggerContainer>
+      </div>
     </div>
   );
 }

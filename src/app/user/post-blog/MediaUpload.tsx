@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { FiX, FiPlus } from "react-icons/fi";
+import { X, Plus } from "lucide-react";
 
 interface MediaUploadProps {
   images: string[];
@@ -87,7 +87,7 @@ export default function MediaUpload({
                   onClick={() => removeImage(idx)}
                   className="absolute top-1 right-1 bg-[var(--gray-3)] text-[var(--white)] rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
                 >
-                  <FiX size={16} />
+                  <X size={16} />
                 </button>
               </div>
             ))}
@@ -96,7 +96,7 @@ export default function MediaUpload({
               className="w-38 h-38 md:w-38.5 md:h-38.5 max-[424px]:w-full max-[424px]:h-auto aspect-square flex items-center justify-center border-2 border-dashed border-[var(--gray-5)] rounded-lg cursor-pointer hover:bg-gray-100"
               onClick={() => imageInputRef.current?.click()}
             >
-              <FiPlus size={24} className="text-[var(--gray-3)]" />
+              <Plus size={24} className="text-[var(--gray-3)]" />
               <input
                 type="file"
                 accept="image/*"
@@ -170,7 +170,7 @@ export default function MediaUpload({
                   onClick={() => removeVideo(idx)}
                   className="absolute top-1 right-1 bg-[var(--gray-3)] text-[var(--white)] rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
                 >
-                  <FiX size={16} />
+                  <X size={16} />
                 </button>
               </div>
             ))}
@@ -179,7 +179,7 @@ export default function MediaUpload({
               className="w-38 h-38 md:w-38.5 md:h-38.5 max-[424px]:w-full max-[424px]:h-auto aspect-square flex items-center justify-center border-2 border-dashed border-[var(--gray-5)] rounded-lg cursor-pointer hover:bg-gray-100"
               onClick={() => videoInputRef.current?.click()}
             >
-              <FiPlus size={24} className="text-[var(--gray-3)]" />
+              <Plus size={24} className="text-[var(--gray-3)]" />
               <input
                 type="file"
                 accept="video/*"

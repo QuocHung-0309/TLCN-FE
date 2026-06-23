@@ -294,7 +294,7 @@ export default function UsersPage() {
                             className={`p-1.5 rounded-lg transition disabled:opacity-50 ${
                               user.isActive === "y" 
                                 ? "text-amber-500 hover:bg-amber-50 hover:text-amber-600" 
-                                : "text-emerald-500 hover:bg-emerald-50 hover:text-emerald-600"
+                                : "text-emerald-500 hover:bg-emerald-50 hover:text-blue-950"
                             }`}
                           >
                             <i className={`text-lg ${user.isActive === "y" ? "ri-lock-2-line" : "ri-lock-unlock-line"}`}></i>

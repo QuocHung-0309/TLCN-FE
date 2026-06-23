@@ -1,7 +1,6 @@
 "use client";
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
-import { FiX } from "react-icons/fi";
-import { MapPin, ChevronDown, Search, Loader2 } from "lucide-react";
+import { MapPin, ChevronDown, Search, Loader2, X } from "lucide-react";
 
 const API_BASE = "https://34tinhthanh.com/api";
 
@@ -215,7 +214,7 @@ export default function CategoryTagsForm({
             <span key={tag} className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 border border-orange-200 px-2.5 py-1 rounded-lg text-xs font-medium">
               {tag}
               <button type="button" onClick={() => removeTag(tag)} className="ml-0.5 hover:text-red-600 transition-colors">
-                <FiX size={12} />
+                <X size={12} />
               </button>
             </span>
           ))}
@@ -379,7 +378,7 @@ export default function CategoryTagsForm({
               className="ml-auto text-orange-400 hover:text-red-500 flex-shrink-0 transition-colors"
               title="Xoá vị trí"
             >
-              <FiX size={14} />
+              <X size={14} />
             </button>
           </div>
         )}

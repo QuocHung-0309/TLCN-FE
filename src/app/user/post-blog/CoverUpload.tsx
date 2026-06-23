@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { FiPlus, FiX } from "react-icons/fi";
+import { Plus, X } from "lucide-react";
 
 interface CoverUploadProps {
   cover: string | null;
@@ -26,7 +26,7 @@ export default function CoverUpload({ cover, onCoverChange, onRemove }: CoverUpl
         onClick={() => fileInputRef.current?.click()}
         >
         <div className="relative flex items-center justify-center w-16 h-16 border border-[var(--gray-5)] rounded-lg bg-[var(--background)]">
-            <FiPlus size={28} className="text-[var(--gray-2)]" />
+            <Plus size={28} className="text-[var(--gray-2)]" />
         </div>
         <p className="mt-4 font-medium text-[var(--foreground)] mr-3">Thêm hình cover bài viết</p>
         </div>
@@ -42,7 +42,7 @@ export default function CoverUpload({ cover, onCoverChange, onRemove }: CoverUpl
               onClick={onRemove}
               className="absolute top-3 right-3 bg-[var(--gray-3)] hover:bg-[var(--gray-2)] text-[var(--white)] p-1 rounded-full"
             >
-              <FiX/>
+              <X/>
             </button>
           )}
         </div>

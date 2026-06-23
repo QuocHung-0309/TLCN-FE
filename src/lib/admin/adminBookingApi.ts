@@ -41,6 +41,7 @@ export interface BookingData {
   cancelReason?: string;
   code: string;
   paidAmount: number;
+  depositAmount?: number;
   depositPaid: boolean;
   paymentMethod: string;
   paymentRefs: PaymentRef[];

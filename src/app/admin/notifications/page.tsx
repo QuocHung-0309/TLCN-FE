@@ -36,7 +36,7 @@ import AdminPagination from "@/components/admin/AdminPagination";
 const TYPE_COLORS: Record<NotificationType, { bg: string; text: string }> = {
   system: { bg: "bg-slate-100", text: "text-slate-600" },
   booking: { bg: "bg-blue-100", text: "text-blue-600" },
-  tour: { bg: "bg-emerald-100", text: "text-emerald-600" },
+  tour: { bg: "bg-emerald-100", text: "text-blue-950" },
   payment: { bg: "bg-green-100", text: "text-green-600" },
   promotion: { bg: "bg-orange-100", text: "text-orange-600" },
   chat: { bg: "bg-purple-100", text: "text-purple-600" },
@@ -325,7 +325,7 @@ export default function AdminNotificationsPage() {
           <div className="flex flex-col items-center justify-center py-20 text-slate-400">
             <Bell className="h-16 w-16 mb-4 opacity-30" />
             <p className="text-lg font-medium">Chưa có thông báo</p>
-            <p className="text-sm mt-1">Bấm "Tạo thông báo" để thêm mới</p>
+            <p className="text-sm mt-1">Bấm &ldquo;Tạo thông báo&rdquo; để thêm mới</p>
           </div>
         ) : (
           <>

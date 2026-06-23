@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import DestinationCard from "@/components/cards/DestinationCard";
+import SectionHeader from "@/components/ui/SectionHeader";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import { useGetTours } from "#/hooks/tours-hook/useTours";
@@ -27,7 +28,7 @@ const vnd = (n?: number) =>
       })
         .format(n)
         .replace(/\s?₫$/, " VNĐ")
-    : "—";
+    : "";
 
 // Hàm tạo slug an toàn cho URL (Ví dụ: "Tour Cần Thơ" -> "tour-can-tho")
 const slugify = (s = "") =>
@@ -75,7 +76,7 @@ const HotDestinations = () => {
 
         return {
           title: t.title,
-          duration: t.time ?? "—",
+          duration: t.time ?? "",
           price: vnd(price),
           image,
           // 👇 Tạo đường dẫn chi tiết tại đây
@@ -88,9 +89,10 @@ const HotDestinations = () => {
   return (
     <section className="py-14 sm:py-16 px-4">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-center text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-wide text-[#144d7e] mb-8">
-          TOUR NỔI BẬT TRONG THÁNG
-        </h2>
+        <SectionHeader
+          title="Tour được yêu thích nhất"
+          subtitle="Những hành trình được hàng nghìn du khách lựa chọn và đánh giá cao"
+        />
 
         <Swiper
           modules={[Autoplay]}

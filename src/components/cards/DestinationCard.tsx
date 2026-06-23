@@ -1,16 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link"; // 👈 Import Link
+import Link from "next/link";
 import React from "react";
-import { Clock, Tag } from "lucide-react"; // Ví dụ icon nếu bạn dùng
+import { Clock, MapPin } from "lucide-react";
 
 export type DestinationCardProps = {
   image: string;
   title: string;
   duration: string;
   price: string;
-  href?: string; // 👈 Thêm prop href (optional)
+  href?: string;
+  destination?: string;
 };
 
 const DestinationCard: React.FC<DestinationCardProps> = ({
@@ -18,51 +19,50 @@ const DestinationCard: React.FC<DestinationCardProps> = ({
   title,
   duration,
   price,
-  href = "#", // Default nếu không truyền
+  href = "#",
+  destination,
 }) => {
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-md transition-all hover:-translate-y-1 hover:shadow-xl border border-slate-100">
-      {/* Image Area */}
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm border border-slate-100 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-slate-200/60">
+      {/* Image */}
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         <Image
           src={image}
           alt={title}
           fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-110"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+
+        {destination && (
+          <div className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-white/20 backdrop-blur-sm px-2.5 py-1 text-[11px] font-medium text-white border border-white/30">
+            <MapPin size={10} />
+            {destination}
+          </div>
+        )}
       </div>
 
-      {/* Content Area */}
+      {/* Content */}
       <div className="flex flex-1 flex-col p-4">
-        {/* Title */}
-        <h3 className="mb-2 line-clamp-2 text-lg font-bold leading-tight text-slate-800 group-hover:text-[var(--primary)] transition-colors">
-          <Link href={href} title={title}>
-            {title}
-          </Link>
+        <h3 className="mb-3 line-clamp-2 text-[15px] font-semibold leading-snug text-slate-800 group-hover:text-[var(--brand-navy)] transition-colors">
+          <Link href={href} title={title}>{title}</Link>
         </h3>
 
-        {/* Info */}
-        <div className="mb-4 flex items-center gap-4 text-sm text-slate-500">
-          <div className="flex items-center gap-1.5">
-            <Clock size={16} />
-            <span>{duration}</span>
-          </div>
+        <div className="flex items-center gap-1.5 text-[13px] text-slate-500 mb-4">
+          <Clock size={14} className="text-orange-400 flex-shrink-0" />
+          <span>{duration}</span>
         </div>
 
-        {/* Price & Action */}
-        <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-4">
+        <div className="mt-auto flex items-center justify-between gap-2 pt-3 border-t border-slate-100">
           <div>
-            <p className="text-xs font-medium text-slate-400">Giá chỉ từ</p>
-            <p className="text-lg font-bold text-rose-600">{price}</p>
+            <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Giá từ</p>
+            <p className="text-base font-bold text-rose-600 tabular-nums">{price}</p>
           </div>
 
-          {/* 👇 Nút Đặt Tour chuyển hướng theo href */}
           <Link
             href={href}
-            className="rounded-full bg-[var(--primary)] px-5 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 shadow-sm"
+            className="rounded-full bg-[var(--brand-navy)] px-4 py-2 text-[12px] font-semibold text-white transition-all hover:opacity-90 hover:shadow-md active:scale-95"
           >
             Đặt Tour
           </Link>

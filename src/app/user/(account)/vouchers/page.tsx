@@ -161,65 +161,49 @@ export default function MyVouchersPage() {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-orange-50/30">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Đang tải voucher...</p>
+          <div className="w-10 h-10 border-4 border-slate-200 border-t-orange-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-500 font-medium">Đang tải voucher...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/30 py-8 px-4">
+    <div className="min-h-screen bg-slate-50 py-8 px-4">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-200">
-              <Gift className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
-                Kho Voucher của tôi
-              </h1>
-              <p className="text-slate-500 text-sm">
-                Quản lý và sử dụng các phiếu giảm giá
-              </p>
-            </div>
-          </div>
-        </motion.div>
+        <div className="mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-[var(--brand-navy)]">
+            Kho Voucher của tôi
+          </h1>
+          <p className="text-slate-500 text-sm mt-1">
+            Quản lý và sử dụng các phiếu giảm giá
+          </p>
+        </div>
 
         {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
-        >
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-2xl p-4 border border-slate-200">
             <div className="flex items-center justify-between mb-2">
-              <Ticket className="w-5 h-5 text-blue-500" />
+              <Ticket className="w-5 h-5 text-slate-400" />
               <span className="text-2xl font-bold text-slate-800">
                 {stats.total}
               </span>
             </div>
             <p className="text-sm text-slate-500">Tổng voucher</p>
           </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+          <div className="bg-white rounded-2xl p-4 border border-slate-200">
             <div className="flex items-center justify-between mb-2">
               <Sparkles className="w-5 h-5 text-emerald-500" />
-              <span className="text-2xl font-bold text-emerald-600">
+              <span className="text-2xl font-bold text-blue-950">
                 {stats.active}
               </span>
             </div>
             <p className="text-sm text-slate-500">Có thể dùng</p>
           </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+          <div className="bg-white rounded-2xl p-4 border border-slate-200">
             <div className="flex items-center justify-between mb-2">
               <CheckCircle2 className="w-5 h-5 text-slate-400" />
               <span className="text-2xl font-bold text-slate-500">
@@ -228,7 +212,7 @@ export default function MyVouchersPage() {
             </div>
             <p className="text-sm text-slate-500">Đã sử dụng</p>
           </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+          <div className="bg-white rounded-2xl p-4 border border-slate-200">
             <div className="flex items-center justify-between mb-2">
               <XCircle className="w-5 h-5 text-red-400" />
               <span className="text-2xl font-bold text-red-500">
@@ -237,15 +221,10 @@ export default function MyVouchersPage() {
             </div>
             <p className="text-sm text-slate-500">Hết hạn</p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Filters */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6"
-        >
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
             <div className="flex-1 relative">
@@ -277,18 +256,12 @@ export default function MyVouchersPage() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Voucher List */}
         {filteredVouchers.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-3xl p-12 text-center border border-slate-100 shadow-sm"
-          >
-            <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-6">
-              <Gift className="w-12 h-12 text-slate-300" />
-            </div>
+          <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
+            <Gift size={28} className="mx-auto mb-3 text-slate-300" />
             <h3 className="text-xl font-bold text-slate-700 mb-2">
               Chưa có voucher nào
             </h3>
@@ -299,21 +272,13 @@ export default function MyVouchersPage() {
             </p>
             <button
               onClick={() => router.push("/user/map")}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow-lg shadow-orange-200 hover:shadow-xl transition-all"
+              className="px-6 py-3 rounded-xl bg-orange-600 text-white font-bold transition-colors hover:bg-orange-500"
             >
               Khám phá Hành Trình
             </button>
-          </motion.div>
+          </div>
         ) : (
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={{
-              hidden: { opacity: 0 },
-              visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
-            }}
-            className="grid gap-4"
-          >
+          <div className="grid gap-4">
             <AnimatePresence>
               {filteredVouchers.map((voucher) => {
                 const status =
@@ -327,19 +292,17 @@ export default function MyVouchersPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className={`relative bg-white rounded-2xl shadow-sm border overflow-hidden ${
+                    className={`relative bg-white rounded-2xl border overflow-hidden ${
                       isActive
-                        ? "border-emerald-200 hover:shadow-lg hover:border-emerald-300"
-                        : "border-slate-100 opacity-75"
-                    } transition-all`}
+                        ? "border-emerald-200 hover:border-emerald-400"
+                        : "border-slate-200 opacity-75"
+                    } transition-colors`}
                   >
                     <div className="flex flex-col md:flex-row">
                       {/* Left Side - Discount */}
                       <div
                         className={`md:w-48 p-6 flex flex-col items-center justify-center ${
-                          isActive
-                            ? "bg-gradient-to-br from-emerald-500 to-teal-600"
-                            : "bg-slate-200"
+                          isActive ? "bg-blue-950" : "bg-slate-200"
                         }`}
                       >
                         {voucher.type === "percent" ? (
@@ -407,8 +370,8 @@ export default function MyVouchersPage() {
                               onClick={() => handleCopyCode(voucher.code)}
                               className={`p-3 rounded-xl transition-all ${
                                 copiedCode === voucher.code
-                                  ? "bg-emerald-100 text-emerald-600"
-                                  : "bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600"
+                                  ? "bg-emerald-100 text-blue-950"
+                                  : "bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-blue-950"
                               }`}
                             >
                               {copiedCode === voucher.code ? (
@@ -450,17 +413,12 @@ export default function MyVouchersPage() {
                 );
               })}
             </AnimatePresence>
-          </motion.div>
+          </div>
         )}
 
         {/* Summary */}
         {filteredVouchers.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="mt-6 bg-slate-50 rounded-xl p-4 border border-slate-200 text-center"
-          >
+          <div className="mt-6 bg-slate-50 rounded-xl p-4 border border-slate-200 text-center">
             <p className="text-sm text-slate-600">
               Hiển thị{" "}
               <span className="font-bold text-slate-800">
@@ -472,7 +430,7 @@ export default function MyVouchersPage() {
               </span>{" "}
               voucher
             </p>
-          </motion.div>
+          </div>
         )}
       </div>
     </div>

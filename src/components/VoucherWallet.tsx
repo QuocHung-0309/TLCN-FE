@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { FaTicketAlt, FaCopy } from "react-icons/fa";
+import { Ticket, Copy } from "lucide-react";
 import { checkinApi } from "@/lib/checkin/checkinApi";
 
 export default function VoucherWallet() {
@@ -18,7 +18,7 @@ export default function VoucherWallet() {
   return (
     <section className="max-w-6xl mx-auto px-4 py-8">
       <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-        <FaTicketAlt className="text-amber-500" /> Kho Voucher Của Bạn
+        <Ticket className="text-amber-500" /> Kho Voucher Của Bạn
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {vouchers.map((v, idx) => (
@@ -35,7 +35,7 @@ export default function VoucherWallet() {
               onClick={() => navigator.clipboard.writeText(v.voucherCode)}
             >
               <code className="text-amber-600 font-bold">{v.voucherCode}</code>
-              <FaCopy className="text-slate-400" />
+              <Copy className="text-slate-400" />
             </div>
           </div>
         ))}

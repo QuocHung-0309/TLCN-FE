@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { FaChevronDown, FaClock } from "react-icons/fa";
+import { ChevronDown, Clock, Search } from "lucide-react";
 
 export type TourFilterValue = {
   to?: string;
@@ -75,7 +75,7 @@ export default function TourFilter({
             </option>
           ))}
         </select>
-        <FaChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400" />
+        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400" />
       </div>
 
       {/* DATE */}
@@ -102,7 +102,7 @@ export default function TourFilter({
 
       {/* TIME (Specific Duration) */}
       <label className="mb-2 flex items-center gap-2 text-[13px] font-bold text-blue-700 uppercase tracking-wide">
-        <FaClock className="text-blue-600" />
+        <Clock className="text-blue-600" />
         Thời gian
       </label>
       <div className="relative mb-4">
@@ -118,11 +118,11 @@ export default function TourFilter({
             </option>
           ))}
         </select>
-        <FaChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400" />
+        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400" />
       </div>
 
       <label className="mb-2 flex items-center gap-2 text-[13px] font-bold text-blue-700 uppercase tracking-wide">
-        <FaSearch className="text-blue-600 opacity-0" /> {/* Placeholder spacing */}
+        <Search className="text-blue-600 opacity-0" /> {/* Placeholder spacing */}
         Tìm kiếm từ khóa
       </label>
       <input
@@ -224,5 +224,3 @@ export default function TourFilter({
     </aside>
   );
 }
-
-import { FaSearch } from "react-icons/fa";

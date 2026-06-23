@@ -294,7 +294,7 @@ export default function UserForm({ userId, mode }: UserFormProps) {
               <button
                 type="submit"
                 disabled={isPending}
-                className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition font-medium"
+                className="flex-1 px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition font-medium"
               >
                 {isPending
                   ? "Đang xử lý..."

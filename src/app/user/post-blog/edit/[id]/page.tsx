@@ -27,6 +27,25 @@ import CoverUpload from "../../CoverUpload";
 import CategoryTagsForm from "../../CategoryTagsForm";
 import PostPrivacySettings from "../../PostPrivacySettings";
 
+const isContentEmpty = (html: string) =>
+  html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, "").trim() === "";
+
+// post.content có thể là string (HTML từ editor) hoặc mảng block
+// {type, value} (bài cũ/được tạo từ nguồn khác) -> phải dựng lại HTML
+// tương ứng, không thể nhồi thẳng JSON.stringify vào contentEditable.
+const blocksToHtml = (blocks: { type: string; value: string }[]) =>
+  blocks
+    .map((b) => {
+      if (b.type === "image") {
+        return `<figure class="editor-figure" contenteditable="false" style="margin:8px 0;text-align:center;"><img src="${b.value}" style="max-width:100%;border-radius:6px;display:inline-block;" /></figure>`;
+      }
+      if (b.type === "video") {
+        return `<figure class="editor-figure" contenteditable="false" style="margin:8px 0;text-align:center;"><video controls src="${b.value}" style="max-width:100%;border-radius:6px;display:inline-block;"></video></figure>`;
+      }
+      return b.value;
+    })
+    .join("");
+
 export default function EditBlogPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
@@ -65,7 +84,7 @@ export default function EditBlogPage() {
         if (typeof post.content === "string") {
             c = post.content;
         } else if (Array.isArray(post.content)) {
-            c = JSON.stringify(post.content);
+            c = blocksToHtml(post.content);
         }
         setContent(c);
         
@@ -116,7 +135,7 @@ export default function EditBlogPage() {
       return;
     }
 
-    if (!content.trim()) {
+    if (isContentEmpty(content)) {
       toast.error("Vui lòng nhập nội dung bài viết");
       return;
     }
@@ -389,7 +408,7 @@ export default function EditBlogPage() {
                 </button>
 
                 <div className="text-blue-200 text-sm">
-                  {title.trim() && content.trim() ? (
+                  {title.trim() && !isContentEmpty(content) ? (
                     <span className="flex items-center gap-1 text-emerald-300">
                       <CheckCircle size={14} />
                       Sẵn sàng đăng bài
@@ -405,7 +424,7 @@ export default function EditBlogPage() {
 
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting || !title.trim() || !content.trim()}
+                disabled={isSubmitting || !title.trim() || isContentEmpty(content)}
                 className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
               >
                 {isSubmitting ? (

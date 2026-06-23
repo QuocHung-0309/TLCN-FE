@@ -10,6 +10,7 @@ import {
 } from "@/lib/blog/blogApi";
 import { useEffect, useState } from "react";
 import { MapPin } from "lucide-react";
+import { sanitizeBlogHtml } from "@/lib/blog/sanitizeHtml";
 
 type Props = {
   post: BlogDetailType;
@@ -73,7 +74,7 @@ export default function BlogDetail({ post }: Props) {
                 [&_a]:text-orange-600 [&_a]:hover:text-orange-700 [&_a]:underline
                 [&_strong]:text-slate-900 [&_strong]:font-semibold
                 [&_blockquote]:border-l-4 [&_blockquote]:border-orange-500 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-slate-600"
-              dangerouslySetInnerHTML={{ __html: block.value }}
+              dangerouslySetInnerHTML={{ __html: sanitizeBlogHtml(block.value) }}
             />
           );
         }
@@ -83,7 +84,7 @@ export default function BlogDetail({ post }: Props) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={block.value}
-                alt={post.title ?? "blog image"}
+                alt={`Hình ảnh minh họa cho bài viết: ${post.title ?? "Bài viết"}`}
                 className="h-auto w-full rounded-2xl object-cover"
               />
             </div>
@@ -116,7 +117,7 @@ export default function BlogDetail({ post }: Props) {
             [&_a]:text-orange-600 [&_a]:hover:text-orange-700 [&_a]:underline
             [&_strong]:text-slate-900 [&_strong]:font-semibold
             [&_blockquote]:border-l-4 [&_blockquote]:border-orange-500 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-slate-600"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: sanitizeBlogHtml(post.content) }}
         />
       );
     }

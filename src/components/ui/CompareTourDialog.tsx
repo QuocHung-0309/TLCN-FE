@@ -204,7 +204,7 @@ export default function CompareTourDialog({
                       </select>
                       {availableTours.length === 0 && (
                         <p className="mt-1.5 text-xs text-rose-500">
-                          Không tìm thấy tour phù hợp với "{searchTerm}"
+                          Không tìm thấy tour phù hợp với &ldquo;{searchTerm}&rdquo;
                         </p>
                       )}
                     </div>
@@ -295,8 +295,8 @@ export default function CompareTourDialog({
                         )}
                         
                         {renderRow("Ưu đãi giảm giá", 
-                          Number(baseTour?.discountAmount) > 0 ? <span className="text-emerald-600 font-semibold">Giảm {vnd(baseTour.discountAmount)}</span> : "Không áp dụng", 
-                          Number(targetTour?.discountAmount) > 0 ? <span className="text-emerald-600 font-semibold">Giảm {vnd(targetTour.discountAmount)}</span> : "Không áp dụng"
+                          Number(baseTour?.discountAmount) > 0 ? <span className="text-blue-950 font-semibold">Giảm {vnd(baseTour.discountAmount)}</span> : "Không áp dụng", 
+                          Number(targetTour?.discountAmount) > 0 ? <span className="text-blue-950 font-semibold">Giảm {vnd(targetTour.discountAmount)}</span> : "Không áp dụng"
                         )}
 
                         {renderRow("Số lượng ghế", 
@@ -317,7 +317,7 @@ export default function CompareTourDialog({
                 {/* Footer Actions */}
                 <div className="shrink-0 flex items-center bg-slate-50 px-6 py-4 border-t border-slate-200 mt-auto">
                    <div className="w-1/4 text-xs italic text-slate-500 pr-6">
-                      * Nhấn "Xem Chi Tiết" để đọc toàn bộ thông tin lộ trình và chính sách tour.
+                      * Nhấn &ldquo;Xem Chi Tiết&rdquo; để đọc toàn bộ thông tin lộ trình và chính sách tour.
                    </div>
                    <div className="w-[37.5%] px-4 border-l border-slate-200">
                      <Link 

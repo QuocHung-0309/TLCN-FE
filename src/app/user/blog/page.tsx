@@ -27,7 +27,9 @@ const fadeInStyle = {
   animation: "blogFadeIn 0.4s ease-out both",
 } as const;
 
-export default function BlogListPage() {
+import { Suspense } from "react";
+
+function BlogListContent() {
   const searchParams = useSearchParams();
   const initialTag = searchParams.get("tag") ?? "";
 
@@ -51,7 +53,7 @@ export default function BlogListPage() {
   // Fetch completed tours để hiển thị CTA
   const { data: bookingsData } = useMyBookings({ enabled: !!user });
   const completedTours = (bookingsData?.data ?? []).filter(
-    (b) => b.bookingStatus === "f" // "f" = finished/completed
+    (b) => b.bookingStatus === "completed"
   ).length;
 
   const blogs = data?.data ?? [];
@@ -507,5 +509,13 @@ export default function BlogListPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function BlogListPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-50" />}>
+      <BlogListContent />
+    </Suspense>
   );
 }

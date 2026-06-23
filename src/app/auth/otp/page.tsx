@@ -131,8 +131,20 @@ function RegisterOtpPageContent() {
   };
 
   return (
+<<<<<<< HEAD
     <main className="flex flex-col h-full w-full max-w-md mx-auto justify-center pb-8 pt-8">
       <div className="flex flex-col items-center relative overflow-hidden w-full">
+=======
+    <>
+    <main>
+      <a
+        href="/auth/register"
+        className="text-sm text-gray-500 hover:underline inline-flex items-center mb-4"
+      >
+        <ChevronLeft className="mr-2 text-base" />
+        Quay lại trang đăng ký
+      </a>
+>>>>>>> upstream/feature/chatbot-memory
 
         <div className="w-full flex justify-start mb-6">
           <a

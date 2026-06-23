@@ -5,7 +5,7 @@ import { VoucherData, deleteVoucher, updateVoucher } from "@/lib/admin/adminVouc
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/Toast";
 import { format } from "date-fns";
-import vi from "date-fns/locale/vi";
+import { vi } from "date-fns/locale/vi";
 import Link from "next/link";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
@@ -163,7 +163,7 @@ export default function VoucherTable({ vouchers }: VoucherTableProps) {
                         className={`p-2 rounded-lg transition-colors ${
                           voucher.status === "active" 
                             ? "text-orange-600 hover:bg-orange-50 bg-white" 
-                            : "text-emerald-600 hover:bg-emerald-50 bg-white border border-slate-200"
+                            : "text-blue-950 hover:bg-emerald-50 bg-white border border-slate-200"
                         }`}
                         title={voucher.status === "active" ? "Tạm ngưng" : "Kích hoạt lại"}
                       >

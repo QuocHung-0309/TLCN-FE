@@ -169,7 +169,7 @@ export default function ResetPasswordPage() {
               <button
                 type="submit"
                 disabled={resetMutation.isPending}
-                className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition font-medium"
+                className="flex-1 px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition font-medium"
               >
                 {resetMutation.isPending ? "Đang xử lý..." : "Đặt Lại Mật Khẩu"}
               </button>

@@ -800,7 +800,7 @@ export default function AdminTourDetail() {
                             {/* Hoàn thành */}
                             {dep.status === "in_progress" && (
                               <button
-                                className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="p-2 text-blue-950 hover:bg-emerald-50 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                                 title={
                                   Date.now() < new Date(dep.endDate).setHours(0,0,0,0) ? "Chuyến đi chưa kết thúc" :
                                   "Kết thúc chuyến đi"

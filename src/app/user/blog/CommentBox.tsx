@@ -170,6 +170,7 @@ const CommentBox = ({ slug, onCommentAdded }: CommentBoxProps) => {
               placeholder="Chia sẻ cảm nhận của bạn về bài viết này..."
               disabled={isSubmitting}
               rows={3}
+              maxLength={500}
               className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-700 placeholder:text-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 focus:bg-white disabled:opacity-50 transition-all"
             />
             <div className="absolute bottom-3 right-3 text-xs text-slate-400">

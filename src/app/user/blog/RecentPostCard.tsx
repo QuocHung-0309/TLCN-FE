@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { FiClock } from 'react-icons/fi';
+import { Clock } from 'lucide-react';
 import Link from 'next/link';
 import { Post } from '@/types/blog';
 
@@ -31,7 +31,7 @@ const RecentPostCard: React.FC<RecentPostCardProps> = ({ post }) => {
           </Link>
           <span className="mx-1">|</span>
           <span className="flex items-center gap-1">
-            <FiClock className="text-gray-500" />
+            <Clock className="text-gray-500" />
             {new Date(post.date).toLocaleDateString('vi-VN')}
           </span>
         </div>

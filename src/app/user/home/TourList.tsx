@@ -88,7 +88,7 @@ const DestinationList = () => {
   return (
     <section className="py-14 sm:py-16 px-4">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-center text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#144d7e] mb-8">
+        <h2 className="text-center text-2xl sm:text-3xl md:text-4xl font-extrabold text-[var(--brand-navy)] mb-8">
           ĐIỂM ĐẾN HOT NHẤT
         </h2>
 

@@ -108,7 +108,7 @@ export function UserTable({ data}: Props) {
           const user = row.original;
           return (
             <div className="flex gap-2">
-              <button title="Sửa" onClick={() => router.push(`/admin/users/${user.id}`)} className="text-emerald-600 hover:text-emerald-800"><i className="ri-pencil-line"></i></button>
+              <button title="Sửa" onClick={() => router.push(`/admin/users/${user.id}`)} className="text-blue-950 hover:text-emerald-800"><i className="ri-pencil-line"></i></button>
               <button title="Đặt lại mật khẩu" onClick={() => router.push(`/admin/users/${user.id}/reset-password`)} className="text-orange-500 hover:text-orange-700"><i className="ri-key-line"></i></button>
               <button title="Xóa" className="text-red-500 hover:text-red-700"><i className="ri-delete-bin-6-line"></i></button>
             </div>

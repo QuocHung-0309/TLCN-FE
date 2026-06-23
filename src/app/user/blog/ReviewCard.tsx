@@ -1,8 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { IoFlagSharp } from 'react-icons/io5';
-import { AiFillLike } from "react-icons/ai";
+import { Flag, ThumbsUp } from "lucide-react";
 import { useState } from 'react';
 
 type Review = {
@@ -38,14 +37,14 @@ const ReviewCard = ({ review }: ReviewCardProps) => {
         className="cursor-pointer absolute right-0 top-0 p-2 text-[var(--gray-2)] hover:text-[var(--gray-1)]"
         title="Báo cáo đánh giá"
       >
-        <IoFlagSharp size={18} />
+        <Flag size={18} />
       </button>
       <button
         onClick={handleLike}
         className="cursor-pointer absolute right-8 top-0 p-2 flex items-center gap-1 text-[var(--gray-2)] hover:text-[var(--gray-1)]"
         title="Yêu thích"
       >
-        <AiFillLike size={18} className={liked ? "text-[var(--primary)]" : ""}/>
+        <ThumbsUp size={18} className={liked ? "text-[var(--primary)]" : ""}/>
         <span className="text-sm">{likes}</span>
       </button>
 

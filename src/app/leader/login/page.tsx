@@ -34,7 +34,7 @@ const FEATURES = [
     icon: Users,
     title: "Chat nhóm với khách hàng",
     desc: "Liên lạc trực tiếp trong nhóm tour",
-    color: "from-emerald-500 to-emerald-600",
+    color: "from-emerald-500 to-blue-950",
   },
 ];
 

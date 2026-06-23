@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useAuthStore } from "#/stores/auth";
 import { authApi } from "@/lib/auth/authApi";
 import {
@@ -22,10 +23,13 @@ import {
   MessageSquare,
   AlertCircle,
   Star,
+  Clock,
+  Ban,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { blogApi, BlogSummary } from "@/lib/blog/blogApi";
-import { getMyReviews, deleteReview } from "@/lib/reviews/reviewApi";
+import { travelMemoryApi } from "@/lib/checkin/travelMemoryApi";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import FavoritesTab from "@/components/profile/FavoritesTab";
 import { Heart } from "lucide-react";
 
@@ -48,6 +52,8 @@ type UserProfile = {
   avatar?: string;
   hasPassword?: boolean;
   isGoogleLogin?: boolean;
+  points?: number;
+  memberStatus?: string;
 };
 
 // --- Component: Tab Button ---
@@ -65,14 +71,17 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold transition-all duration-200 border-b-2 ${
+      className={`relative flex flex-shrink-0 items-center gap-2 whitespace-nowrap px-1 py-3 text-sm font-semibold transition-colors duration-200 ${
         active
-          ? "border-orange-500 text-orange-600 bg-orange-50/50"
-          : "border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+          ? "text-slate-800"
+          : "text-slate-400 hover:text-slate-600"
       }`}
     >
-      <Icon size={18} />
+      <Icon size={18} className={active ? "text-orange-500" : "text-slate-400"} />
       {label}
+      {active && (
+        <span className="absolute -bottom-px left-0 right-0 h-[2px] rounded-full bg-orange-500" />
+      )}
     </button>
   );
 }
@@ -138,7 +147,7 @@ function InfoTab({ user, token, onSuccess }: { user: UserProfile; token: string;
   const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6">
       {/* Card: Thông tin cá nhân */}
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
@@ -262,7 +271,7 @@ function InfoTab({ user, token, onSuccess }: { user: UserProfile; token: string;
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex items-center gap-2 rounded-xl bg-blue-950 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-900/20 hover:bg-blue-900 hover:-translate-y-0.5 transition-all disabled:opacity-75 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-500 disabled:opacity-75 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <Save size={18} />}
                 {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}
@@ -275,13 +284,11 @@ function InfoTab({ user, token, onSuccess }: { user: UserProfile; token: string;
       {/* Card: Thông tin liên hệ (Email & Phone) */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Email */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 text-orange-600">
-                <Mail size={16} />
-              </div>
-              <h3 className="font-bold text-slate-800">Email</h3>
+            <div className="flex items-center gap-2 text-slate-800">
+              <Mail size={16} className="text-slate-400" />
+              <h3 className="font-bold">Email</h3>
             </div>
           </div>
           <div className="space-y-3">
@@ -289,7 +296,7 @@ function InfoTab({ user, token, onSuccess }: { user: UserProfile; token: string;
               <span className="text-sm font-medium text-slate-700">
                 {user.email}
               </span>
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-blue-950">
                 Chính
               </span>
             </div>
@@ -297,15 +304,13 @@ function InfoTab({ user, token, onSuccess }: { user: UserProfile; token: string;
         </div>
 
         {/* Phone */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                <Phone size={16} />
-              </div>
-              <h3 className="font-bold text-slate-800">Số điện thoại</h3>
+            <div className="flex items-center gap-2 text-slate-800">
+              <Phone size={16} className="text-slate-400" />
+              <h3 className="font-bold">Số điện thoại</h3>
             </div>
-            <button type="button" onClick={() => setIsEditingPhone(!isEditingPhone)} className="text-sm font-semibold text-blue-600 hover:text-blue-800">
+            <button type="button" onClick={() => setIsEditingPhone(!isEditingPhone)} className="text-sm font-semibold text-orange-600 hover:text-orange-700">
               {isEditingPhone ? "Hủy" : "Chỉnh sửa"}
             </button>
           </div>
@@ -402,7 +407,7 @@ function PasswordTab({ user }: { user: UserProfile }) {
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div>
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
           <h2 className="text-lg font-bold text-slate-800">Đổi mật khẩu</h2>
@@ -460,7 +465,7 @@ function PasswordTab({ user }: { user: UserProfile }) {
                       />
                     ))}
                   </div>
-                  <p className={`text-xs ${passwordStrength >= 4 ? "text-emerald-600" : passwordStrength >= 3 ? "text-yellow-600" : "text-red-500"}`}>
+                  <p className={`text-xs ${passwordStrength >= 4 ? "text-blue-950" : passwordStrength >= 3 ? "text-yellow-600" : "text-red-500"}`}>
                     {strengthTexts[passwordStrength]}
                   </p>
                 </div>
@@ -490,7 +495,7 @@ function PasswordTab({ user }: { user: UserProfile }) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-orange-500/20 hover:bg-orange-500 hover:-translate-y-0.5 transition-all disabled:opacity-75 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-500 disabled:opacity-75 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <Save size={18} />}
                 {isSubmitting ? "Đang xử lý..." : "Cập nhật mật khẩu"}
@@ -508,6 +513,7 @@ function MyPostsTab() {
   const [posts, setPosts] = useState<BlogSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "pending" | "published" | "private" | "rejected">("all");
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const fetchPosts = async () => {
     try {
@@ -526,8 +532,10 @@ function MyPostsTab() {
     fetchPosts();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác.")) return;
+  const handleDelete = async () => {
+    if (!deleteTargetId) return;
+    const id = deleteTargetId;
+    setDeleteTargetId(null);
     try {
       await blogApi.deleteBlog(id);
       toast.success("Đã xóa bài viết");
@@ -558,7 +566,7 @@ function MyPostsTab() {
   });
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div>
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -567,9 +575,9 @@ function MyPostsTab() {
               Quản lý các bài viết bạn đã đăng hoặc đang lưu trữ.
             </p>
           </div>
-          <a href="/user/post-blog" className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 transition flex items-center gap-2 flex-shrink-0">
+          <Link href="/user/post-blog" className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 transition flex items-center gap-2 flex-shrink-0">
             <Plus size={16} /> Viết bài mới
-          </a>
+          </Link>
         </div>
 
         {/* Filters */}
@@ -645,7 +653,7 @@ function MyPostsTab() {
                           <a href={`/user/post-blog/edit/${post._id}`} className="flex-1 flex justify-center items-center gap-1.5 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
                             <Edit size={14} /> Sửa
                           </a>
-                          <button onClick={() => handleDelete(post._id!)} title="Xóa bài viết" className="px-2 flex justify-center items-center text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
+                          <button onClick={() => setDeleteTargetId(post._id!)} title="Xóa bài viết" className="px-2 flex justify-center items-center text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -676,100 +684,249 @@ function MyPostsTab() {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={!!deleteTargetId}
+        title="Xóa bài viết"
+        message="Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác."
+        confirmText="Xóa"
+        type="danger"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTargetId(null)}
+      />
     </div>
   );
 }
 
-import ReviewModal from "@/components/ReviewModal";
+// --- 4. My Memories Tab (kỷ niệm du lịch ở Hành trình) ---
+type MemoryItem = {
+  _id: string;
+  provinceName: string;
+  visitedAt: string;
+  createdAt: string;
+  caption: string;
+  images: string[];
+  privacy: "private" | "public";
+  source: "manual" | "tour";
+  commentsCount?: number;
+  likesCount?: number;
+};
 
-// --- 4. Reviews Tab ---
-function ReviewsTab() {
-  const [reviews, setReviews] = useState<any[]>([]);
+function MyMemoriesTab() {
+  const [memories, setMemories] = useState<MemoryItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingReview, setEditingReview] = useState<any | null>(null);
+  const [filter, setFilter] = useState<"all" | "public" | "private">("all");
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [editingItem, setEditingItem] = useState<MemoryItem | null>(null);
+  const [editCaption, setEditCaption] = useState("");
+  const [editPrivacy, setEditPrivacy] = useState<"private" | "public">("public");
+  const [savingEdit, setSavingEdit] = useState(false);
 
-  const fetchReviews = async () => {
+  const fetchMemories = async () => {
     try {
       setLoading(true);
-      const res = await getMyReviews();
-      setReviews(res.data || []);
+      const res = await travelMemoryApi.getMyMemories(undefined, 1, 100);
+      setMemories(res.data || []);
     } catch (error) {
-      console.error("Lỗi tải đánh giá:", error);
-      toast.error("Không tải được danh sách đánh giá");
+      console.error("Lỗi tải kỷ niệm:", error);
+      toast.error("Không tải được danh sách kỷ niệm");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchReviews();
+    fetchMemories();
   }, []);
 
-  const handleDeleteReview = async (id: string) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa đánh giá này?")) return;
+  const handleDelete = async () => {
+    if (!deleteTargetId) return;
+    const id = deleteTargetId;
+    setDeleteTargetId(null);
     try {
-      await deleteReview(id);
-      toast.success("Đã xóa đánh giá");
-      fetchReviews();
-    } catch (err) {
-      toast.error("Lỗi khi xóa đánh giá");
+      await travelMemoryApi.deleteMemory(id);
+      toast.success("Đã xóa kỷ niệm");
+      setMemories((prev) => prev.filter((m) => m._id !== id));
+    } catch {
+      toast.error("Lỗi khi xóa kỷ niệm");
     }
   };
 
+  const openEditModal = (item: MemoryItem) => {
+    setEditingItem(item);
+    setEditCaption(item.caption || "");
+    setEditPrivacy(item.privacy);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingItem) return;
+    setSavingEdit(true);
+    try {
+      await travelMemoryApi.updateMemory(editingItem._id, {
+        caption: editCaption,
+        privacy: editPrivacy,
+      });
+      setMemories((prev) =>
+        prev.map((m) =>
+          m._id === editingItem._id ? { ...m, caption: editCaption, privacy: editPrivacy } : m
+        )
+      );
+      toast.success("Đã cập nhật kỷ niệm");
+      setEditingItem(null);
+    } catch {
+      toast.error("Lỗi khi cập nhật kỷ niệm");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleTogglePrivacy = async (item: MemoryItem) => {
+    const newPrivacy = item.privacy === "public" ? "private" : "public";
+    try {
+      await travelMemoryApi.updateMemory(item._id, { privacy: newPrivacy });
+      setMemories((prev) =>
+        prev.map((m) => (m._id === item._id ? { ...m, privacy: newPrivacy } : m))
+      );
+      toast.success(`Đã chuyển sang chế độ ${newPrivacy === "public" ? "Công khai" : "Riêng tư"}`);
+    } catch {
+      toast.error("Lỗi khi cập nhật trạng thái");
+    }
+  };
+
+  const filteredMemories = memories.filter((m) => {
+    if (filter === "all") return true;
+    return m.privacy === filter;
+  });
+
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div>
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
-          <h2 className="text-lg font-bold text-slate-800">Đánh giá của tôi</h2>
-          <p className="text-sm text-slate-500">Xem và quản lý các đánh giá tour của bạn.</p>
+        <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800">Kỷ niệm của tôi</h2>
+            <p className="text-sm text-slate-500">
+              Quản lý các kỷ niệm du lịch bạn đã lưu trên Hành trình.
+            </p>
+          </div>
+          <Link
+            href="/user/map"
+            className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 transition flex items-center gap-2 flex-shrink-0"
+          >
+            <Plus size={16} /> Lưu kỷ niệm mới
+          </Link>
+        </div>
+
+        {/* Filters */}
+        <div className="px-6 py-3 border-b border-slate-100 flex gap-2 overflow-x-auto">
+          {[
+            { id: "all", label: "Tất cả" },
+            { id: "public", label: "Công khai" },
+            { id: "private", label: "Riêng tư" },
+          ].map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setFilter(f.id as any)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+                filter === f.id ? "bg-orange-100 text-orange-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
 
         <div className="p-6">
           {loading ? (
             <div className="text-center py-10 text-slate-500">
               <div className="animate-spin h-8 w-8 border-2 border-orange-500 border-t-transparent flex rounded-full mx-auto mb-3"></div>
-              Đang tải đánh giá...
+              Đang tải kỷ niệm...
             </div>
-          ) : reviews.length === 0 ? (
+          ) : filteredMemories.length === 0 ? (
             <div className="text-center py-10">
-              <Star className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-medium">Bạn chưa có đánh giá nào.</p>
+              <MapPin className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 font-medium">Không tìm thấy kỷ niệm nào.</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {reviews.map((review) => (
-                <div key={review._id} className="p-4 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-bold text-slate-800">{review.tourId?.title || "Tour đã xóa"}</h3>
-                      <div className="flex items-center gap-1 my-1">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <Star
-                            key={s}
-                            size={14}
-                            className={s <= review.rating ? "fill-orange-400 text-orange-400" : "text-slate-200"}
-                          />
-                        ))}
-                      </div>
-                      <p className="text-sm text-slate-600 mt-2 italic">"{review.comment}"</p>
-                      <p className="text-[10px] text-slate-400 mt-2">
-                        Ngày đánh giá: {new Date(review.createdAt).toLocaleDateString("vi-VN")}
-                      </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredMemories.map((item) => (
+                <div
+                  key={item._id}
+                  className="group border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col bg-white"
+                >
+                  <div className="relative h-40 bg-slate-100">
+                    <img
+                      src={item.images?.[0] || "/hot1.jpg"}
+                      alt={item.provinceName}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2 right-2 flex gap-1">
+                      {item.privacy === "public" ? (
+                        <span className="bg-emerald-500/90 text-white text-[10px] uppercase font-bold px-2 py-1 rounded shadow-sm flex items-center gap-1">
+                          <Globe size={10} /> Công khai
+                        </span>
+                      ) : (
+                        <span className="bg-slate-800/90 text-white text-[10px] uppercase font-bold px-2 py-1 rounded shadow-sm flex items-center gap-1">
+                          <Lock size={10} /> Riêng tư
+                        </span>
+                      )}
                     </div>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => setEditingReview(review)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Sửa đánh giá"
+                  </div>
+
+                  <div className="p-4 flex-1 flex flex-col">
+                    <div className="flex gap-2 text-[11px] text-slate-400 mb-2 font-medium">
+                      <span className="flex items-center gap-1">
+                        <Calendar size={12} /> {new Date(item.visitedAt).toLocaleDateString("vi-VN")}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MessageSquare size={12} /> {item.commentsCount || 0}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MapPin size={12} /> {item.provinceName}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-slate-800 text-sm line-clamp-2 leading-snug mb-3">
+                      {item.caption || "(Không có cảm nhận)"}
+                    </h3>
+
+                    <div className="mt-auto pt-3 flex gap-2 border-t border-slate-100">
+                      <button
+                        onClick={() => openEditModal(item)}
+                        className="flex-1 flex justify-center items-center gap-1.5 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
                       >
-                        <Edit size={18} />
+                        <Edit size={14} /> Sửa
                       </button>
-                      <button 
-                        onClick={() => handleDeleteReview(review._id)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Xóa đánh giá"
+                      <button
+                        onClick={() => setDeleteTargetId(item._id)}
+                        title="Xóa kỷ niệm"
+                        className="px-2 flex justify-center items-center text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
                       >
-                        <Trash2 size={18} />
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
+                      <span className="text-[11px] font-medium text-slate-500">Chế độ hiển thị:</span>
+                      <button
+                        onClick={() => handleTogglePrivacy(item)}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold transition-all border ${
+                          item.privacy === "private"
+                            ? "bg-slate-50 text-slate-600 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200"
+                            : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-slate-50 hover:text-slate-600 hover:border-slate-200"
+                        }`}
+                      >
+                        {item.privacy === "private" ? (
+                          <>
+                            <Lock size={11} className="mr-0.5" /> Riêng tư{" "}
+                            <span className="opacity-40 mx-0.5">|</span>{" "}
+                            <span className="font-semibold">Đổi</span>
+                          </>
+                        ) : (
+                          <>
+                            <Globe size={11} className="mr-0.5" /> Công khai{" "}
+                            <span className="opacity-40 mx-0.5">|</span>{" "}
+                            <span className="font-semibold">Đổi</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -780,28 +937,100 @@ function ReviewsTab() {
         </div>
       </div>
 
-      {editingReview && (
-        <ReviewModal
-          tour={{ id: editingReview.tourId?._id, title: editingReview.tourId?.title }}
-          initialData={{ rating: editingReview.rating, comment: editingReview.comment }}
-          onClose={() => setEditingReview(null)}
-          onSuccess={() => {
-            setEditingReview(null);
-            fetchReviews();
-          }}
-        />
+      {/* Sửa kỷ niệm: chỉ cảm nhận + chế độ hiển thị */}
+      {editingItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => setEditingItem(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+          >
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="font-bold text-slate-800">Sửa kỷ niệm</h3>
+              <button
+                onClick={() => setEditingItem(null)}
+                className="p-1 rounded-full hover:bg-slate-100 text-slate-500"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Cảm nhận</label>
+                <textarea
+                  value={editCaption}
+                  onChange={(e) => setEditCaption(e.target.value)}
+                  maxLength={500}
+                  rows={3}
+                  placeholder="Vài dòng đáng nhớ về chuyến đi..."
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none resize-none transition"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Chế độ hiển thị</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditPrivacy("private")}
+                    className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-semibold transition ${
+                      editPrivacy === "private"
+                        ? "border-indigo-400 bg-indigo-50 text-indigo-700"
+                        : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                    }`}
+                  >
+                    <Lock size={15} /> Chỉ mình tôi
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditPrivacy("public")}
+                    className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-semibold transition ${
+                      editPrivacy === "public"
+                        ? "border-indigo-400 bg-indigo-50 text-indigo-700"
+                        : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                    }`}
+                  >
+                    <Globe size={15} /> Công khai
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 border-t border-slate-100">
+              <button
+                onClick={handleSaveEdit}
+                disabled={savingEdit}
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-500 text-white font-bold shadow-lg shadow-indigo-200 hover:brightness-105 disabled:opacity-50 transition"
+              >
+                {savingEdit ? "Đang lưu..." : "Lưu thay đổi"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
+
+      <ConfirmDialog
+        isOpen={!!deleteTargetId}
+        title="Xóa kỷ niệm"
+        message="Bạn có chắc chắn muốn xóa kỷ niệm này? Hành động này không thể hoàn tác."
+        confirmText="Xóa"
+        type="danger"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTargetId(null)}
+      />
     </div>
   );
 }
+
+import ReviewsTab from "@/components/profile/ReviewsTab";
 
 
 // --- MAIN PAGE ---
 function ProfileContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState<"info" | "password" | "posts" | "reviews" | "favorites">(
-    tabParam as "info" | "password" | "posts" | "reviews" | "favorites" || "info"
+  const [activeTab, setActiveTab] = useState<"info" | "password" | "posts" | "memories" | "reviews" | "favorites">(
+    tabParam as "info" | "password" | "posts" | "memories" | "reviews" | "favorites" || "info"
   );
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -809,6 +1038,7 @@ function ProfileContent() {
 
   const accessToken = useAuthStore((s) => s.token.accessToken);
   const setAuthUser = useAuthStore((s) => s.setUser);
+  const currentUserId = useAuthStore((s) => s.userId);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const fetchUser = async (showLoading = true) => {
@@ -906,23 +1136,24 @@ function ProfileContent() {
   const avatarSrc = user.avatarUrl || user.avatar || "/default-avatar.png";
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4">
-      <div className="mx-auto w-full max-w-4xl space-y-8">
-        {/* --- Header & Avatar --- */}
-        <div className="flex flex-col items-center gap-6 text-center md:flex-row md:items-start md:text-left">
-          <div className="relative group">
-            <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-white shadow-lg">
+    <div className="mx-auto w-full max-w-4xl space-y-6">
+      {/* --- Header & Avatar --- */}
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <div className="h-20 bg-blue-950 sm:h-24" />
+        <div className="flex flex-col items-center gap-4 px-6 pb-6 text-center sm:flex-row sm:items-end sm:px-8 sm:text-left">
+          <div className="relative -mt-12 flex-shrink-0 sm:-mt-14">
+            <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-white bg-slate-100 sm:h-28 sm:w-28">
               <img
                 src={avatarSrc}
                 alt={user.fullName}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                className="h-full w-full object-cover"
               />
             </div>
             {/* Nút camera tròn */}
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadingAvatar}
-              className="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full bg-orange-600 text-white shadow-md ring-4 ring-slate-50 transition-all hover:bg-orange-500"
+              className="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full bg-orange-600 text-white ring-4 ring-white"
             >
               {uploadingAvatar ? (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -939,51 +1170,80 @@ function ProfileContent() {
             />
           </div>
 
-          <div className="pt-2">
-            <h1 className="text-3xl font-extrabold text-blue-950">
+          <div className="flex-1 pt-1 sm:pb-1">
+            <h1 className="text-xl font-extrabold text-slate-800 sm:text-2xl">
               {user.fullName}
             </h1>
-            <p className="text-slate-500 mt-1">{user.email}</p>
-            <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              Tài khoản đang hoạt động
-            </div>
+            <p className="text-slate-500 text-sm mt-0.5">{user.email}</p>
+          </div>
+
+          <div className="flex items-center gap-2 pb-1">
+            <span className="inline-flex items-center gap-1 rounded-full border border-orange-100 bg-orange-50 px-3 py-1 text-xs font-bold text-orange-600">
+              {(user.points ?? 0).toLocaleString("vi-VN")} điểm
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-600">
+              Hạng {user.memberStatus || "Thành viên"}
+            </span>
+            {currentUserId && (
+              <Link
+                href={`/user/traveler/${currentUserId}`}
+                className="inline-flex items-center gap-1 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600 hover:bg-indigo-100 transition"
+              >
+                <Eye size={12} /> Xem trang công khai của tôi
+              </Link>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* --- Navigation Tabs --- */}
-        <div className="flex w-full border-b border-slate-200 overflow-x-auto scrollbar-hide">
-          <TabButton
-            active={activeTab === "info"}
-            onClick={() => setActiveTab("info")}
-            icon={User}
-            label="Thông tin cá nhân"
-          />
-          <TabButton
-            active={activeTab === "posts"}
-            onClick={() => setActiveTab("posts")}
-            icon={FileText}
-            label="Bài viết của tôi"
-          />
-          <TabButton
-            active={activeTab === "password"}
-            onClick={() => setActiveTab("password")}
-            icon={Lock}
-            label="Mật khẩu & Bảo mật"
-          />
-        </div>
+      {/* --- Navigation Tabs --- */}
+      <div className="flex w-full gap-6 overflow-x-auto border-b border-slate-200 scrollbar-hide">
+        <TabButton
+          active={activeTab === "info"}
+          onClick={() => setActiveTab("info")}
+          icon={User}
+          label="Thông tin cá nhân"
+        />
+        <TabButton
+          active={activeTab === "posts"}
+          onClick={() => setActiveTab("posts")}
+          icon={FileText}
+          label="Bài viết của tôi"
+        />
+        <TabButton
+          active={activeTab === "memories"}
+          onClick={() => setActiveTab("memories")}
+          icon={Camera}
+          label="Kỷ niệm của tôi"
+        />
+        <TabButton
+          active={activeTab === "password"}
+          onClick={() => setActiveTab("password")}
+          icon={Lock}
+          label="Mật khẩu & Bảo mật"
+        />
+        <TabButton
+          active={activeTab === "reviews"}
+          onClick={() => setActiveTab("reviews")}
+          icon={Star}
+          label="Đánh giá của tôi"
+        />
+        <TabButton
+          active={activeTab === "favorites"}
+          onClick={() => setActiveTab("favorites")}
+          icon={Heart}
+          label="Tour yêu thích"
+        />
+      </div>
 
-        {/* --- Tab Content --- */}
-        <div className="min-h-[400px]">
-          {activeTab === "info" && <InfoTab user={user} token={accessToken} onSuccess={() => fetchUser(false)} />}
-          {activeTab === "posts" && <MyPostsTab />}
-          {activeTab === "reviews" && <ReviewsTab />}
-          {activeTab === "favorites" && <FavoritesTab />}
-          {activeTab === "password" && <PasswordTab user={user} />}
-        </div>
+      {/* --- Tab Content --- */}
+      <div className="min-h-[400px]">
+        {activeTab === "info" && <InfoTab user={user} token={accessToken} onSuccess={() => fetchUser(false)} />}
+        {activeTab === "posts" && <MyPostsTab />}
+        {activeTab === "memories" && <MyMemoriesTab />}
+        {activeTab === "reviews" && <ReviewsTab />}
+        {activeTab === "favorites" && <FavoritesTab />}
+        {activeTab === "password" && <PasswordTab user={user} />}
       </div>
     </div>
   );
