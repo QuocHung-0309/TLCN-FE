@@ -47,7 +47,9 @@ export default function AdminDashboard() {
     actionRequiredBookings = [],
     upcomingDepartures = [],
     recentReviews = [],
-    bookingStatusStats = {}
+    bookingStatusStats = {},
+    statusDistribution = {},
+    popularTours = []
   } = stats || {};
 
   const pendingCountTotal = bookingStatusStats?.pending?.count || 0;
