@@ -12,7 +12,7 @@ import {
 } from "@/utils/tracking";
 import CardHot from "./cards/CardHot";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
 interface Departure {
   _id: string;
@@ -87,14 +87,14 @@ export default function TourRecommendations({
         let url = "";
         if (type === "homepage") {
           const userId = user?.id || "";
-          url = `${API_BASE}/api/recommendations/homepage?limit=${limit}${userId ? `&userId=${userId}` : ""}`;
+          url = `${API_BASE}/recommendations/homepage?limit=${limit}${userId ? `&userId=${userId}` : ""}`;
         }
         if (type === "similar" && tourId) {
-          url = `${API_BASE}/api/recommendations/similar/${tourId}?limit=${limit}`;
+          url = `${API_BASE}/recommendations/similar/${tourId}?limit=${limit}`;
         }
         if (type === "post-booking" && tourId) {
           const userId = user?.id || "";
-          url = `${API_BASE}/api/recommendations/post-booking/${tourId}?limit=${limit}${userId ? `&userId=${userId}` : ""}`;
+          url = `${API_BASE}/recommendations/post-booking/${tourId}?limit=${limit}${userId ? `&userId=${userId}` : ""}`;
         }
         if (!url) { setLoading(false); return; }
 

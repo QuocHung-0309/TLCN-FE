@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
 async function fetchRecommended(): Promise<any[]> {
-  const res = await fetch(`${API_BASE}/api/recommendations/homepage`, {
+  const res = await fetch(`${API_BASE}/recommendations/homepage`, {
     credentials: "include", // gửi cookie auth
   });
   if (!res.ok) return [];

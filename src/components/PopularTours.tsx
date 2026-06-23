@@ -6,7 +6,7 @@ import { ChevronRight } from "lucide-react";
 import CardHot from "./cards/CardHot";
 import SectionHeader from "./ui/SectionHeader";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
 interface Departure {
   _id: string;
@@ -50,7 +50,7 @@ export default function PopularTours({ limit = 6, showViewAll = true }: Props) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/tours/popular?limit=${limit}`)
+    fetch(`${API_BASE}/tours/popular?limit=${limit}`)
       .then((r) => r.json())
       .then((json) => setTours(json.data ?? []))
       .catch(() => setTours([]))

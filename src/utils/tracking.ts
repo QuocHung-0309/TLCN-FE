@@ -7,8 +7,8 @@
  * - A/B testing (DeepFM vs Hybrid)
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-const TRACKING_ENDPOINT = `${API_BASE}/api/recommendations/track`;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const TRACKING_ENDPOINT = `${API_BASE}/recommendations/track`;
 
 // Session ID for grouping interactions
 let sessionId: string | null = null;

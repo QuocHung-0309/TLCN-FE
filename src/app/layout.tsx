@@ -1,30 +1,34 @@
 // import DisableInspect from '@/components/DisableInspect';
-import DisableCopyPaste from '@/components/DisableCopyPaste';
-import '@/styles/globals.css';
-import { Inter } from 'next/font/google';
+import DisableCopyPaste from "@/components/DisableCopyPaste";
+import "@/styles/globals.css";
+import { Inter } from "next/font/google";
 
-import {Providers} from '../lib/providers';
-import { Toaster } from 'react-hot-toast';
+import { Providers } from "../lib/providers";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
-  variable: '--font-inter',
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-inter",
 });
 
 export const metadata = {
-  title: 'AHH Travel - Khám phá Việt Nam cùng chúng tôi',
-  description: 'Khám phá – Check-in – Viết blog tại TP.HCM',
+  title: "AHH Travel - Khám phá Việt Nam cùng chúng tôi",
+  description: "AHH Travel - Khám phá Việt Nam cùng chúng tôi",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="vi" className={inter.variable}>
       <body className="font-sans bg-[var(--background)] text-[var(--foreground)]">
         <Providers>{children}</Providers>
         <Toaster position="top-center" />
         {/* <DisableInspect /> */}
-        <DisableCopyPaste/>
+        <DisableCopyPaste />
       </body>
     </html>
   );
