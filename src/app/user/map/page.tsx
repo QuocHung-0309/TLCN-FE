@@ -25,8 +25,6 @@ import {
 import VietnamJourneyMap from "@/components/VietnamJourneyMap";
 import JourneyStats from "./JourneyStats";
 import JourneyTimeline from "./JourneyTimeline";
-import Collections from "./Collections";
-import CheckinAccordion from "./CheckinAccordion";
 import Achievements from "./Achievements";
 import useUser from "#/src/hooks/useUser";
 
@@ -123,7 +121,7 @@ export default function UserHomeMapPage() {
   const [tours, setTours] = useState<any[]>([]);
   const [tourLoading, setTourLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
-    "map" | "timeline" | "achievements" | "collections" | "newsfeed"
+    "map" | "timeline" | "achievements" | "newsfeed"
   >("map");
   const [highlightPostId, setHighlightPostId] = useState<string | null>(null);
 
@@ -140,7 +138,7 @@ export default function UserHomeMapPage() {
       return;
     }
 
-    if (tab === "timeline" || tab === "achievements" || tab === "collections" || tab === "newsfeed") {
+    if (tab === "timeline" || tab === "achievements" || tab === "newsfeed") {
       setActiveTab(tab);
     }
   }, []);
@@ -529,7 +527,6 @@ export default function UserHomeMapPage() {
             { key: "map", label: "Bản đồ", icon: MapIcon },
             { key: "timeline", label: "Dòng thời gian", icon: Clock },
             { key: "achievements", label: "Thành tựu", icon: Trophy },
-            { key: "collections", label: "Bộ sưu tập", icon: Sparkles },
             { key: "newsfeed", label: "Bảng tin", icon: Activity },
           ].map((tab) => {
             const active = activeTab === tab.key;
@@ -586,17 +583,6 @@ export default function UserHomeMapPage() {
             </motion.div>
           )}
 
-          {activeTab === "collections" && (
-            <motion.div
-              key="collections"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-            >
-              <Collections />
-            </motion.div>
-          )}
-
           {activeTab === "newsfeed" && (
             <motion.div
               key="newsfeed"
@@ -608,17 +594,6 @@ export default function UserHomeMapPage() {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* checkin list */}
-        {activeTab === "map" && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <CheckinAccordion />
-          </motion.div>
-        )}
 
         {/* suggested tours */}
         <section className="border-t border-slate-200 pt-8">

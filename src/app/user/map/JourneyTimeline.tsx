@@ -28,6 +28,42 @@ import { toast } from "react-hot-toast";
 import { formatTimeAgo } from "@/lib/utils";
 import { getAchievementById } from "@/lib/achievements";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import MemoryModal from "@/components/MemoryModal";
+
+// Thanh "đăng kỷ niệm mới" ở đầu Bảng tin, để người dùng không cần qua tab
+// Bản đồ rồi bấm đúng 1 tỉnh mới thấy nút tạo bài.
+function ComposeBar({
+  user,
+  onClick,
+}: {
+  user: { fullName?: string; avatar?: string } | null;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex items-center gap-3 text-left hover:border-indigo-200 hover:shadow-md transition-all"
+    >
+      {user?.avatar ? (
+        <img
+          src={user.avatar}
+          alt={user.fullName || "Bạn"}
+          className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+        />
+      ) : (
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-blue-500 flex items-center justify-center text-white font-bold flex-shrink-0">
+          {(user?.fullName || "U").charAt(0).toUpperCase()}
+        </div>
+      )}
+      <span className="flex-1 px-4 py-2.5 rounded-full bg-slate-100 text-sm text-slate-500">
+        Chia sẻ kỷ niệm du lịch của bạn...
+      </span>
+      <span className="flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition">
+        <Camera size={16} /> Đăng kỷ niệm
+      </span>
+    </button>
+  );
+}
 
 interface TimelineItem {
   _id: string;
@@ -79,6 +115,10 @@ export default function JourneyTimeline({
   const { user, isAuthenticated } = useUser();
   const [timeline, setTimeline] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const PAGE_SIZE = 10;
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [commentsMap, setCommentsMap] = useState<Record<string, CommentItem[]>>({});
@@ -99,6 +139,7 @@ export default function JourneyTimeline({
   const [savingEdit, setSavingEdit] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [isComposeOpen, setIsComposeOpen] = useState(false);
 
   const openLightbox = (images: string[], index: number) => setLightbox({ images, index });
   const closeLightbox = () => setLightbox(null);
@@ -120,31 +161,45 @@ export default function JourneyTimeline({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [lightbox]);
 
-  useEffect(() => {
-    const fetchTimeline = async () => {
-      if (!isAuthenticated) return;
-      if (mode === "user" && !targetUserId) return;
-      setLoading(true);
-      try {
-        if (mode === "me") {
-          const res = await travelMemoryApi.getMyMemories(filterProvince, 1, 10);
-          setTimeline(res.data || []);
-        } else if (mode === "user" && targetUserId) {
-          const res = await travelMemoryApi.getUserPublicMemories(targetUserId, 1, 10);
-          setTimeline(res.data || []);
-        } else {
-          const res = await travelMemoryApi.getPublicMemories(filterProvince, 1, 10);
-          setTimeline(res.data || []);
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchTimeline = async (pageToLoad = 1) => {
+    if (!isAuthenticated) return;
+    if (mode === "user" && !targetUserId) return;
 
-    fetchTimeline();
+    if (pageToLoad === 1) setLoading(true);
+    else setLoadingMore(true);
+
+    try {
+      let res;
+      if (mode === "me") {
+        res = await travelMemoryApi.getMyMemories(filterProvince, pageToLoad, PAGE_SIZE);
+      } else if (mode === "user" && targetUserId) {
+        res = await travelMemoryApi.getUserPublicMemories(targetUserId, pageToLoad, PAGE_SIZE);
+      } else {
+        res = await travelMemoryApi.getPublicMemories(filterProvince, pageToLoad, PAGE_SIZE);
+      }
+
+      setTimeline((prev) => (pageToLoad === 1 ? res.data || [] : [...prev, ...(res.data || [])]));
+      setPage(pageToLoad);
+      setHasMore(pageToLoad < (res.pagination?.totalPages || 1));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTimeline(1);
   }, [isAuthenticated, mode, filterProvince, targetUserId]);
+
+  const handleLoadMore = () => fetchTimeline(page + 1);
+
+  const handleMemoryCreated = () => {
+    setIsComposeOpen(false);
+    toast.success("Đã lưu kỷ niệm!");
+    fetchTimeline();
+  };
 
   // Mở từ link chia sẻ: nếu bài chưa nằm trong trang đầu của feed, tải
   // riêng bài đó bằng id rồi gắn lên đầu danh sách để có thể cuộn tới.
@@ -398,20 +453,33 @@ export default function JourneyTimeline({
 
   if (timeline.length === 0) {
     return (
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 text-center">
-        <div className="w-20 h-20 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-4">
-          <MapPin className="w-10 h-10 text-slate-400" />
+      <div className="max-w-3xl mx-auto space-y-6">
+        {mode === "community" && (
+          <ComposeBar user={user} onClick={() => setIsComposeOpen(true)} />
+        )}
+        <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 text-center">
+          <div className="w-20 h-20 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-4">
+            <MapPin className="w-10 h-10 text-slate-400" />
+          </div>
+          <h3 className="text-lg font-bold text-slate-800 mb-2">
+            {mode === "me" ? "Chưa có kỷ niệm nào" : "Chưa có bài đăng nào"}
+          </h3>
+          <p className="text-slate-500 text-sm">
+            {mode === "me"
+              ? "Hãy bắt đầu chinh phục Việt Nam bằng cách lưu lại kỷ niệm tại địa điểm đầu tiên!"
+              : mode === "user"
+                ? "Người này chưa chia sẻ bài viết công khai nào."
+                : "Hãy là người đầu tiên chia sẻ kỷ niệm tại đây!"}
+          </p>
         </div>
-        <h3 className="text-lg font-bold text-slate-800 mb-2">
-          {mode === "me" ? "Chưa có kỷ niệm nào" : "Chưa có bài đăng nào"}
-        </h3>
-        <p className="text-slate-500 text-sm">
-          {mode === "me"
-            ? "Hãy bắt đầu chinh phục Việt Nam bằng cách lưu lại kỷ niệm tại địa điểm đầu tiên!"
-            : mode === "user"
-              ? "Người này chưa chia sẻ bài viết công khai nào."
-              : "Hãy là người đầu tiên chia sẻ kỷ niệm tại đây!"}
-        </p>
+        {mode === "community" && (
+          <MemoryModal
+            isOpen={isComposeOpen}
+            onClose={() => setIsComposeOpen(false)}
+            onSuccess={handleMemoryCreated}
+            defaultPrivacy="public"
+          />
+        )}
       </div>
     );
   }
@@ -421,6 +489,9 @@ export default function JourneyTimeline({
     return (
       <>
       <div className="max-w-3xl mx-auto space-y-6">
+        {mode === "community" && (
+          <ComposeBar user={user} onClick={() => setIsComposeOpen(true)} />
+        )}
         {timeline.map((item, index) => {
           const isExpanded = expandedId === item._id;
           const comments = commentsMap[item._id] || [];
@@ -818,6 +889,18 @@ export default function JourneyTimeline({
             </motion.article>
           );
         })}
+
+        {hasMore && (
+          <div className="flex justify-center pt-2">
+            <button
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="px-6 py-2.5 rounded-full bg-white border border-slate-200 text-slate-600 text-sm font-bold shadow-sm hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-50 transition"
+            >
+              {loadingMore ? "Đang tải..." : "Tải thêm bài viết"}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Lightbox: xem ảnh phóng to kiểu Facebook */}
@@ -977,6 +1060,15 @@ export default function JourneyTimeline({
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeletingId(null)}
       />
+
+      {mode === "community" && (
+        <MemoryModal
+          isOpen={isComposeOpen}
+          onClose={() => setIsComposeOpen(false)}
+          onSuccess={handleMemoryCreated}
+          defaultPrivacy="public"
+        />
+      )}
       </>
     );
   }
@@ -986,11 +1078,6 @@ export default function JourneyTimeline({
     <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg md:text-xl font-bold text-slate-800">Hành trình của tôi</h3>
-        {!filterProvince && (
-          <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1">
-            Xem tất cả <ChevronRight size={16} />
-          </button>
-        )}
       </div>
 
       <div className="relative mt-4">
@@ -1101,6 +1188,18 @@ export default function JourneyTimeline({
           })}
         </div>
       </div>
+
+      {hasMore && (
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+            className="px-6 py-2.5 rounded-full bg-slate-50 border border-slate-200 text-slate-600 text-sm font-bold hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-50 transition"
+          >
+            {loadingMore ? "Đang tải..." : "Tải thêm"}
+          </button>
+        </div>
+      )}
     </section>
   );
 }

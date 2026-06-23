@@ -4,12 +4,8 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   MapPin,
-  Trophy,
-  Flame,
   Target,
   Star,
-  TrendingUp,
-  Award,
   Compass,
 } from "lucide-react";
 import { checkinApi } from "@/lib/checkin/checkinApi";
@@ -132,7 +128,6 @@ export default function JourneyStats() {
     manualProvinces: 0,
     tourProvinces: 0,
     totalVouchers: 0,
-    streak: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -140,8 +135,11 @@ export default function JourneyStats() {
     const fetchStats = async () => {
       if (!isAuthenticated) return;
       try {
-        const res = await checkinApi.getFullJourney();
-        const progress = res.progress || [];
+        const [journeyRes, vouchersRes] = await Promise.all([
+          checkinApi.getFullJourney(),
+          checkinApi.getMyVouchers(),
+        ]);
+        const progress = journeyRes.progress || [];
         const tourProvinces = new Set<string>();
         const manualProvinces = new Set<string>();
 
@@ -155,8 +153,8 @@ export default function JourneyStats() {
             }
           });
         } else {
-          (res.fromBookings || []).forEach((p) => tourProvinces.add(p));
-          (res.fromManualCheckins || []).forEach((p) => manualProvinces.add(p));
+          (journeyRes.fromBookings || []).forEach((p) => tourProvinces.add(p));
+          (journeyRes.fromManualCheckins || []).forEach((p) => manualProvinces.add(p));
         }
 
         const totalProvinces = progress.length
@@ -167,8 +165,7 @@ export default function JourneyStats() {
           totalProvinces,
           manualProvinces: manualProvinces.size,
           tourProvinces: tourProvinces.size,
-          totalVouchers: tourProvinces.size,
-          streak: Math.floor(Math.random() * 7) + 1, // Demo streak
+          totalVouchers: (vouchersRes || []).length,
         });
       } catch (error) {
         console.error("Error fetching journey stats:", error);
@@ -198,13 +195,13 @@ export default function JourneyStats() {
   return (
     <div className="space-y-6">
       {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Progress Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="col-span-1 md:col-span-2 lg:col-span-1 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg shadow-emerald-500/20"
+          className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg shadow-emerald-500/20"
         >
           <div className="flex items-center justify-between">
             <div>
@@ -280,33 +277,10 @@ export default function JourneyStats() {
             </div>
           </div>
         </motion.div>
-
-        {/* Streak Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100"
-        >
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-slate-500 text-sm font-medium mb-1">Chuỗi hoạt động</p>
-              <h3 className="text-3xl font-black text-slate-800">
-                <AnimatedCounter value={stats.streak} /> ngày
-              </h3>
-              <p className="text-orange-600 text-xs mt-1 font-medium">
-                🔥 Đang giữ streak!
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-              <Flame className="w-6 h-6 text-orange-500" />
-            </div>
-          </div>
-        </motion.div>
       </div>
 
       {/* Breakdown Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -354,23 +328,6 @@ export default function JourneyStats() {
             <div>
               <p className="text-xs text-slate-500">Còn lại</p>
               <p className="text-xl font-bold text-emerald-700">{Math.max(34 - stats.totalProvinces, 0)}</p>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.8 }}
-          className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-500">Xếp hạng</p>
-              <p className="text-xl font-bold text-amber-700">Top 10%</p>
             </div>
           </div>
         </motion.div>
