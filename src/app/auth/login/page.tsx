@@ -4,7 +4,17 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, Eye, EyeOff, LogIn, CheckCircle, AlertCircle, Facebook, Apple } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  LogIn,
+  CheckCircle,
+  AlertCircle,
+  Facebook,
+  Apple,
+} from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { useSignin } from "#/hooks/auth-hook/useAuth";
 import { useAuthStore } from "#/stores/auth";
@@ -49,7 +59,8 @@ function LoginPageContent() {
   const { mutate: signinMutate, isPending } = useSignin();
 
   const startOAuth = (provider: "facebook" | "google" | "apple") => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+    const API_URL =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
     window.location.href = `${API_URL}/auth/${provider}`;
   };
 
@@ -57,10 +68,17 @@ function LoginPageContent() {
     e.preventDefault();
     setApiError("");
 
-    const input = { identifier: email, password: password, rememberMe: rememberMe };
+    const input = {
+      identifier: email,
+      password: password,
+      rememberMe: rememberMe,
+    };
     signinMutate(input, {
       onSuccess: (data: any) => {
-        setToken({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+        setToken({
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+        });
         setUserToken(data.accessToken);
         setRefreshToken(data.refreshToken);
 
@@ -78,7 +96,7 @@ function LoginPageContent() {
                 points: data.user.points,
                 memberStatus: data.user.memberStatus,
               }
-            : null
+            : null,
         );
         setUserId(data.user?.id ?? null);
 
@@ -174,7 +192,11 @@ function LoginPageContent() {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
             >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              {showPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
             </button>
           </div>
         </div>
@@ -218,7 +240,10 @@ function LoginPageContent() {
       {/* Register Link */}
       <p className="text-center text-slate-600">
         Chưa có tài khoản?{" "}
-        <Link href="/auth/register" className="text-orange-600 hover:text-orange-700 font-semibold">
+        <Link
+          href="/auth/register"
+          className="text-orange-600 hover:text-orange-700 font-semibold"
+        >
           Đăng ký ngay
         </Link>
       </p>
@@ -229,19 +254,21 @@ function LoginPageContent() {
           <div className="w-full border-t border-slate-200" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-4 bg-white text-slate-500">Hoặc tiếp tục với</span>
+          <span className="px-4 text-slate-500">Hoặc tiếp tục với</span>
         </div>
       </div>
 
       {/* Social Login */}
       <div className="flex justify-center">
-        <button 
-          type="button" 
-          onClick={() => startOAuth("google")} 
+        <button
+          type="button"
+          onClick={() => startOAuth("google")}
           className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
         >
           <FcGoogle className="text-2xl" />
-          <span className="text-slate-700 font-medium">Đăng nhập với Google</span>
+          <span className="text-slate-700 font-medium">
+            Đăng nhập với Google
+          </span>
         </button>
       </div>
     </div>
