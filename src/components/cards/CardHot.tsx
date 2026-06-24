@@ -156,75 +156,75 @@ export default function CardHot(props: CardHotProps) {
       </div>
 
       {/* body */}
-      <div className="flex flex-1 flex-col gap-3 px-5 pb-5 pt-4">
+      <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
         <h3 className="line-clamp-2 text-[16px] sm:text-[17px] font-semibold leading-snug text-slate-900">
           {title}
         </h3>
 
         {subtitle && (
-          <p className="line-clamp-1 text-[13px] text-slate-500">{subtitle}</p>
+          <p className="mt-2 line-clamp-1 text-[13px] text-slate-500">{subtitle}</p>
         )}
 
         {/* tour info */}
-        {(durationText || destinationTxt || scheduleText || seatsText || (props.upcomingDepartures && props.upcomingDepartures.length > 0)) && (
-          <ul className="mt-1.5 space-y-1.5 text-[13px] sm:text-[14px] leading-snug text-slate-700">
-            {durationText && (
-              <li className="flex items-start gap-2">
-                <Clock3 className="mt-[2px] h-4 w-4 text-orange-500" />
-                <span>{durationText}</span>
-              </li>
-            )}
-            {destinationTxt && (
-              <li className="flex items-start gap-2">
-                <Plane className="mt-[2px] h-4 w-4 text-orange-500" />
-                <span>{destinationTxt}</span>
-              </li>
-            )}
-            
-            {/* Hiển thị các ngày khởi hành thay vì "Còn X chỗ" */}
-            {props.upcomingDepartures && props.upcomingDepartures.length > 0 ? (
-              <li className="flex flex-col gap-1.5 pt-1">
-                <div className="flex items-start gap-2">
-                   <CalendarDays className="mt-[2px] h-4 w-4 text-orange-500" />
-                   <span className="font-semibold text-slate-800">Lịch khởi hành:</span>
-                </div>
-                <div className="flex flex-wrap gap-2 pl-6">
-                  {props.upcomingDepartures.slice(0, 3).map((dep) => (
-                    <span 
-                      key={dep._id} 
-                      className="px-2 py-0.5 rounded-md bg-orange-50 border border-orange-100 text-[11px] font-medium text-orange-700"
-                    >
-                      {new Date(dep.startDate).toLocaleDateString("vi-VN")}
-                    </span>
-                  ))}
-                  {props.upcomingDepartures.length > 3 && (
-                    <span className="text-[11px] text-slate-400 self-center">
-                      +{props.upcomingDepartures.length - 3} ngày khác
-                    </span>
-                  )}
-                </div>
-              </li>
-            ) : (
-                <>
-                  {scheduleText && (
-                    <li className="flex items-start gap-2">
-                      <CalendarDays className="mt-[2px] h-4 w-4 text-orange-500" />
-                      <span>{scheduleText}</span>
-                    </li>
-                  )}
-                  {seatsText != null && seatsText !== "" && (
-                    <li className="flex items-start gap-2">
-                      <Users2 className="mt-[2px] h-4 w-4 text-orange-500" />
-                      <span>Còn {seatsText} chỗ</span>
-                    </li>
-                  )}
-                </>
-            )}
-          </ul>
-        )}
+        <ul className="mt-3 flex-1 space-y-2 text-[13px] sm:text-[14px] leading-snug text-slate-700">
+          {durationText && (
+            <li className="flex items-center gap-2">
+              <Clock3 className="h-4 w-4 shrink-0 text-orange-500" />
+              <span>{durationText}</span>
+            </li>
+          )}
+          {destinationTxt && (
+            <li className="flex items-center gap-2">
+              <Plane className="h-4 w-4 shrink-0 text-orange-500" />
+              <span className="line-clamp-1">{destinationTxt}</span>
+            </li>
+          )}
 
-        {/* footer */}
-        <div className="mt-3 flex items-center justify-between gap-3">
+          {/* Lịch khởi hành */}
+          {props.upcomingDepartures && props.upcomingDepartures.length > 0 ? (
+            <li className="flex flex-col gap-1.5 pt-0.5">
+              <div className="flex items-center gap-2">
+                <CalendarDays className="h-4 w-4 shrink-0 text-orange-500" />
+                <span className="font-semibold text-slate-800">Lịch khởi hành:</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5 pl-6">
+                {props.upcomingDepartures.slice(0, 3).map((dep) => (
+                  <span
+                    key={dep._id}
+                    className="rounded-md border border-orange-100 bg-orange-50 px-2 py-0.5 text-[11px] font-medium text-orange-700"
+                  >
+                    {new Date(dep.startDate).toLocaleDateString("vi-VN")}
+                  </span>
+                ))}
+                {props.upcomingDepartures.length > 3 && (
+                  <span className="self-center text-[11px] text-slate-400">
+                    +{props.upcomingDepartures.length - 3} ngày khác
+                  </span>
+                )}
+              </div>
+            </li>
+          ) : scheduleText ? (
+            <li className="flex items-center gap-2">
+              <CalendarDays className="h-4 w-4 shrink-0 text-orange-500" />
+              <span className="line-clamp-1">{scheduleText}</span>
+            </li>
+          ) : (
+            <li className="flex items-center gap-2 text-slate-400">
+              <CalendarDays className="h-4 w-4 shrink-0" />
+              <span>Liên hệ xem lịch khởi hành</span>
+            </li>
+          )}
+
+          {seatsText != null && seatsText !== "" && !props.upcomingDepartures?.length && (
+            <li className="flex items-center gap-2">
+              <Users2 className="h-4 w-4 shrink-0 text-orange-500" />
+              <span>Còn {seatsText} chỗ</span>
+            </li>
+          )}
+        </ul>
+
+        {/* footer — mt-auto ghim xuống đáy bất kể nội dung trên bao nhiêu */}
+        <div className="mt-auto pt-4 flex items-center justify-between gap-3">
           <div className="leading-tight">
             {hasSale && (
               <div className="text-[12px] text-slate-400 line-through">
