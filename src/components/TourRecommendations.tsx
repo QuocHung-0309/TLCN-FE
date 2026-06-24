@@ -151,7 +151,7 @@ export default function TourRecommendations({
     );
     if (bare) return skeleton;
     return (
-      <section className="px-4 pb-14 pt-10">
+      <section className="px-4 pb-10 sm:pb-14 pt-8 sm:pt-10">
         <div className="mx-auto w-full max-w-7xl">{skeleton}</div>
       </section>
     );

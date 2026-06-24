@@ -87,7 +87,7 @@ const HotDestinations = () => {
   );
 
   return (
-    <section className="py-14 sm:py-16 px-4">
+    <section className="py-10 sm:py-14 lg:py-16 px-4">
       <div className="max-w-7xl mx-auto">
         <SectionHeader
           title="Tour được yêu thích nhất"

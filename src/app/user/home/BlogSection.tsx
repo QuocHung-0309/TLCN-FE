@@ -87,7 +87,7 @@ export default function BlogSection() {
   if (isError || (featured.length === 0 && posts.length === 0)) return null;
 
   return (
-    <section className="py-14 sm:py-16 px-4">
+    <section className="py-10 sm:py-14 lg:py-16 px-4">
       <div className="mx-auto w-full max-w-7xl">
         <SectionHeader
           title="Cẩm nang du lịch"

@@ -161,14 +161,14 @@ export default function VoucherEventsSection() {
   if (!loading && vouchers.length === 0) return null;
 
   return (
-    <section className="px-4 py-14 sm:py-16">
+    <section className="px-4 py-10 sm:py-14 lg:py-16">
       <div className="mx-auto w-full max-w-7xl">
         <SectionHeader
           title="Voucher du lịch"
           subtitle="Lưu mã ưu đãi và dùng ngay khi đặt tour phù hợp"
         />
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {loading
             ? Array.from({ length: 3 }).map((_, index) => (
                 <SkeletonCard key={index} />

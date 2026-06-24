@@ -19,7 +19,7 @@ export default function UserHomePage() {
     <div className="relative overflow-hidden">
       <ScrollProgress />
 
-      {/* Ambient blobs — ít và tinh tế hơn */}
+      {/* Ambient blobs */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div
           className="absolute w-[600px] h-[600px] rounded-full bg-blue-300/20 blur-[120px]"
@@ -31,10 +31,14 @@ export default function UserHomePage() {
         />
       </div>
 
-      {/* Hero + SearchBox floating */}
-      <FadeInWhenVisible>
-        <HomeBanner />
-      </FadeInWhenVisible>
+      {/* Banner — trên sm+ có padding ngang để corner radius thấy rõ */}
+      <div className="sm:px-4 lg:px-6">
+        <FadeInWhenVisible>
+          <HomeBanner />
+        </FadeInWhenVisible>
+      </div>
+
+      {/* SearchBox — overlap trên sm+, inline trên mobile */}
       <FadeInWhenVisible delay={0.15}>
         <SearchBox />
       </FadeInWhenVisible>

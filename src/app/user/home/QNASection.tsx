@@ -109,7 +109,7 @@ function FaqItem({ item }: { item: any }) {
 
 export default function QNASection() {
   return (
-    <section className="w-full py-14 sm:py-16 lg:py-20 bg-white">
+    <section className="w-full py-10 sm:py-14 lg:py-20 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* header */}
         <div className="mb-8 flex flex-col items-center text-center gap-4">
