@@ -1,4 +1,7 @@
-import React, { useMemo, useState } from "react";
+"use client";
+
+import React, { useMemo, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FaCalendarAlt,
@@ -43,6 +46,9 @@ export default function MemoryModal({
   const [isLoading, setIsLoading] = useState(false);
   const [imageUrlInput, setImageUrlInput] = useState("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   const effectiveProvince = provinceName || selectedProvince;
   const provinceOptions = useMemo(
@@ -192,7 +198,9 @@ export default function MemoryModal({
     }
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/55 p-4 backdrop-blur-sm sm:p-6">
@@ -528,6 +536,7 @@ export default function MemoryModal({
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
