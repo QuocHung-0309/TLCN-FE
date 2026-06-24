@@ -14,7 +14,7 @@ import {
 
 export default function Footer() {
   return (
-    <footer className="bg-blue-900 text-blue-200 text-sm font-sans">
+    <footer className="bg-gradient-to-r from-blue-950 via-blue-900 to-blue-950 p-6 text-blue-200 text-sm font-sans">
       {/* Phần nội dung chính */}
       <div className="w-full max-w-7xl mx-auto px-4 py-12 lg:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">

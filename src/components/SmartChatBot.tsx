@@ -129,6 +129,7 @@ export default function SmartChatBot() {
   const [supportId, setSupportId] = useState<string | null>(null);
   const [humanMessages, setHumanMessages] = useState<ChatMessage[]>([]);
   const [humanSending, setHumanSending] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
 
   // Guest form (for human escalation if not logged in)
@@ -142,7 +143,7 @@ export default function SmartChatBot() {
   // ── Scroll to bottom ────────────────────────────────────────────────────────
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [displayMessages, humanMessages]);
+  }, [displayMessages, humanMessages, mode]);
 
   // ── Welcome message when opening ────────────────────────────────────────────
   useEffect(() => {
@@ -282,10 +283,13 @@ export default function SmartChatBot() {
 
   // ── Manual escalate to human ─────────────────────────────────────────────────
   const handleEscalateManual = async () => {
+    if (isConnecting) return;
     if (supportId) {
       setMode("human");
+      setInput("");
       return;
     }
+    setIsConnecting(true);
     try {
       const lastUserMsg =
         [...aiHistory].reverse().find((m) => m.role === "user")?.content ||
@@ -297,8 +301,11 @@ export default function SmartChatBot() {
       });
       setSupportId(res.supportId);
       setMode("human");
+      setInput("");
     } catch {
       toast.error("Không thể kết nối hỗ trợ viên lúc này");
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -310,6 +317,7 @@ export default function SmartChatBot() {
     setHumanMessages([]);
     setAiHistory([]);
     setDisplayMessages([]);
+    setInput("");
     setIsOpen(false);
   };
 
@@ -344,7 +352,7 @@ export default function SmartChatBot() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             onClick={handleOpen}
-            className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/40 hover:shadow-orange-500/60 hover:scale-105 active:scale-95 transition-all"
+            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/40 hover:shadow-orange-500/60 hover:scale-105 active:scale-95 transition-all"
             aria-label="Mở Smart Tour Assistant"
           >
             <Bot size={24} />
@@ -364,8 +372,8 @@ export default function SmartChatBot() {
             }
             exit={{ opacity: 0, y: 20, scale: 0.97 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-6 right-6 z-50 flex w-[360px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl shadow-slate-900/20 border border-slate-100"
-            style={{ maxHeight: isMinimized ? "auto" : "560px" }}
+            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex w-[calc(100vw-2rem)] max-w-[360px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl shadow-slate-900/20 border border-slate-100"
+            style={{ maxHeight: isMinimized ? "auto" : "min(560px, calc(100dvh - 120px))" }}
           >
             {/* Header */}
             <div
@@ -396,10 +404,15 @@ export default function SmartChatBot() {
                 {mode === "ai" && (
                   <button
                     onClick={handleEscalateManual}
+                    disabled={isConnecting}
                     title="Kết nối hỗ trợ viên"
-                    className="rounded-lg p-1.5 text-white/70 hover:bg-white/15 hover:text-white transition-colors"
+                    className="rounded-lg p-1.5 text-white/70 hover:bg-white/15 hover:text-white transition-colors disabled:cursor-not-allowed"
                   >
-                    <Headset size={15} />
+                    {isConnecting ? (
+                      <Loader2 size={15} className="animate-spin" />
+                    ) : (
+                      <Headset size={15} />
+                    )}
                   </button>
                 )}
                 <button
@@ -620,7 +633,7 @@ export default function SmartChatBot() {
                     )}
                     {mode === "human" && (
                       <button
-                        onClick={() => setMode("ai")}
+                        onClick={() => { setMode("ai"); setInput(""); }}
                         className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-orange-500 transition-colors"
                       >
                         <Bot size={11} /> Quay lại AI
