@@ -17,7 +17,7 @@ const normalize = (s: string) =>
   (s || "")
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[̀-ͯ]/g, "")
     .replace(/đ/g, "d")
     .trim();
 
@@ -49,7 +49,6 @@ const SearchBox = () => {
       try {
         const res = await getTours(1, 100, {});
         const tours = res.data || [];
-        
         const destMap = new Map<string, DestSuggestion>();
         tours.forEach((t: any) => {
           if (t.destination && !destMap.has(t.destination)) {
@@ -57,11 +56,10 @@ const SearchBox = () => {
               id: t._id,
               name: t.destination,
               image: t.images?.[0] || "/placeholder-dest.jpg",
-              address: "Việt Nam"
+              address: "Việt Nam",
             });
           }
         });
-        
         setDestinations(Array.from(destMap.values()));
       } catch (err) {
         console.error("Failed to fetch tours for destinations:", err);
@@ -71,27 +69,18 @@ const SearchBox = () => {
 
   useEffect(() => {
     const searchStr = normalize(where);
-    if (searchStr === "") {
-      setFilteredDests([]);
-      return;
-    }
-    const filtered = destinations.filter((d) =>
-      normalize(d.name).includes(searchStr)
+    if (searchStr === "") { setFilteredDests([]); return; }
+    setFilteredDests(
+      destinations.filter((d) => normalize(d.name).includes(searchStr)).slice(0, 5)
     );
-    setFilteredDests(filtered.slice(0, 5));
   }, [where, destinations]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (destRef.current && !destRef.current.contains(event.target as Node)) {
+      if (destRef.current && !destRef.current.contains(event.target as Node))
         setShowDests(false);
-      }
-      if (
-        budgetRef.current &&
-        !budgetRef.current.contains(event.target as Node)
-      ) {
+      if (budgetRef.current && !budgetRef.current.contains(event.target as Node))
         setShowBudget(false);
-      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -101,42 +90,45 @@ const SearchBox = () => {
     e.preventDefault();
     const qs = new URLSearchParams();
     const currentInput = where.trim();
-
     if (currentInput) {
-      // Check if input matches a known destination (case-insensitive & accent-insensitive)
       const matchedDest = destinations.find(
         (d) => normalize(d.name) === normalize(currentInput)
       );
-
       if (matchedDest || isSelected) {
-        // If matched or explicitly selected, use 'destination' param
         qs.set("destination", matchedDest?.name || currentInput);
       } else {
-        // Otherwise use general keyword search 'q'
         qs.set("q", currentInput);
       }
     }
-
     if (date) qs.set("from", date);
     if (budgetIdx !== null) {
       const b = budgetOptions[budgetIdx];
       qs.set("budgetMin", String(b.min));
       qs.set("budgetMax", String(b.max));
     }
-
     router.push(`/user/destination?${qs.toString()}`);
   };
 
   return (
-    <div className="pointer-events-none relative z-30 -mt-14 flex justify-center px-4">
+    /* Wrapper: overlap banner trên md+, margin bình thường trên mobile */
+    <div className="pointer-events-none relative z-30 flex justify-center px-4
+                    -mt-6 sm:-mt-14">
       <form
         onSubmit={onSubmit}
-        className="pointer-events-auto w-full max-w-5xl h-16 bg-white/95 backdrop-blur-md rounded-full shadow-[0_15px_50px_-15px_rgba(0,0,0,0.3)] ring-1 ring-black/5 flex items-center px-2 border border-white/20"
+        className="pointer-events-auto w-full max-w-5xl
+                   bg-white/95 backdrop-blur-md
+                   border border-white/20
+                   shadow-[0_15px_50px_-15px_rgba(0,0,0,0.3)]
+                   ring-1 ring-black/5
+                   /* mobile: card dọc */
+                   rounded-2xl p-3 flex flex-col gap-1
+                   /* desktop: pill ngang */
+                   md:rounded-full md:p-0 md:px-2 md:h-16 md:flex-row md:items-center md:gap-0"
       >
-        {/* Destination Field */}
-        <div className="relative flex-[1.5]" ref={destRef}>
+        {/* ── Destination ── */}
+        <div className="relative w-full md:flex-[1.5]" ref={destRef}>
           <Field
-            icon={<MapPin className="text-orange-500" />}
+            icon={<MapPin className="text-orange-500" size={18} />}
             placeholder="Bạn muốn đến đâu?"
             value={where}
             onChange={(e) => {
@@ -148,40 +140,28 @@ const SearchBox = () => {
             autoComplete="off"
           />
           {showDests && filteredDests.length > 0 && (
-            <div className="absolute top-[calc(100%+12px)] left-0 w-80 bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute top-[calc(100%+8px)] left-0 w-full sm:w-80 bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden z-[100]">
               <div className="p-3 border-b border-gray-50 bg-gray-50/50">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                  Điểm đến gợi ý
-                </span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Điểm đến gợi ý</span>
               </div>
-              <ul className="py-2 max-h-[350px] overflow-y-auto">
+              <ul className="py-2 max-h-[280px] overflow-y-auto">
                 {filteredDests.map((dest) => (
                   <li
                     key={dest.id}
-                    onClick={() => {
-                      setWhere(dest.name);
-                      setShowDests(false);
-                      setIsSelected(true);
-                    }}
+                    onClick={() => { setWhere(dest.name); setShowDests(false); setIsSelected(true); }}
                     className="flex items-center gap-3 px-4 py-3 hover:bg-orange-50 cursor-pointer transition-colors group"
                   >
-                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 shadow-sm border border-white">
+                    <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 border border-white shadow-sm">
                       <img
                         src={dest.image}
                         alt={dest.name}
-                        className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = "/placeholder-dest.jpg";
-                        }}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                        onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-dest.jpg"; }}
                       />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-sm font-bold text-gray-800">
-                        {dest.name}
-                      </span>
-                      <span className="text-[11px] text-gray-500 truncate max-w-[180px]">
-                        {dest.address}
-                      </span>
+                      <span className="text-sm font-bold text-gray-800">{dest.name}</span>
+                      <span className="text-[11px] text-gray-500 truncate max-w-[180px]">{dest.address}</span>
                     </div>
                   </li>
                 ))}
@@ -190,59 +170,50 @@ const SearchBox = () => {
           )}
         </div>
 
-        <Divider />
+        {/* mobile separator */}
+        <div className="md:hidden h-px bg-gray-100 mx-1" />
+        {/* desktop divider */}
+        <div className="hidden md:block h-8 w-px bg-neutral-200 mx-1" />
 
-        {/* Date Field */}
-        <div className="flex-1">
+        {/* ── Date ── */}
+        <div className="w-full md:flex-1">
           <Field
             type="date"
-            icon={<CalendarDays className="text-orange-500" />}
+            icon={<CalendarDays className="text-orange-500" size={18} />}
             placeholder="Ngày đi"
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
         </div>
 
-        <Divider />
+        {/* mobile separator */}
+        <div className="md:hidden h-px bg-gray-100 mx-1" />
+        {/* desktop divider */}
+        <div className="hidden md:block h-8 w-px bg-neutral-200 mx-1" />
 
-        {/* Budget Field */}
-        <div className="relative flex-1" ref={budgetRef}>
+        {/* ── Budget ── */}
+        <div className="relative w-full md:flex-1" ref={budgetRef}>
           <div
             onClick={() => setShowBudget(!showBudget)}
-            className="group flex items-center gap-2 px-4 h-12 rounded-full hover:bg-black/[0.04] cursor-pointer transition"
+            className="group flex items-center gap-2 px-4 h-12 rounded-xl md:rounded-full hover:bg-black/[0.04] cursor-pointer transition"
           >
-            <span className="text-orange-500">
-              <Wallet />
+            <span className="text-orange-500"><Wallet size={18} /></span>
+            <span className={`text-[0.9rem] ${budgetIdx === null ? "text-neutral-400" : "text-neutral-800"}`}>
+              {budgetIdx === null ? "Ngân sách" : budgetOptions[budgetIdx].label}
             </span>
-            <div className="flex flex-col justify-center">
-              <span
-                className={`text-[0.95rem] ${
-                  budgetIdx === null ? "text-neutral-400" : "text-neutral-800"
-                }`}
-              >
-                {budgetIdx === null ? "Ngân sách" : budgetOptions[budgetIdx].label}
-              </span>
-            </div>
           </div>
           {showBudget && (
-            <div className="absolute top-[calc(100%+12px)] left-0 w-60 bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute top-[calc(100%+8px)] left-0 w-56 bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden z-[100]">
               <div className="p-3 border-b border-gray-50 bg-gray-50/50">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                  Chọn mức giá
-                </span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Chọn mức giá</span>
               </div>
               <ul className="py-2">
                 {budgetOptions.map((opt, idx) => (
                   <li
                     key={idx}
-                    onClick={() => {
-                      setBudgetIdx(idx);
-                      setShowBudget(false);
-                    }}
+                    onClick={() => { setBudgetIdx(idx); setShowBudget(false); }}
                     className={`px-4 py-3 text-sm cursor-pointer transition-colors ${
-                      budgetIdx === idx
-                        ? "bg-orange-500 text-white font-semibold"
-                        : "text-gray-700 hover:bg-orange-50"
+                      budgetIdx === idx ? "bg-orange-500 text-white font-semibold" : "text-gray-700 hover:bg-orange-50"
                     }`}
                   >
                     {opt.label}
@@ -250,10 +221,7 @@ const SearchBox = () => {
                 ))}
                 {budgetIdx !== null && (
                   <li
-                    onClick={() => {
-                      setBudgetIdx(null);
-                      setShowBudget(false);
-                    }}
+                    onClick={() => { setBudgetIdx(null); setShowBudget(false); }}
                     className="px-4 py-2 text-xs text-orange-600 font-medium hover:underline cursor-pointer mt-1 text-center"
                   >
                     Xoá lọc
@@ -264,11 +232,17 @@ const SearchBox = () => {
           )}
         </div>
 
+        {/* ── Submit ── */}
         <button
           type="submit"
-          className="ml-2 h-12 px-8 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-bold flex items-center gap-2 shadow-[0_6px_20px_-4px_rgba(249,115,22,0.5)] hover:shadow-[0_8px_25px_-4px_rgba(249,115,22,0.6)] hover:-translate-y-0.5 active:scale-[0.98] focus:outline-none transition-all duration-200"
+          className="w-full md:w-auto md:ml-2 h-12 px-6 rounded-xl md:rounded-full
+                     bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-bold
+                     flex items-center justify-center gap-2
+                     shadow-[0_6px_20px_-4px_rgba(249,115,22,0.5)]
+                     hover:shadow-[0_8px_25px_-4px_rgba(249,115,22,0.6)]
+                     hover:-translate-y-0.5 active:scale-[0.98] focus:outline-none transition-all duration-200"
         >
-          <Search className="text-white" />
+          <Search size={16} className="text-white" />
           Tìm kiếm
         </button>
       </form>
@@ -284,8 +258,7 @@ type FieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
 const Field = ({ icon, placeholder, className, ...rest }: FieldProps) => {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    if (rest.type === "date" && inputRef.current)
-      inputRef.current.type = "date";
+    if (rest.type === "date" && inputRef.current) inputRef.current.type = "date";
     rest.onFocus?.(e);
   };
   const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -294,8 +267,8 @@ const Field = ({ icon, placeholder, className, ...rest }: FieldProps) => {
     rest.onBlur?.(e);
   };
   return (
-    <div className="group flex-1 flex items-center gap-2 px-4 h-12 rounded-full hover:bg-black/[0.04] focus-within:bg-black/[0.04] transition">
-      <span className="text-neutral-500">{icon}</span>
+    <div className="flex items-center gap-2 px-4 h-12 rounded-xl md:rounded-full hover:bg-black/[0.04] focus-within:bg-black/[0.04] transition w-full">
+      <span className="text-neutral-500 flex-shrink-0">{icon}</span>
       <input
         ref={inputRef}
         aria-label={placeholder}
@@ -304,16 +277,10 @@ const Field = ({ icon, placeholder, className, ...rest }: FieldProps) => {
         type={rest.type === "date" ? "text" : rest.type}
         onFocus={onFocus}
         onBlur={onBlur}
-        className={`w-full bg-transparent text-[0.95rem] text-neutral-800 placeholder:text-neutral-400 focus:outline-none ${
-          className || ""
-        }`}
+        className={`w-full bg-transparent text-[0.9rem] text-neutral-800 placeholder:text-neutral-400 focus:outline-none ${className || ""}`}
       />
     </div>
   );
 };
-
-const Divider = () => (
-  <div className="hidden md:block h-8 w-px bg-neutral-200 mx-1" />
-);
 
 export default SearchBox;

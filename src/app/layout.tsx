@@ -17,6 +17,12 @@ export const metadata = {
   description: "AHH Travel - Khám phá Việt Nam cùng chúng tôi",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: {

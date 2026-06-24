@@ -10,7 +10,7 @@ import CardHot from "@/components/cards/CardHot";
 import TourFilter, { type TourFilterValue } from "@/components/TourFilter";
 import { useGetTours } from "#/hooks/tours-hook/useTours";
 import { getTours } from "@/lib/tours/tour";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, SlidersHorizontal, X } from "lucide-react";
 
 /* ========= Helpers ========= */
 type DayBucket = "1-4" | "5-8" | "9-12" | "14+";
@@ -165,6 +165,7 @@ function DestinationPageContent() {
   });
 
   const [page, setPage] = useState<number>(initialPage);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   // ===== 2. GỌI API =====
   const { data, isLoading, isError } = useGetTours(page, PAGE_SIZE, apiQuery);
@@ -378,12 +379,22 @@ function DestinationPageContent() {
       {/* ===== MAIN LAYOUT ===== */}
       <div className="relative z-10 mx-auto -mt-8 max-w-6xl px-4 pb-14 lg:px-0">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
-          {/* Sidebar filter */}
-          <aside className="lg:sticky lg:top-24 lg:self-start z-10">
+          {/* Sidebar filter — hidden on mobile unless toggled */}
+          <aside className={`lg:sticky lg:top-24 lg:self-start z-10 ${mobileFilterOpen ? "block" : "hidden lg:block"}`}>
+            {/* Mobile close button */}
+            <div className="flex items-center justify-between mb-3 lg:hidden">
+              <span className="font-bold text-slate-800 text-base">Bộ lọc</span>
+              <button
+                onClick={() => setMobileFilterOpen(false)}
+                className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition"
+              >
+                <X size={20} />
+              </button>
+            </div>
             <TourFilter
               value={filters}
               onChange={(v) => setFilters(v)}
-              onSubmit={handleSubmitFilter}
+              onSubmit={() => { handleSubmitFilter(); setMobileFilterOpen(false); }}
               toOptions={toOptions}
               timeOptions={timeOptions}
             />
@@ -404,6 +415,14 @@ function DestinationPageContent() {
                   tour phù hợp
                 </p>
               </div>
+              {/* Mobile filter toggle button */}
+              <button
+                onClick={() => setMobileFilterOpen(true)}
+                className="lg:hidden flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition flex-shrink-0"
+              >
+                <SlidersHorizontal size={16} className="text-orange-500" />
+                Bộ lọc
+              </button>
             </div>
 
             {isError ? (
