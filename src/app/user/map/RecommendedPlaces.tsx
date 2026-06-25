@@ -1,14 +1,37 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import DestinationCard from "@/components/cards/DestinationCard";
 import Button from "@/components/ui/Button";
-import { useRecommendedTours } from "#/hooks/tours-hook/useRecommendedTours"; // ← import hook mới
+import { useRecommendedTours } from "#/hooks/tours-hook/useRecommendedTours";
+import useUser from "@/hooks/useUser";
+import { trackImpressions, trackClick } from "@/utils/tracking";
+
+function getSlug(tour: any): string {
+  if (tour.destinationSlug) return tour.destinationSlug;
+  return (tour.destination || tour.title || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 export default function RecommendedPlaces() {
   const router = useRouter();
+  const { user } = useUser();
+  const { data: result, isLoading } = useRecommendedTours(user?.id);
+  const tours = result?.data ?? [];
 
-  const { data: tours, isLoading } = useRecommendedTours(); // ← đổi hook
+  useEffect(() => {
+    if (tours.length > 0) {
+      trackImpressions(
+        tours.map((t: any) => t._id || t.id),
+        { userId: user?.id, source: "homepage", model: result?.model as any }
+      );
+    }
+  }, [tours.length, user?.id]);
 
   const formatPrice = (price?: number) => {
     if (!price) return "Liên hệ";
@@ -51,9 +74,12 @@ export default function RecommendedPlaces() {
               />
             ))}
           </div>
-        ) : tours && tours.length > 0 ? (
+        ) : tours.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {tours.map((tour: any) => {
+            {tours.map((tour: any, index: number) => {
+              const id = tour._id || tour.id;
+              const slug = getSlug(tour);
+              const href = `/user/destination/${slug}/${id}`;
               const thumb =
                 tour.image ||
                 (Array.isArray(tour.images) ? tour.images[0] : null) ||
@@ -62,8 +88,16 @@ export default function RecommendedPlaces() {
 
               return (
                 <div
-                  key={tour.id} // ← id thay vì _id
-                  onClick={() => router.push(`/user/tour/${tour.id}`)} // ← id thay vì _id
+                  key={id}
+                  onClick={() => {
+                    trackClick(id, {
+                      userId: user?.id,
+                      source: "homepage",
+                      model: result?.model as any,
+                      position: index,
+                    });
+                    router.push(href);
+                  }}
                   className="cursor-pointer group"
                 >
                   <DestinationCard
@@ -71,7 +105,7 @@ export default function RecommendedPlaces() {
                     title={tour.title}
                     duration={tour.time || "Liên hệ"}
                     price={formatPrice(tour.priceAdult)}
-                    href={`/user/tour/${tour.id}`} // ← id thay vì _id
+                    href={href}
                   />
                 </div>
               );

@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { useAuthStore } from "#/stores/auth";
 import { toggleFavorite, checkFavorite } from "@/lib/favorite/favoriteApi";
 import { useRouter } from "next/navigation";
+import { trackBookmark } from "@/utils/tracking";
 
 interface FavoriteButtonProps {
   tourId: string;
@@ -60,6 +61,7 @@ export default function FavoriteButton({
       setIsFavorite(res.isFavorite); // Sync with server
       if (res.isFavorite) {
         toast.success("Đã thêm vào yêu thích");
+        if (user?.id) trackBookmark(tourId, user.id);
       } else {
         toast.success("Đã bỏ yêu thích");
       }

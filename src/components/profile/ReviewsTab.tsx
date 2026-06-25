@@ -342,29 +342,33 @@ export default function ReviewsTab() {
         </div>
       )}
 
-      {editingReview && (
-        <ReviewModal
-          tour={{ id: editingReview.tourId?._id, title: editingReview.tourId?.title }}
-          initialData={{ rating: editingReview.rating, comment: editingReview.comment }}
-          onClose={() => setEditingReview(null)}
-          onSuccess={() => {
-            setEditingReview(null);
-            fetchData();
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {editingReview && (
+          <ReviewModal
+            tour={{ id: editingReview.tourId?._id, title: editingReview.tourId?.title }}
+            initialData={{ rating: editingReview.rating, comment: editingReview.comment }}
+            onClose={() => setEditingReview(null)}
+            onSuccess={() => {
+              setEditingReview(null);
+              fetchData();
+            }}
+          />
+        )}
+      </AnimatePresence>
 
-      {creatingReviewTour && (
-        <ReviewModal
-          tour={{ id: creatingReviewTour._id, title: creatingReviewTour.title }}
-          onClose={() => setCreatingReviewTour(null)}
-          onSuccess={() => {
-            setCreatingReviewTour(null);
-            setActiveTab("reviewed");
-            fetchData();
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {creatingReviewTour && (
+          <ReviewModal
+            tour={{ id: creatingReviewTour._id, title: creatingReviewTour.title }}
+            onClose={() => setCreatingReviewTour(null)}
+            onSuccess={() => {
+              setCreatingReviewTour(null);
+              setActiveTab("reviewed");
+              fetchData();
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

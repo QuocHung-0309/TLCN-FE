@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import {
   ArrowLeft, Calendar, MapPin, Users, Clock, Plus, Send,
   DollarSign, CheckCircle2, AlertCircle, Plane, Flag,
-  FileText, Loader2, X, TrendingUp, EyeOff,
+  FileText, Loader2, X, TrendingUp, EyeOff, MessageSquare,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  leaderToursApi, LeaderTour, TimelineEvent, Expense, Passenger,
+  leaderToursApi, leaderChatApi, LeaderTour, TimelineEvent, Expense, Passenger, ChatMessage,
 } from "@/lib/leader/leaderApi";
 
 const STATUS_CFG: Record<string, any> = {
@@ -22,7 +23,7 @@ const STATUS_CFG: Record<string, any> = {
 
 const EVENT_CFG: Record<string, any> = {
   departed:   { icon: Plane,        color: "text-blue-600",    bg: "bg-blue-100",    border: "border-blue-200",    label: "Xuất phát" },
-  arrived:    { icon: MapPin,       color: "text-blue-950", bg: "bg-emerald-100", border: "border-emerald-200", label: "Đến nơi" },
+  arrived:    { icon: MapPin,       color: "text-emerald-600", bg: "bg-emerald-100", border: "border-emerald-200", label: "Đến nơi" },
   checkpoint: { icon: Flag,         color: "text-orange-600",  bg: "bg-orange-100",  border: "border-orange-200",  label: "Điểm dừng" },
   note:       { icon: FileText,     color: "text-slate-500",   bg: "bg-slate-100",   border: "border-slate-200",   label: "Ghi chú" },
   finished:   { icon: CheckCircle2, color: "text-violet-600",  bg: "bg-violet-100",  border: "border-violet-200",  label: "Kết thúc" },
@@ -45,21 +46,41 @@ const EXPENSE_STATUS_CFG: Record<string, { label: string; className: string }> =
 function Modal({ open, onClose, title, children }: {
   open: boolean; onClose: () => void; title: string; children: React.ReactNode;
 }) {
-  if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
-          <h3 className="font-bold text-slate-800">{title}</h3>
-          <button onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-all">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="p-6">{children}</div>
-      </div>
-    </div>
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm"
+            onClick={onClose}
+          />
+          <motion.div
+            key="modal-panel"
+            initial={{ opacity: 0, scale: 0.95, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 12 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="fixed inset-0 z-[51] flex items-center justify-center p-4 pointer-events-none"
+          >
+            <div className="pointer-events-auto w-full max-w-md bg-white rounded-2xl shadow-2xl shadow-slate-900/20 border border-slate-100 overflow-hidden">
+              <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-blue-900 to-indigo-800">
+                <h3 className="font-bold text-white">{title}</h3>
+                <button onClick={onClose}
+                  className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/20 transition-all">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-6">{children}</div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -96,6 +117,13 @@ export default function TourDetailPage() {
 
   const [reportForm, setReportForm] = useState({ summary: "", incidents: "", expenseNote: "" });
   const [submReport, setSubmReport] = useState(false);
+
+  const [chatPassenger, setChatPassenger] = useState<Passenger | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const [sendingChat, setSendingChat] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!tourId) return;
@@ -183,6 +211,50 @@ export default function TourDetailPage() {
     }
   };
 
+  // ── Chat ──
+  const openChat = async (p: Passenger) => {
+    setChatPassenger(p);
+    setChatMessages([]);
+    setChatInput("");
+    setChatLoading(true);
+    try {
+      const res = await leaderChatApi.getBookingMessages(p.code);
+      setChatMessages(res.data ?? []);
+    } catch { /* silent */ }
+    finally { setChatLoading(false); }
+  };
+
+  const sendChat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatPassenger || !chatInput.trim() || sendingChat) return;
+    setSendingChat(true);
+    const content = chatInput.trim();
+    setChatInput("");
+    try {
+      const res = await leaderChatApi.sendBookingMessage(chatPassenger.code, content);
+      setChatMessages(prev => [...prev, res.data]);
+    } catch { toast.error("Không thể gửi tin nhắn"); setChatInput(content); }
+    finally { setSendingChat(false); }
+  };
+
+  // Poll messages while chat is open
+  useEffect(() => {
+    if (!chatPassenger) return;
+    const poll = async () => {
+      try {
+        const res = await leaderChatApi.getBookingMessages(chatPassenger.code);
+        setChatMessages(res.data ?? []);
+      } catch { /* silent */ }
+    };
+    const id = setInterval(poll, 5000);
+    return () => clearInterval(id);
+  }, [chatPassenger]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages]);
+
   const fmtDate     = (d: string) => new Date(d).toLocaleDateString("vi-VN",{day:"2-digit",month:"2-digit",year:"numeric"});
   const fmtDateTime = (d: string) => new Date(d).toLocaleString("vi-VN",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
   const fmtVND      = (n: number) => new Intl.NumberFormat("vi-VN",{style:"currency",currency:"VND"}).format(n);
@@ -210,7 +282,7 @@ export default function TourDetailPage() {
   const totalExp  = expenses.reduce((s,e) => s+e.amount, 0);
   const noShowCount = passengers.filter(p => !p.isPresent).length;
   const tabs = [
-    { key: "info",       label: "Thông tin",   icon: FileText,     count: 1 },
+    { key: "info",       label: "Thông tin",   icon: FileText,     count: (tour as any).tourId?.itinerary?.length ?? 0 },
     { key: "timeline",   label: "Timeline",    icon: Clock,        count: tour.timeline?.length??0 },
     { key: "passengers", label: "Hành khách",  icon: Users,        count: passengers.length },
     { key: "expenses",   label: "Chi phí",     icon: DollarSign,   count: expenses.length },
@@ -229,8 +301,17 @@ export default function TourDetailPage() {
         </button>
 
         {/* Hero */}
-        <div className="relative overflow-hidden rounded-2xl
-          bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-800 shadow-lg shadow-blue-900/20">
+        <div className="relative overflow-hidden rounded-2xl shadow-lg shadow-blue-900/20"
+          style={{ background: "linear-gradient(to right, #1e3a5f, #1e40af, #3730a3)" }}>
+          {/* Tour image as background */}
+          {(tour as any).tourId?.images?.[0] && (
+            <img
+              src={(tour as any).tourId.images[0]}
+              alt={tour.title}
+              className="absolute inset-0 w-full h-full object-cover opacity-20"
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-950/80 via-blue-900/60 to-indigo-900/70" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_0%_0%,rgba(249,115,22,0.2),transparent_55%)]" />
           <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/5 blur-2xl" />
           <div className="relative z-10 p-6 md:p-8">
@@ -300,10 +381,12 @@ export default function TourDetailPage() {
                     : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"}`}>
                 <tab.icon className="w-4 h-4" />
                 <span className="hidden sm:block">{tab.label}</span>
-                <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold
-                  ${active?"bg-white/25 text-white":"bg-slate-100 text-slate-500"}`}>
-                  {tab.count}
-                </span>
+                {tab.key !== "info" && (
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold
+                    ${active?"bg-white/25 text-white":"bg-slate-100 text-slate-500"}`}>
+                    {tab.count}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -470,7 +553,7 @@ export default function TourDetailPage() {
                   <table className="w-full text-sm">
                     <thead className="bg-slate-50 border-b border-slate-100">
                       <tr>
-                        {["Mã","Khách hàng","Liên hệ","NL/TE","Tổng tiền","Trạng thái","Có mặt","Ghi chú"].map(h=>(
+                        {["Mã","Khách hàng","Liên hệ","NL/TE","Thanh toán","Trạng thái","Có mặt","Thao tác"].map(h=>(
                           <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
                             {h}
                           </th>
@@ -498,8 +581,16 @@ export default function TourDetailPage() {
                             <td className="px-4 py-3.5 text-center text-slate-700">
                               {p.numAdults}<span className="text-slate-300 mx-1">/</span>{p.numChildren}
                             </td>
-                            <td className="px-4 py-3.5 text-right font-semibold text-orange-600">
-                              {p.totalPrice?.toLocaleString("vi-VN")} đ
+                            <td className="px-4 py-3.5 text-right">
+                              <p className="font-semibold text-orange-600">{p.totalPrice?.toLocaleString("vi-VN")} đ</p>
+                              {p.paidAmount !== undefined && p.paidAmount > 0 && (
+                                <p className="text-xs text-slate-400 mt-0.5">Đã trả: {p.paidAmount.toLocaleString("vi-VN")} đ</p>
+                              )}
+                              {p.depositPaid && (
+                                <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-600 font-semibold mt-0.5">
+                                  <CheckCircle2 className="w-3 h-3" /> Cọc
+                                </span>
+                              )}
                             </td>
                             <td className="px-4 py-3.5">
                               <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${BOOKING_STATUS_CFG[p.bookingStatus]?.className || BOOKING_STATUS_CFG.pending.className}`}>
@@ -519,15 +610,20 @@ export default function TourDetailPage() {
                               </label>
                             </td>
                             <td className="px-4 py-3.5">
-                              {p.note ? (
-                                <button title={`Ghi chú: ${p.note}`}
-                                  className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors flex items-center gap-1.5 text-xs font-medium">
-                                  <FileText className="w-4 h-4" />
-                                  <span className="max-w-[100px] truncate">{p.note}</span>
+                              <div className="flex items-center gap-1">
+                                {p.note && (
+                                  <button title={`Ghi chú: ${p.note}`}
+                                    className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors">
+                                    <FileText className="w-4 h-4" />
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => openChat(p)}
+                                  title="Nhắn tin với hành khách"
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                                  <MessageSquare className="w-4 h-4" />
                                 </button>
-                              ) : (
-                                <span className="text-slate-300 text-xs">—</span>
-                              )}
+                              </div>
                             </td>
                           </tr>
                         );
@@ -694,6 +790,110 @@ export default function TourDetailPage() {
         )}
 
         </div>{/* end min-h tab content wrapper */}
+
+        {/* ── CHAT SLIDE-OVER ── */}
+        <AnimatePresence>
+          {chatPassenger && (
+            <>
+              <motion.div
+                key="chat-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-[60] bg-slate-900/30"
+                onClick={() => setChatPassenger(null)}
+              />
+              <motion.div
+                key="chat-panel"
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                className="fixed right-0 top-0 bottom-0 z-[61] w-full max-w-sm bg-white shadow-2xl flex flex-col"
+              >
+                {/* Header */}
+                <div className="flex items-center gap-3 px-5 py-4 bg-gradient-to-r from-blue-900 to-indigo-800 flex-shrink-0">
+                  <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                    {(chatPassenger.userId?.fullName ?? chatPassenger.fullName ?? "?")
+                      .split(" ").map((n:string) => n[0]).slice(-2).join("").toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-white text-sm truncate">
+                      {chatPassenger.userId?.fullName ?? chatPassenger.fullName ?? "Khách hàng"}
+                    </p>
+                    <p className="text-xs text-blue-200/70">#{chatPassenger.code}</p>
+                  </div>
+                  <button
+                    onClick={() => setChatPassenger(null)}
+                    className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/20 transition-all flex-shrink-0">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
+                  {chatLoading ? (
+                    <div className="flex items-center justify-center h-full">
+                      <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                    </div>
+                  ) : chatMessages.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center gap-3">
+                      <div className="w-12 h-12 bg-slate-200 rounded-2xl flex items-center justify-center">
+                        <MessageSquare className="w-6 h-6 text-slate-400" />
+                      </div>
+                      <p className="text-sm text-slate-500 font-medium">Chưa có tin nhắn</p>
+                      <p className="text-xs text-slate-400">Bắt đầu cuộc trò chuyện với hành khách</p>
+                    </div>
+                  ) : (
+                    chatMessages.map((msg, i) => {
+                      if (msg.isSystem) {
+                        return (
+                          <div key={msg._id || i} className="text-center">
+                            <span className="text-xs text-slate-400 bg-slate-200 px-3 py-1 rounded-full">
+                              {msg.content}
+                            </span>
+                          </div>
+                        );
+                      }
+                      const isLeader = msg.fromRole === "leader";
+                      return (
+                        <div key={msg._id || i} className={`flex ${isLeader ? "justify-end" : "justify-start"}`}>
+                          <div className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl text-sm shadow-sm
+                            ${isLeader
+                              ? "bg-blue-900 text-white rounded-br-sm"
+                              : "bg-white text-slate-800 border border-slate-200 rounded-bl-sm"
+                            }`}>
+                            <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                            <p className={`text-[10px] mt-1 ${isLeader ? "text-blue-300" : "text-slate-400"}`}>
+                              {new Date(msg.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+
+                {/* Input */}
+                <form onSubmit={sendChat} className="flex gap-2 p-4 border-t border-slate-200 bg-white flex-shrink-0">
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    placeholder="Nhắn tin với hành khách..."
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all"
+                  />
+                  <button type="submit" disabled={!chatInput.trim() || sendingChat}
+                    className="p-2.5 rounded-xl bg-blue-900 text-white hover:bg-blue-800 disabled:opacity-40 transition-colors flex items-center justify-center">
+                    {sendingChat ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  </button>
+                </form>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
 
         {/* ── MODAL Timeline ── */}
         <Modal open={showTL} onClose={() => setShowTL(false)} title="Thêm sự kiện Timeline">

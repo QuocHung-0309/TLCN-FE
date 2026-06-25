@@ -18,6 +18,8 @@ import {
 import { getBookingByCode } from "@/lib/checkout/checkoutApi";
 import VnpayPayButton from "@/app/user/checkout/VnpayPayButton";
 import TourRecommendations from "@/components/TourRecommendations";
+import useUser from "@/hooks/useUser";
+import { trackBooking } from "@/utils/tracking";
 
 /**
  * Trang xác nhận đặt tour
@@ -26,6 +28,7 @@ import TourRecommendations from "@/components/TourRecommendations";
  */
 function BookingSuccessPageContent() {
   const searchParams = useSearchParams();
+  const { user } = useUser();
 
   const bookingId = searchParams.get("bookingId");
   const email = searchParams.get("email");
@@ -61,6 +64,17 @@ function BookingSuccessPageContent() {
 
     loadBooking();
   }, [bookingId]);
+
+  // Track booking conversion for recommendation model
+  useEffect(() => {
+    if (tourId && user?.id && !loading) {
+      const isOffice = paymentMethod === "office-payment";
+      const paid = paidAmount > 0 || bookingStatus === "confirmed" || bookingStatus === "completed";
+      if (isOffice || paid) {
+        trackBooking(tourId, user.id);
+      }
+    }
+  }, [tourId, user?.id, loading]);
 
   // Determine display based on payment method and status
   const isOfficePayment = paymentMethod === "office-payment";

@@ -4,16 +4,17 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Calendar, MapPin, Users, ChevronRight, Plane, Search, X, Filter,
+  LayoutGrid, List, Clock,
 } from "lucide-react";
 import { leaderToursApi, LeaderTour } from "@/lib/leader/leaderApi";
 import AdminPagination from "@/components/admin/AdminPagination";
 
-const STATUS_CFG: Record<string, { bg: string; text: string; border: string; dot: string; label: string; bar: string }> = {
-  pending:     { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-200",  dot: "bg-amber-500",   label: "Chờ xác nhận",  bar: "from-amber-400 to-amber-500" },
-  confirmed:   { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200",   dot: "bg-blue-500",    label: "Đã xác nhận",   bar: "from-blue-400 to-blue-500" },
-  in_progress: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200",dot: "bg-emerald-500", label: "Đang diễn ra",  bar: "from-emerald-400 to-emerald-500" },
-  completed:   { bg: "bg-slate-100",  text: "text-slate-600",   border: "border-slate-200",  dot: "bg-slate-400",   label: "Hoàn thành",    bar: "from-slate-300 to-slate-400" },
-  closed:      { bg: "bg-red-50",     text: "text-red-700",     border: "border-red-200",    dot: "bg-red-500",     label: "Đã đóng",       bar: "from-red-400 to-red-500" },
+const STATUS_CFG: Record<string, { bg: string; text: string; border: string; dot: string; label: string; bar: string; pill: string }> = {
+  pending:     { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-200",  dot: "bg-amber-500",   label: "Chờ xác nhận",  bar: "from-amber-400 to-amber-500",    pill: "bg-amber-500/90 text-white" },
+  confirmed:   { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200",   dot: "bg-blue-500",    label: "Đã xác nhận",   bar: "from-blue-400 to-blue-500",      pill: "bg-blue-500/90 text-white" },
+  in_progress: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200",dot: "bg-emerald-500", label: "Đang diễn ra",  bar: "from-emerald-400 to-emerald-500",pill: "bg-emerald-500 text-white" },
+  completed:   { bg: "bg-slate-100",  text: "text-slate-600",   border: "border-slate-200",  dot: "bg-slate-400",   label: "Hoàn thành",    bar: "from-slate-300 to-slate-400",    pill: "bg-white/90 text-slate-700" },
+  closed:      { bg: "bg-red-50",     text: "text-red-700",     border: "border-red-200",    dot: "bg-red-500",     label: "Đã đóng",       bar: "from-red-400 to-red-500",        pill: "bg-red-500/90 text-white" },
 };
 
 const FILTERS = [
@@ -25,16 +26,29 @@ const FILTERS = [
   { value: "closed",      label: "Đã đóng" },
 ];
 
-function TourSkeleton() {
+function GridSkeleton() {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 animate-pulse flex gap-4">
-      <div className="w-14 h-14 bg-slate-100 rounded-xl flex-shrink-0" />
+    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden animate-pulse">
+      <div className="h-36 bg-slate-200" />
+      <div className="p-4 space-y-2.5">
+        <div className="h-4 bg-slate-100 rounded w-3/4" />
+        <div className="h-3 bg-slate-100 rounded w-1/2" />
+        <div className="h-2 bg-slate-100 rounded-full mt-3" />
+      </div>
+    </div>
+  );
+}
+
+function ListSkeleton() {
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 p-4 animate-pulse flex gap-4">
+      <div className="w-16 h-16 bg-slate-100 rounded-xl flex-shrink-0" />
       <div className="flex-1 space-y-2.5">
         <div className="h-4 w-3/4 bg-slate-100 rounded" />
         <div className="h-3 w-1/2 bg-slate-100 rounded" />
         <div className="h-2 bg-slate-100 rounded-full" />
       </div>
-      <div className="h-6 w-24 bg-slate-100 rounded-full flex-shrink-0" />
+      <div className="h-6 w-24 bg-slate-100 rounded-full flex-shrink-0 self-start" />
     </div>
   );
 }
@@ -47,6 +61,7 @@ export default function LeaderToursPage() {
   const [searchTerm, setSearch]         = useState("");
   const [page, setPage]                 = useState(1);
   const limit = 5;
+  const [viewMode, setViewMode]         = useState<"grid" | "list">("grid");
 
   useEffect(() => {
     setIsLoading(true);
@@ -76,8 +91,15 @@ export default function LeaderToursPage() {
 
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const formatShort = (d: string) =>
+    new Date(d).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
 
   const countOf = (s: string) => tours.filter(t => t.status === s).length;
+
+  const getDuration = (start: string, end: string) => {
+    const diff = new Date(end).getTime() - new Date(start).getTime();
+    return Math.round(diff / (1000 * 60 * 60 * 24)) + 1;
+  };
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -88,6 +110,9 @@ export default function LeaderToursPage() {
           bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-800 shadow-lg shadow-blue-900/20">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_0%_0%,rgba(249,115,22,0.2),transparent_55%)]" />
           <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/5 blur-2xl" />
+          <div className="absolute right-8 bottom-0 opacity-10">
+            <Plane className="w-32 h-32 text-white -rotate-12" />
+          </div>
           <div className="relative z-10 p-6 md:p-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
@@ -99,48 +124,64 @@ export default function LeaderToursPage() {
                 <p className="text-blue-200/70 text-sm mt-1">Quản lý và theo dõi các tour được phân công</p>
               </div>
               {!isLoading && (
-                <div className="flex gap-4 bg-white/15 backdrop-blur-sm border border-white/20
-                  rounded-xl px-5 py-3 flex-shrink-0">
-                  <div className="text-center">
-                    <p className="text-xl font-extrabold text-white">{tours.length}</p>
-                    <p className="text-xs text-blue-300">Tổng</p>
-                  </div>
-                  <div className="w-px bg-white/20" />
-                  <div className="text-center">
-                    <p className="text-xl font-extrabold text-emerald-300">{countOf("in_progress")}</p>
-                    <p className="text-xs text-blue-300">Đang chạy</p>
-                  </div>
-                  <div className="w-px bg-white/20" />
-                  <div className="text-center">
-                    <p className="text-xl font-extrabold text-slate-200">{countOf("completed")}</p>
-                    <p className="text-xs text-blue-300">Xong</p>
-                  </div>
+                <div className="flex gap-5 bg-white/10 backdrop-blur-sm border border-white/20
+                  rounded-2xl px-6 py-4 flex-shrink-0">
+                  {[
+                    { label: "Tổng", value: tours.length, color: "text-white" },
+                    { label: "Đang chạy", value: countOf("in_progress"), color: "text-emerald-300" },
+                    { label: "Sắp đi", value: countOf("confirmed"), color: "text-amber-300" },
+                    { label: "Hoàn thành", value: countOf("completed"), color: "text-slate-300" },
+                  ].map((s, i, arr) => (
+                    <div key={s.label} className="flex items-center gap-4">
+                      <div className="text-center">
+                        <p className={`text-2xl font-extrabold ${s.color}`}>{s.value}</p>
+                        <p className="text-xs text-blue-300 mt-0.5">{s.label}</p>
+                      </div>
+                      {i < arr.length - 1 && <div className="w-px h-8 bg-white/20" />}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Search + Filter */}
+        {/* Search + Filter + View Toggle */}
         <div className="space-y-3">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Tìm kiếm theo tên tour, điểm đến..."
-              value={searchTerm}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full pl-10 pr-10 py-3 rounded-xl bg-white border border-slate-200 text-slate-800
-                placeholder-slate-400 text-sm shadow-sm
-                focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all"
-            />
-            {searchTerm && (
-              <button onClick={() => setSearch("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
-                <X className="w-4 h-4" />
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo tên tour, điểm đến..."
+                value={searchTerm}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-10 pr-10 py-3 rounded-xl bg-white border border-slate-200 text-slate-800
+                  placeholder-slate-400 text-sm shadow-sm
+                  focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all"
+              />
+              {searchTerm && (
+                <button onClick={() => setSearch("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            {/* View mode toggle */}
+            <div className="flex gap-1 bg-white border border-slate-200 rounded-xl p-1 shadow-sm flex-shrink-0">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`p-2 rounded-lg transition-all ${viewMode === "grid" ? "bg-blue-900 text-white shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+                title="Dạng lưới">
+                <LayoutGrid className="w-4 h-4" />
               </button>
-            )}
+              <button
+                onClick={() => setViewMode("list")}
+                className={`p-2 rounded-lg transition-all ${viewMode === "list" ? "bg-blue-900 text-white shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+                title="Dạng danh sách">
+                <List className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Filter chips */}
@@ -159,7 +200,7 @@ export default function LeaderToursPage() {
                     }`}>
                   {f.label}
                   {!isLoading && (
-                    <span className={`text-xs px-1.5 py-0.5 rounded-full
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold
                       ${active ? "bg-white/25 text-white" : "bg-slate-100 text-slate-500"}`}>
                       {count}
                     </span>
@@ -172,11 +213,13 @@ export default function LeaderToursPage() {
 
         {/* Tour list */}
         {isLoading ? (
-          <div className="space-y-3">{Array(5).fill(0).map((_, i) => <TourSkeleton key={i} />)}</div>
+          viewMode === "grid"
+            ? <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">{Array(6).fill(0).map((_, i) => <GridSkeleton key={i} />)}</div>
+            : <div className="space-y-3">{Array(5).fill(0).map((_, i) => <ListSkeleton key={i} />)}</div>
         ) : filteredTours.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-14 text-center shadow-sm">
-            <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <Calendar className="w-8 h-8 text-slate-400" />
+            <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Calendar className="w-8 h-8 text-slate-300" />
             </div>
             <h3 className="font-semibold text-slate-700 mb-1">
               {searchTerm ? "Không tìm thấy tour" : "Không có tour"}
@@ -186,44 +229,116 @@ export default function LeaderToursPage() {
             </p>
             {(searchTerm || statusFilter) && (
               <button onClick={() => { setSearch(""); setStatus(""); }}
-                className="mt-3 px-4 py-2 rounded-xl bg-slate-100 border border-slate-200
+                className="mt-4 px-4 py-2 rounded-xl bg-slate-100 border border-slate-200
                   text-sm text-slate-600 hover:bg-slate-200 transition-all">
                 Xóa bộ lọc
               </button>
             )}
           </div>
+        ) : viewMode === "grid" ? (
+          /* ── GRID VIEW ── */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredTours.map(tour => {
+              const cfg      = STATUS_CFG[tour.status] || STATUS_CFG.pending;
+              const capacity = tour.quantity ?? 0;
+              const pct      = capacity > 0 ? Math.round((tour.bookedCount||0)/capacity*100) : 0;
+              const img      = (tour as any).tourId?.images?.[0];
+              const days     = getDuration(tour.startDate, tour.endDate);
+              return (
+                <Link key={tour._id} href={`/leader/tours/${tour._id}`}
+                  className="group bg-white rounded-2xl border border-slate-200 hover:border-orange-300
+                    hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden shadow-sm">
+                  {/* Thumbnail */}
+                  <div className="relative h-40 bg-gradient-to-br from-blue-900 to-indigo-900 overflow-hidden">
+                    {img ? (
+                      <img src={img} alt={tour.title}
+                        className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <>
+                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_30%,rgba(249,115,22,0.3),transparent_70%)]" />
+                        <Plane className="absolute bottom-2 right-3 w-16 h-16 text-white/10 -rotate-12" />
+                      </>
+                    )}
+                    {/* Status badge */}
+                    <div className="absolute top-3 left-3">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold backdrop-blur-sm ${cfg.pill}`}>
+                        {tour.status === "in_progress" && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
+                        {cfg.label}
+                      </span>
+                    </div>
+                    {/* Duration badge */}
+                    <div className="absolute top-3 right-3">
+                      <span className="inline-flex items-center gap-1 bg-black/40 text-white text-xs font-semibold px-2 py-1 rounded-lg backdrop-blur-sm">
+                        <Clock className="w-3 h-3" />{days}N
+                      </span>
+                    </div>
+                    {/* Destination overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-3 py-2">
+                      <p className="text-white text-xs font-medium flex items-center gap-1 truncate">
+                        <MapPin className="w-3 h-3 flex-shrink-0 text-orange-300" /> {tour.destination}
+                      </p>
+                    </div>
+                  </div>
+                  {/* Card body */}
+                  <div className="p-4">
+                    <h3 className="font-bold text-slate-800 group-hover:text-orange-600 transition-colors line-clamp-2 text-sm leading-snug mb-2">
+                      {tour.title}
+                    </h3>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-3">
+                      <Calendar className="w-3 h-3" />
+                      <span>{formatShort(tour.startDate)} – {formatShort(tour.endDate)}</span>
+                    </div>
+                    {/* Progress */}
+                    <div className="flex items-center gap-2">
+                      <Users className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className={`h-full bg-gradient-to-r ${cfg.bar} rounded-full transition-all duration-700`}
+                          style={{width:`${pct}%`}} />
+                      </div>
+                      <span className="text-xs text-slate-500 font-semibold w-14 text-right whitespace-nowrap">
+                        {tour.bookedCount||0}/{capacity}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         ) : (
+          /* ── LIST VIEW ── */
           <div className="space-y-3">
             {filteredTours.slice((page - 1) * limit, page * limit).map(tour => {
-              const cfg = STATUS_CFG[tour.status] || STATUS_CFG.pending;
+              const cfg      = STATUS_CFG[tour.status] || STATUS_CFG.pending;
               const capacity = tour.quantity ?? 0;
-              const pct = capacity > 0 ? Math.round((tour.bookedCount||0)/capacity*100) : 0;
+              const pct      = capacity > 0 ? Math.round((tour.bookedCount||0)/capacity*100) : 0;
+              const img      = (tour as any).tourId?.images?.[0];
               return (
                 <Link key={tour._id} href={`/leader/tours/${tour._id}`}
                   className="group flex items-center gap-4 bg-white rounded-2xl border border-slate-200
-                    hover:border-orange-300 hover:shadow-md transition-all duration-200 p-4 md:p-5 shadow-sm">
-                  {/* Status bar */}
-                  <div className={`w-1 h-14 rounded-full bg-gradient-to-b ${cfg.bar} flex-shrink-0`} />
-                  {/* Icon */}
-                  <div className="w-13 h-13 w-12 h-12 rounded-xl bg-blue-50 border border-blue-100
-                    flex items-center justify-center flex-shrink-0
-                    group-hover:scale-105 transition-transform duration-200">
-                    <Plane className="w-6 h-6 text-blue-500" />
+                    hover:border-orange-300 hover:shadow-md transition-all duration-200 p-4 shadow-sm overflow-hidden">
+                  {/* Thumbnail */}
+                  <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-blue-800 to-indigo-900">
+                    {img ? (
+                      <img src={img} alt={tour.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Plane className="w-7 h-7 text-white/40" />
+                      </div>
+                    )}
                   </div>
+                  {/* Status bar */}
+                  <div className={`w-1 h-12 rounded-full bg-gradient-to-b ${cfg.bar} flex-shrink-0`} />
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-slate-800 group-hover:text-orange-600
-                      transition-colors truncate">
+                    <h3 className="font-semibold text-slate-800 group-hover:text-orange-600 transition-colors truncate">
                       {tour.title}
                     </h3>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs text-slate-500">
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-slate-500">
                       <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{tour.destination}</span>
                       <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />
                         {formatDate(tour.startDate)} – {formatDate(tour.endDate)}</span>
-                      <span className="flex items-center gap-1"><Users className="w-3 h-3" />
-                        {tour.bookedCount||0}/{capacity} khách</span>
+                      <span className="flex items-center gap-1"><Users className="w-3 h-3" />{tour.bookedCount||0}/{capacity} khách</span>
                     </div>
-                    {/* Progress */}
                     <div className="mt-2 flex items-center gap-2 max-w-xs">
                       <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                         <div className={`h-full bg-gradient-to-r ${cfg.bar} rounded-full transition-all duration-700`}
@@ -236,12 +351,10 @@ export default function LeaderToursPage() {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <span className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full
                       text-xs font-semibold border ${cfg.bg} ${cfg.text} ${cfg.border}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}
-                        ${tour.status==="in_progress"?"animate-pulse":""}`} />
+                      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot} ${tour.status==="in_progress"?"animate-pulse":""}`} />
                       {cfg.label}
                     </span>
-                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-orange-500
-                      group-hover:translate-x-0.5 transition-all" />
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-orange-500 group-hover:translate-x-0.5 transition-all" />
                   </div>
                 </Link>
               );

@@ -546,12 +546,13 @@ export default function HistoryPage() {
       {/* CANCEL MODAL */}
       <AnimatePresence>
         {cancelTarget && (
-          <div className="fixed inset-0 z-[99] flex items-center justify-center p-4 bg-blue-950/40 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[99] flex items-center justify-center p-4 bg-slate-900/55 backdrop-blur-sm">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+              initial={{ opacity: 0, scale: 0.96, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="bg-white rounded-2xl shadow-2xl shadow-slate-900/15 border border-slate-100 w-full max-w-md overflow-hidden"
             >
               <div className="bg-red-50 p-6 border-b border-red-100 flex gap-4">
                 <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0 text-red-500">

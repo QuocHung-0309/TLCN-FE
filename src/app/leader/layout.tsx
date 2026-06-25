@@ -40,6 +40,12 @@ const navItems = [
     icon: Calendar,
     description: "Quản lý lịch trình",
   },
+  {
+    name: "Nhắn tin",
+    href: "/leader/chat",
+    icon: MessageSquare,
+    description: "Chat với hành khách",
+  },
 ];
 
 export default function LeaderLayout({

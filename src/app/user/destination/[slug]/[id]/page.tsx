@@ -21,6 +21,8 @@ import TourRecommendations from "@/components/TourRecommendations";
 import { toast } from "react-hot-toast";
 import { getRelatedBlogsForTour, type BlogSummary } from "@/lib/blog/blogApi";
 import FavoriteButton from "@/components/ui/FavoriteButton";
+import useUser from "@/hooks/useUser";
+import { startViewTracking, trackReview } from "@/utils/tracking";
 
 const toNum = (v?: number | string) => {
   if (typeof v === "number") return v;
@@ -433,6 +435,13 @@ export default function TourDetailPage() {
   const { token } = useAuthStore();
   const accessToken = token?.accessToken || getUserToken();
   const isLoggedIn = !!accessToken;
+  const { user } = useUser();
+
+  useEffect(() => {
+    if (!id || isLoading) return;
+    const stopTracking = startViewTracking(id, { userId: user?.id });
+    return stopTracking;
+  }, [id, isLoading, user?.id]);
 
   // Itinerary Image Modal
   const [activeItineraryImg, setActiveItineraryImg] = React.useState<{url: string, title: string} | null>(null);
@@ -1221,6 +1230,7 @@ export default function TourDetailPage() {
                                 ? reviewComment.trim()
                                 : undefined,
                           });
+                          if (user?.id) trackReview(id, user.id, reviewRating);
                           toast.success("Cảm ơn bạn đã gửi đánh giá!");
                           setReviewComment("");
                           setReviewRating(5);
