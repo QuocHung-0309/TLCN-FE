@@ -3,12 +3,11 @@
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
-import { resetUserPassword } from "@/lib/admin/usersApi";
-import { validatePassword } from "@/utils/validation";
+import { updateAdminLeader, type UpdateLeaderBody } from "@/lib/admin/adminLeaderApi";
 import { Toast, useToast } from "@/components/ui/Toast";
 import Link from "next/link";
 
-export default function ResetPasswordPage() {
+export default function LeaderResetPasswordPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
@@ -19,15 +18,16 @@ export default function ResetPasswordPage() {
     confirmPassword: "",
   });
 
-  const [errors, setErrors] = useState<Record<string, string | string[]>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Validation
   const validateForm = (): boolean => {
-    const newErrors: Record<string, string | string[]> = {};
+    const newErrors: Record<string, string> = {};
 
-    const passwordErrors = validatePassword(formData.newPassword);
-    if (passwordErrors.length > 0) {
-      newErrors.newPassword = passwordErrors;
+    if (!formData.newPassword) {
+      newErrors.newPassword = "Mật khẩu mới là bắt buộc";
+    } else if (formData.newPassword.length < 6) {
+      newErrors.newPassword = "Mật khẩu phải có ít nhất 6 ký tự";
     }
 
     if (formData.newPassword !== formData.confirmPassword) {
@@ -41,11 +41,11 @@ export default function ResetPasswordPage() {
   // Mutation
   const resetMutation = useMutation({
     mutationFn: (password: string) =>
-      resetUserPassword(id, { newPassword: password }),
+      updateAdminLeader(id, { password }),
     onSuccess: () => {
       showSuccess("Đặt lại mật khẩu thành công!");
       setTimeout(() => {
-        router.push("/admin/users");
+        router.push("/admin/leaders");
       }, 2000);
     },
     onError: (error: any) => {
@@ -97,11 +97,11 @@ export default function ResetPasswordPage() {
                 Đặt Lại Mật Khẩu
               </h1>
               <p className="text-slate-600">
-                Thiết lập mật khẩu mới cho người dùng
+                Thiết lập mật khẩu mới cho hướng dẫn viên
               </p>
             </div>
             <Link
-              href="/admin/users"
+              href="/admin/leaders"
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-medium hover:bg-slate-50 transition shadow-sm shrink-0"
             >
               <i className="ri-arrow-left-line"></i>
@@ -145,35 +145,11 @@ export default function ResetPasswordPage() {
                 </div>
                 {errors.newPassword && (
                   <div className="mt-1.5 ml-1">
-                    {Array.isArray(errors.newPassword) ? (
-                      <ul className="text-red-500 text-xs space-y-0.5">
-                        {errors.newPassword.map((error, index) => (
-                          <li key={index} className="flex items-center gap-1">
-                            <i className="ri-error-warning-line"></i>{error}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-red-500 text-xs flex items-center gap-1">
-                        <i className="ri-error-warning-line"></i>{errors.newPassword}
-                      </p>
-                    )}
+                    <p className="text-red-500 text-xs flex items-center gap-1">
+                      <i className="ri-error-warning-line"></i>{errors.newPassword}
+                    </p>
                   </div>
                 )}
-
-                {/* Password Requirements */}
-                <div className="mt-3 p-3 bg-orange-50 border border-orange-100 rounded-xl text-xs text-slate-500">
-                  <p className="font-semibold text-orange-600 mb-1.5 flex items-center gap-1">
-                    <i className="ri-shield-check-line"></i>Yêu cầu mật khẩu:
-                  </p>
-                  <ul className="space-y-1 grid grid-cols-2 gap-x-4">
-                    <li className="flex items-center gap-1"><i className="ri-checkbox-circle-line text-orange-400"></i>Ít nhất 8 ký tự</li>
-                    <li className="flex items-center gap-1"><i className="ri-checkbox-circle-line text-orange-400"></i>Có chữ thường (a-z)</li>
-                    <li className="flex items-center gap-1"><i className="ri-checkbox-circle-line text-orange-400"></i>Có chữ hoa (A-Z)</li>
-                    <li className="flex items-center gap-1"><i className="ri-checkbox-circle-line text-orange-400"></i>Có chữ số (0-9)</li>
-                    <li className="flex items-center gap-1 col-span-2"><i className="ri-checkbox-circle-line text-orange-400"></i>Có ký tự đặc biệt (!@#$%^&*...)</li>
-                  </ul>
-                </div>
               </div>
 
               {/* Confirm Password */}

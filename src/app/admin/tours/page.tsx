@@ -7,6 +7,7 @@ import { Toast, useToast } from '@/components/ui/Toast';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import Link from "next/link";
 import AdminPagination from '@/components/admin/AdminPagination';
+import { MapPin } from "lucide-react";
 
 // Format VND currency
 const formatVND = (amount: number) => {
@@ -120,29 +121,28 @@ const Page = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
-      {/* HEADER: Accent Line Style */}
-      <div className="relative mb-8 border-b border-slate-200 pb-5 pt-2">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+      {/* Header */}
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 shrink-0">
+            <MapPin className="h-6 w-6 text-orange-600" />
+          </div>
           <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-1">
-              Quản Lý Tours
+            <h1 className="text-2xl font-bold text-slate-800">
+              Quản lý Tours
             </h1>
-            <p className="text-sm text-slate-500 font-medium">
+            <p className="text-sm text-slate-500">
               Quản lý thông tin, chỉnh sửa và tạo các mẫu tour du lịch mới
             </p>
           </div>
-          
-          <Link
-            href="/admin/tours/create"
-            className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition font-semibold shadow-lg shadow-orange-500/25 shrink-0"
-          >
-            <i className="ri-add-line text-lg"></i>
-            Tạo Tour Mới
-          </Link>
         </div>
-        
-        {/* Accent Line */}
-        <div className="absolute bottom-0 left-0 h-[3px] w-24 bg-orange-500 rounded-t-md" />
+        <Link
+          href="/admin/tours/create"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all shrink-0"
+        >
+          <i className="ri-add-line text-lg"></i>
+          Tạo Tour Mới
+        </Link>
       </div>
 
       {/* Filters */}

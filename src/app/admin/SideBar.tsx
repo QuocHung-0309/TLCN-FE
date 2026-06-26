@@ -36,70 +36,64 @@ const navLinks: NavLink[] = [
     category: "main",
   },
 
-  // Tours Management
+  // Business / Sales
   {
-    display: "Tours",
-    path: "/admin/tours",
-    icon: <MapPin className="w-5 h-5" />,
-    category: "tours",
-  },
-
-  // Bookings
-  {
-    display: "Đặt tour",
+    display: "Quản lý Đặt tour",
     path: "/admin/bookings",
     icon: <CalendarCheck className="w-5 h-5" />,
-    category: "bookings",
+    category: "business",
+  },
+  {
+    display: "Danh sách Tour",
+    path: "/admin/tours",
+    icon: <MapPin className="w-5 h-5" />,
+    category: "business",
+  },
+  {
+    display: "Mã Khuyến mãi",
+    path: "/admin/vouchers",
+    icon: <Gift className="w-5 h-5" />,
+    category: "business",
   },
 
-  // Users
+  // Users & Interaction
   {
-    display: "Người dùng",
+    display: "Khách hàng",
     path: "/admin/users",
     icon: <Users className="w-5 h-5" />,
     category: "users",
   },
-
-  // Content Management
   {
-    display: "Blog",
-    path: "/admin/blog",
-    icon: <FileText className="w-5 h-5" />,
-    category: "content",
+    display: "Chat / Tư vấn",
+    path: "/admin/chat",
+    icon: <MessageSquare className="w-5 h-5" />,
+    category: "users",
   },
   {
     display: "Đánh giá",
     path: "/admin/reviews",
     icon: <Star className="w-5 h-5" />,
-    category: "content",
+    category: "users",
   },
 
-  // Vouchers
+  // Content & System
   {
-    display: "Vouchers",
-    path: "/admin/vouchers",
-    icon: <Gift className="w-5 h-5" />,
-    category: "operations",
+    display: "Bài viết / Blog",
+    path: "/admin/blog",
+    icon: <FileText className="w-5 h-5" />,
+    category: "system",
   },
-
-  // Leaders
   {
-    display: "Leader",
+    display: "Hướng dẫn viên",
     path: "/admin/leaders",
     icon: <UserCog className="w-5 h-5" />,
-    category: "operations",
+    category: "system",
   },
   {
-    display: "Chat",
-    path: "/admin/chat",
-    icon: <MessageSquare className="w-5 h-5" />,
-    category: "operations",
-  },
-  {
-    display: "Thông báo",
+    display: "Thông báo hệ thống",
     path: "/admin/notifications",
     icon: <Bell className="w-5 h-5" />,
-    category: "operations",
+    category: "system",
   },
 ];
 
@@ -123,22 +117,16 @@ const SideBar = () => {
 
   const categoryLabels: Record<string, string> = {
     main: "",
-    tours: "QUẢN LÝ TOUR",
-    bookings: "ĐẶT TOUR",
-    users: "NGƯỜI DÙNG",
-    content: "NỘI DUNG",
-    catalog: "DANH MỤC",
-    operations: "HOẠT ĐỘNG",
+    business: "KINH DOANH & SẢN PHẨM",
+    users: "KHÁCH HÀNG & TƯƠNG TÁC",
+    system: "NỘI DUNG & HỆ THỐNG",
   };
 
   const categoryOrder = [
     "main",
-    "tours",
-    "bookings",
+    "business",
     "users",
-    "content",
-    "catalog",
-    "operations",
+    "system",
   ];
 
   const isActive = (path: string) => {

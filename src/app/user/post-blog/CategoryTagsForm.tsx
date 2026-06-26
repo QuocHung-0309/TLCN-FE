@@ -30,8 +30,7 @@ interface CategoryTagsFormProps {
 }
 
 const CATEGORY_OPTIONS = [
-  "Du lịch", "Ẩm thực", "Khách sạn", "Mua sắm",
-  "Tâm linh", "Văn hóa", "Giải trí", "Thiên nhiên", "Review", "Kinh nghiệm", "Nghỉ dưỡng",
+  "Du lịch", "Ẩm thực", "Trải nghiệm", "Review", "Cẩm nang", "Kinh nghiệm", "Nghỉ dưỡng"
 ];
 
 export default function CategoryTagsForm({
@@ -47,10 +46,9 @@ export default function CategoryTagsForm({
   onAddressChange,
   onLocationChange,
 }: CategoryTagsFormProps) {
-  const [openCategory, setOpenCategory] = useState(false);
   const [openProvince, setOpenProvince] = useState(false);
   const [openWard, setOpenWard] = useState(false);
-  const [tagInput, setTagInput] = useState("");
+  const [tagInputString, setTagInputString] = useState(tags.join(", "));
 
   // Province/Ward data
   const [provinces, setProvinces] = useState<Province[]>([]);
@@ -110,9 +108,6 @@ export default function CategoryTagsForm({
   // -------- Click outside để đóng dropdown --------
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) {
-        setOpenCategory(false);
-      }
       if (provinceRef.current && !provinceRef.current.contains(event.target as Node)) {
         setOpenProvince(false);
         setProvinceSearch("");
@@ -136,98 +131,45 @@ export default function CategoryTagsForm({
     : wards;
 
   // -------- Handlers --------
-  const toggleCategory = (value: string) => {
-    if (categories.includes(value)) {
-      onCategoriesChange(categories.filter((c) => c !== value));
-    } else {
-      onCategoriesChange([...categories, value]);
-    }
-  };
-
-  const handleAddTag = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === " " && tagInput.trim() !== "") {
-      e.preventDefault();
-      if (!tagInput.startsWith("#")) return;
-      const tag = tagInput.trim();
-      const uniqueTags = [...new Set([...tags, tag])];
-      onTagsChange(uniqueTags);
-      setTagInput("");
-    }
-  };
-
-  const removeTag = (tag: string) => {
-    onTagsChange(tags.filter((t) => t !== tag));
-  };
 
   return (
     <div className="space-y-5">
       {/* ---- Danh mục ---- */}
-      <div className="relative" ref={categoryRef}>
+      <div className="relative">
         <label className="block font-medium text-slate-700 mb-1.5 text-sm">
-          Danh mục <span className="text-slate-400 font-normal">(chọn một hoặc nhiều)</span>
+          Danh mục <span className="text-slate-400 font-normal">(chọn 1 danh mục)</span>
         </label>
-        <button
-          type="button"
-          onClick={() => setOpenCategory(!openCategory)}
-          className="w-full flex items-center justify-between gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 hover:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/30 transition-colors"
+        <select
+          value={categories[0] || ""}
+          onChange={(e) => onCategoriesChange(e.target.value ? [e.target.value] : [])}
+          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 hover:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/30 transition-colors appearance-none"
         >
-          <span className="truncate">
-            {categories.length > 0 ? categories.join(", ") : "Chọn danh mục..."}
-          </span>
-          <ChevronDown size={16} className={`flex-shrink-0 transition-transform ${openCategory ? "rotate-180" : ""}`} />
-        </button>
-
-        {openCategory && (
-          <div className="absolute left-0 top-full mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-xl z-20 p-2 max-h-52 overflow-y-auto">
-            <div className="grid grid-cols-2 gap-1">
-              {CATEGORY_OPTIONS.map((option) => {
-                const selected = categories.includes(option);
-                return (
-                  <label
-                    key={option}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm transition-colors ${
-                      selected ? "bg-orange-50 text-orange-700 font-medium" : "hover:bg-slate-50 text-slate-700"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selected}
-                      onChange={() => toggleCategory(option)}
-                      className="accent-orange-500 w-3.5 h-3.5"
-                    />
-                    {option}
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-        )}
+          <option value="">Chọn danh mục...</option>
+          {CATEGORY_OPTIONS.map((option) => (
+            <option key={option} value={option}>{option}</option>
+          ))}
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400 mt-[26px]">
+          <ChevronDown size={16} />
+        </div>
       </div>
 
       {/* ---- Tags ---- */}
       <div>
         <label className="block font-medium text-slate-700 mb-1.5 text-sm">
-          Tags <span className="text-slate-400 font-normal">(bắt đầu bằng #, gõ xong nhấn Space)</span>
+          Từ khóa (Tags) <span className="text-slate-400 font-normal">(cách nhau bởi dấu phẩy)</span>
         </label>
-        <div className="flex flex-wrap gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-400/20 transition-colors min-h-[46px]">
-          {tags.map((tag) => (
-            <span key={tag} className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 border border-orange-200 px-2.5 py-1 rounded-lg text-xs font-medium">
-              {tag}
-              <button type="button" onClick={() => removeTag(tag)} className="ml-0.5 hover:text-red-600 transition-colors">
-                <X size={12} />
-              </button>
-            </span>
-          ))}
+        <div className="relative">
           <input
             type="text"
-            value={tagInput}
+            value={tagInputString}
             onChange={(e) => {
               const val = e.target.value;
-              if (val === "" || val.startsWith("#")) setTagInput(val);
+              setTagInputString(val);
+              onTagsChange(val.split(",").map(t => t.trim()).filter(t => t.length > 0));
             }}
-            onKeyDown={handleAddTag}
-            placeholder={tags.length === 0 ? "#dalat #saigon #dulich..." : ""}
-            className="flex-1 min-w-[140px] bg-transparent outline-none text-sm py-0.5"
+            placeholder="du lịch, đà lạt, khám phá..."
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-colors"
           />
         </div>
       </div>

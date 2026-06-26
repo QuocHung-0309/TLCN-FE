@@ -7,6 +7,7 @@ import { getAllUsers, deleteUser, toggleUserStatus } from "@/lib/admin/usersApi"
 import { Toast, useToast } from "@/components/ui/Toast";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import AdminPagination from "@/components/admin/AdminPagination";
+import { Users } from "lucide-react";
 
 export default function UsersPage() {
   const [page, setPage] = useState(1);
@@ -80,20 +81,26 @@ export default function UsersPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
-          Quản Lý Người Dùng
-        </h1>
-        <p className="text-slate-600">Quản lý thông tin và quyền hạn của người dùng</p>
-      </div>
-
-      {/* Create Button */}
-      <div className="mb-6">
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 shrink-0">
+            <Users className="h-6 w-6 text-orange-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">
+              Quản lý Người dùng
+            </h1>
+            <p className="text-sm text-slate-500">
+              Quản lý thông tin và quyền hạn của người dùng
+            </p>
+          </div>
+        </div>
         <Link
           href="/admin/users/create"
-          className="inline-block rounded-lg bg-orange-500 px-6 py-3 text-white font-semibold hover:bg-orange-600 transition"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all shrink-0"
         >
-          + Thêm User Mới
+          <i className="ri-user-add-line text-lg"></i>
+          Thêm người dùng
         </Link>
       </div>
 
@@ -198,7 +205,7 @@ export default function UsersPage() {
               <table className="w-full text-sm">
                 <thead className="bg-slate-100 border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700 min-w-[180px]">
                       Họ tên
                     </th>
                     <th className="px-4 py-3 text-left font-semibold text-slate-700">
@@ -233,13 +240,13 @@ export default function UsersPage() {
                       }`}
                     >
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 min-w-[160px]">
                           <img
                             src={user.avatarUrl || user.avatar || "https://i.pinimg.com/1200x/e1/1e/07/e11e07774f7fc24da8e03e769a0f0573.jpg"}
                             alt="avatar"
-                            className="h-8 w-8 rounded-full object-cover"
+                            className="h-8 w-8 rounded-full object-cover shrink-0"
                           />
-                          <span className="font-medium text-slate-900">{user.fullName}</span>
+                          <span className="font-medium text-slate-900 whitespace-nowrap">{user.fullName}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-slate-600">
@@ -259,12 +266,15 @@ export default function UsersPage() {
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
                             user.isActive === "y"
-                              ? "bg-emerald-100 text-emerald-800"
-                              : "bg-red-100 text-red-800"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-red-100 text-red-700"
                           }`}
                         >
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            user.isActive === "y" ? "bg-emerald-500" : "bg-red-500"
+                          }`}></span>
                           {user.isActive === "y" ? "Hoạt động" : "Bị khoá"}
                         </span>
                       </td>

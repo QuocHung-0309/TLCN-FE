@@ -152,17 +152,39 @@ export default function AdminNotificationsPage() {
       showError("Vui lòng nhập tiêu đề và nội dung");
       return;
     }
+    
+    if (formData.targetType === "tour" && !formData.targetTourId?.trim()) {
+      showError("Vui lòng nhập ID của Tour");
+      return;
+    }
+
+    if (formData.targetType === "user" && (!formData.targetUsers || formData.targetUsers.length === 0)) {
+      showError("Vui lòng nhập ID người dùng");
+      return;
+    }
+
+    const submitData = { ...formData };
+    if (!submitData.expiresAt) {
+      delete submitData.expiresAt;
+    }
+    // Clean up unneeded fields based on targetType
+    if (submitData.targetType !== "tour") {
+      delete submitData.targetTourId;
+    }
+    if (submitData.targetType !== "user") {
+      submitData.targetUsers = [];
+    }
 
     setIsSaving(true);
     try {
       if (editingNotification) {
         await adminNotificationApi.updateNotification(
           editingNotification._id,
-          formData
+          submitData
         );
         showSuccess("Đã cập nhật thông báo");
       } else {
-        await adminNotificationApi.createNotification(formData);
+        await adminNotificationApi.createNotification(submitData);
         showSuccess("Đã tạo thông báo mới");
       }
       setShowModal(false);
@@ -599,7 +621,7 @@ export default function AdminNotificationsPage() {
               {formData.targetType === "tour" && (
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                    Tour ID
+                    Tour ID <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -610,9 +632,33 @@ export default function AdminNotificationsPage() {
                         targetTourId: e.target.value,
                       }))
                     }
-                    placeholder="Nhập Tour ID..."
+                    placeholder="Nhập ID của Tour..."
                     className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                   />
+                </div>
+              )}
+
+              {/* Target Users (if targetType === 'user') */}
+              {formData.targetType === "user" && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    User IDs <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.targetUsers?.join(", ") || ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const ids = value.split(",").map(id => id.trim()).filter(id => id.length > 0);
+                      setFormData((prev) => ({
+                        ...prev,
+                        targetUsers: ids,
+                      }));
+                    }}
+                    placeholder="Nhập User IDs, cách nhau bởi dấu phẩy..."
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                  />
+                  <p className="text-xs text-slate-500 mt-1.5 ml-1">Cách nhau bởi dấu phẩy</p>
                 </div>
               )}
 

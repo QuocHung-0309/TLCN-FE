@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminBookings, updateBookingPaymentStatus } from "@/lib/admin/adminBookingApi";
 import { BookingData } from "@/lib/admin/adminBookingApi";
 import { useToast } from "@/components/ui/Toast";
+import { CreditCard } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import AdminPagination from "@/components/admin/AdminPagination";
 
@@ -111,11 +112,20 @@ export default function PaymentManagementPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
-          Quản Lý Thanh Toán
-        </h1>
-        <p className="text-slate-600">Quản lý trạng thái thanh toán cho các booking</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 shrink-0">
+            <CreditCard className="h-6 w-6 text-orange-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">
+              Quản lý Thanh toán
+            </h1>
+            <p className="text-sm text-slate-500">
+              Quản lý trạng thái thanh toán cho các booking
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Filters */}

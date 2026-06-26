@@ -4,15 +4,15 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import {
-  updateUser,
-  getUserById,
-  type UpdateUserBody,
-} from "@/lib/admin/usersApi";
+  updateAdminLeader,
+  getAdminLeaderById,
+  type UpdateLeaderBody,
+} from "@/lib/admin/adminLeaderApi";
 import { validateEmail, validateRequired } from "@/utils/validation";
 import { Toast, useToast } from "@/components/ui/Toast";
 import Link from "next/link";
 
-export default function UserEditPage() {
+export default function LeaderEditPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
@@ -29,22 +29,21 @@ export default function UserEditPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch user data
+  // Fetch leader data
   useEffect(() => {
     (async () => {
       try {
-        const user = await getUserById(id);
-        setFormData((prev) => ({
-          ...prev,
-          fullName: user.fullName || "",
-          username: user.username,
-          email: user.email,
-          phoneNumber: user.phoneNumber || "",
-          address: user.address || "",
-        }));
+        const leader = await getAdminLeaderById(id);
+        setFormData({
+          fullName: leader.fullName || "",
+          username: leader.username,
+          email: leader.email,
+          phoneNumber: leader.phoneNumber || "",
+          address: leader.address || "",
+        });
       } catch {
-        showError("Lỗi tải dữ liệu người dùng");
-        router.push("/admin/users");
+        showError("Lỗi tải dữ liệu hướng dẫn viên");
+        router.push("/admin/leaders");
       } finally {
         setIsLoading(false);
       }
@@ -52,16 +51,16 @@ export default function UserEditPage() {
   }, [id, router]);
 
   const updateMutation = useMutation({
-    mutationFn: (data: UpdateUserBody) => updateUser(id, data),
+    mutationFn: (data: UpdateLeaderBody) => updateAdminLeader(id, data),
     onSuccess: () => {
-      showSuccess("Cập nhật người dùng thành công!");
+      showSuccess("Cập nhật hướng dẫn viên thành công!");
       setTimeout(() => {
-        router.push("/admin/users");
+        router.push("/admin/leaders");
       }, 2000);
     },
     onError: (error: any) => {
       showError(
-        error.response?.data?.message || "Không thể cập nhật người dùng"
+        error.response?.data?.message || "Không thể cập nhật hướng dẫn viên"
       );
     },
   });
@@ -83,7 +82,7 @@ export default function UserEditPage() {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -105,7 +104,7 @@ export default function UserEditPage() {
       return;
     }
 
-    const updateData: UpdateUserBody = {
+    const updateData: UpdateLeaderBody = {
       fullName: formData.fullName,
       username: formData.username,
       email: formData.email,
@@ -141,7 +140,7 @@ export default function UserEditPage() {
           <div className="mb-8 flex items-start justify-between gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
-                Chỉnh Sửa Người Dùng
+                Chỉnh Sửa Hướng Dẫn Viên
               </h1>
               <p className="text-slate-600">
                 Cập nhật thông tin của:{" "}
@@ -149,7 +148,7 @@ export default function UserEditPage() {
               </p>
             </div>
             <Link
-              href="/admin/users"
+              href="/admin/leaders"
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-medium hover:bg-slate-50 transition shadow-sm shrink-0"
             >
               <i className="ri-arrow-left-line"></i>
@@ -166,7 +165,7 @@ export default function UserEditPage() {
                   <i className="ri-user-settings-line text-white text-lg"></i>
                 </div>
                 <div>
-                  <h2 className="font-semibold text-white text-base">Thông tin người dùng</h2>
+                  <h2 className="font-semibold text-white text-base">Thông tin hướng dẫn viên</h2>
                   <p className="text-orange-100 text-xs">Điền đầy đủ các trường bắt buộc (*)</p>
                 </div>
               </div>

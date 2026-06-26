@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { CalendarCheck } from "lucide-react";
 import {
   getAdminBookings,
   deleteAdminBooking,
@@ -123,18 +124,25 @@ export default function BookingsPage() {
       />
 
       {/* Header */}
-      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
-            Quản Lý Đặt Tour
-          </h1>
-          <p className="text-slate-600">Quản lý các đơn đặt tour, thanh toán và trạng thái khách hàng</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 shrink-0">
+            <CalendarCheck className="h-6 w-6 text-orange-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">
+              Quản lý Đặt tour
+            </h1>
+            <p className="text-sm text-slate-500">
+              Quản lý các đơn đặt tour, thanh toán và trạng thái khách hàng
+            </p>
+          </div>
         </div>
         <Link
           href="/admin/bookings/create"
-          className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition font-semibold shadow-lg shadow-orange-500/25 flex items-center gap-2"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all shrink-0"
         >
-          <i className="ri-add-line"></i>
+          <i className="ri-add-line text-lg"></i>
           Tạo Booking
         </Link>
       </div>

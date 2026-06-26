@@ -9,6 +9,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { updateBlogStatus } from '@/lib/admin/adminBlogApi';
 import { ApprovalModal } from './ApprovalModal';
 import AdminPagination from '@/components/admin/AdminPagination';
+import { FileText } from 'lucide-react';
 
 const Page = () => {
   const queryClient = useQueryClient()
@@ -107,21 +108,27 @@ const Page = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
-              Quản Lý Blog
-            </h1>
-            <p className="text-slate-600">Điều phối và biên tập nội dung blog hệ thống</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 shrink-0">
+            <FileText className="h-6 w-6 text-orange-600" />
           </div>
-          <Link
-            href="/admin/blog/create"
-            className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition font-semibold shadow-lg shadow-orange-500/25"
-          >
-            + Viết bài mới
-          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">
+              Quản lý Blog
+            </h1>
+            <p className="text-sm text-slate-500">
+              Điều phối và biên tập nội dung blog hệ thống
+            </p>
+          </div>
         </div>
+        <Link
+          href="/admin/blog/create"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all shrink-0"
+        >
+          <i className="ri-quill-pen-line text-lg"></i>
+          Viết bài mới
+        </Link>
       </div>
 
       {/* Filters Section */}
@@ -228,11 +235,11 @@ const Page = () => {
               <table className="w-full text-sm">
                 <thead className="bg-slate-100 border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-700">Thiết kế & Tác giả</th>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-700">Tóm tắt</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700 min-w-[260px]">Tiêu đề &amp; Tác giả</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700 w-full">Tóm tắt</th>
                     <th className="px-4 py-3 text-left font-semibold text-slate-700 whitespace-nowrap">Trạng thái</th>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-700">Ngày tạo</th>
-                    <th className="px-4 py-3 text-center font-semibold text-slate-700">Thao tác</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700 whitespace-nowrap">Ngày tạo</th>
+                    <th className="px-4 py-3 text-center font-semibold text-slate-700 whitespace-nowrap">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -244,35 +251,35 @@ const Page = () => {
                       }`}
                     >
                       <td className="px-4 py-3">
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-2.5">
                           {blog.coverImageUrl ? (
                             <img
                               src={blog.coverImageUrl}
                               alt="cover"
-                              className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                              className="w-10 h-10 rounded-lg object-cover flex-shrink-0 mt-0.5"
                             />
                           ) : (
-                            <div className="w-12 h-12 rounded-lg bg-slate-200 flex items-center justify-center flex-shrink-0 text-slate-400">
-                               <span className="text-xs">ẢNH</span>
+                            <div className="w-10 h-10 rounded-lg bg-slate-200 flex items-center justify-center flex-shrink-0 mt-0.5 text-slate-400">
+                               <i className="ri-image-line text-sm"></i>
                             </div>
                           )}
-                          <div className="flex-1 min-w-0">
-                            <Link href={`/admin/blog/${blog._id}`} className="font-bold text-slate-900 hover:text-orange-600 transition block truncate mb-1">
+                          <div className="min-w-0">
+                            <Link href={`/admin/blog/${blog._id}`} className="font-semibold text-slate-900 hover:text-orange-600 transition block line-clamp-2 leading-snug mb-1" style={{maxWidth: '220px'}}>
                               {blog.title}
                             </Link>
                             <div className="flex items-center gap-1.5">
-                               <span className="text-xs font-medium px-2 py-0.5 rounded bg-slate-200 text-slate-600">
+                               <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-slate-200 text-slate-600 whitespace-nowrap">
                                  {blog.authorModel === 'User' ? 'Người dùng' : 'Admin'}
                                </span>
-                               <span className="text-xs text-slate-500 truncate">
+                               <span className="text-xs text-slate-500 truncate" style={{maxWidth: '120px'}}>
                                  {(blog.authorId as any)?.fullName || (blog.authorId as any)?.email}
                                </span>
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-slate-600 align-top max-w-[200px]">
-                        <span className="line-clamp-2">{blog.summary || "—"}</span>
+                      <td className="px-4 py-3 text-slate-600 align-top">
+                        <span className="line-clamp-3 text-sm leading-relaxed" style={{maxWidth: '300px'}}>{blog.summary || "—"}</span>
                       </td>
                       <td className="px-4 py-3 align-top whitespace-nowrap">
                         <div className="flex flex-col gap-1.5 items-start">

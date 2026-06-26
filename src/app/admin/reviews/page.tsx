@@ -8,6 +8,7 @@ import { Toast, useToast } from '@/components/ui/Toast';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ReviewTable } from './ReviewTable';
 import AdminPagination from '@/components/admin/AdminPagination';
+import { MessageSquare } from "lucide-react";
 
 const Page = () => {
   const queryClient = useQueryClient()
@@ -109,11 +110,20 @@ const Page = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
-          Quản Lý Bình Luận & Đánh Giá
-        </h1>
-        <p className="text-slate-600">Quản lý các bình luận và đánh giá từ khách hàng</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 shrink-0">
+            <MessageSquare className="h-6 w-6 text-orange-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">
+              Quản lý Bình luận & Đánh giá
+            </h1>
+            <p className="text-sm text-slate-500">
+              Quản lý các bình luận và đánh giá từ khách hàng
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow-md p-6 mb-6">

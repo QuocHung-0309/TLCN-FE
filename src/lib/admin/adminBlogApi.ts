@@ -15,11 +15,15 @@ export type CreateBlogBody = {
   title: string;
   summary?: string;
   content: string;
+  categories?: string[];
   tags?: string[];
   coverImageUrl?: string;
   coverImagePublicId?: string;
   status?: "draft" | "pending" | "published" | "archived" | "rejected";
   privacy?: "public" | "private";
+  locationDetail?: string;
+  province?: string;
+  ward?: string;
 };
 
 /** Body để cập nhật blog */

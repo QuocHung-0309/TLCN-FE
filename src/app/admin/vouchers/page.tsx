@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getAdminVouchers } from "@/lib/admin/adminVoucherApi";
 import VoucherTable from "./VoucherTable";
 import AdminPagination from "@/components/admin/AdminPagination";
+import { Gift } from "lucide-react";
 
 export default function AdminVouchersPage() {
   const router = useRouter();
@@ -33,20 +34,25 @@ export default function AdminVouchersPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
       {/* Header */}
-      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
-            Quản Lý Khuyến Mãi (Vouchers)
-          </h1>
-          <p className="text-slate-600">
-            Quản lý các mã giảm giá, chiến dịch khuyến mãi cho khách hàng
-          </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 shrink-0">
+            <Gift className="h-6 w-6 text-orange-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">
+              Quản lý Khuyến mãi (Vouchers)
+            </h1>
+            <p className="text-sm text-slate-500">
+              Quản lý các mã giảm giá, chiến dịch khuyến mãi cho khách hàng
+            </p>
+          </div>
         </div>
         <button
           onClick={() => router.push("/admin/vouchers/create")}
-          className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2.5 rounded-lg font-medium transition flex items-center gap-2 shadow-sm"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all shrink-0"
         >
-          <i className="ri-add-line"></i>
+          <i className="ri-add-line text-lg"></i>
           Tạo Voucher Mới
         </button>
       </div>

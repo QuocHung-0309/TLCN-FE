@@ -88,18 +88,40 @@ export default function VoucherForm({ initialData, onSubmit, isPending, title }:
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{title}</h1>
+    <div className="mx-auto max-w-4xl">
+      {/* Header */}
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
+            {title}
+          </h1>
+          <p className="text-slate-600">
+            Quản lý thông tin và cấu hình mã khuyến mãi
+          </p>
+        </div>
         <button
           onClick={() => router.back()}
-          className="text-gray-600 hover:text-gray-900 transition flex items-center"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-medium hover:bg-slate-50 transition shadow-sm shrink-0"
         >
-          <i className="ri-arrow-left-line mr-2"></i> Quay lại
+          <i className="ri-arrow-left-line"></i>
+          Quay lại
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        {/* Form Card Header */}
+        <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-orange-500 to-orange-600">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+              <i className="ri-ticket-2-line text-white text-lg"></i>
+            </div>
+            <div>
+              <h2 className="font-semibold text-white text-base">Thông tin Khuyến mãi</h2>
+              <p className="text-orange-100 text-xs">Điền đầy đủ các trường bắt buộc (*)</p>
+            </div>
+          </div>
+        </div>
+
         <div className="p-6 md:p-8 space-y-8">
           
           {/* Thông tin cơ bản */}
@@ -353,20 +375,20 @@ export default function VoucherForm({ initialData, onSubmit, isPending, title }:
 
         </div>
 
-        <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
+        <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-end gap-3 rounded-b-2xl">
           <button
             type="button"
             onClick={() => router.back()}
-            className="px-6 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition font-medium"
+            className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-100 transition font-semibold text-sm"
           >
             Hủy
           </button>
           <button
             type="submit"
             disabled={isPending}
-            className="px-8 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-medium disabled:opacity-50 flex items-center"
+            className="px-8 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition font-semibold text-sm shadow-lg shadow-orange-500/25 disabled:opacity-50 flex items-center gap-2"
           >
-            {isPending && <i className="ri-loader-4-line animate-spin mr-2"></i>}
+            {isPending ? <i className="ri-loader-4-line animate-spin"></i> : <i className="ri-save-line"></i>}
             Lưu Voucher
           </button>
         </div>
