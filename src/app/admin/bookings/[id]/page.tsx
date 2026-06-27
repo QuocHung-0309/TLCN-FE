@@ -179,34 +179,43 @@ export default function BookingDetailPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
         <div className="mx-auto max-w-4xl">
           {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-4 mb-4">
-              <Link
-                href="/admin/bookings"
-                className="p-2 hover:bg-slate-200 rounded-lg transition"
-              >
-                ← Quay lại
-              </Link>
+          <div className="mb-6 flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 shrink-0">
+                <i className="ri-file-list-3-line text-orange-600 text-2xl"></i>
+              </div>
               <div>
-                <h1 className="text-3xl font-bold text-slate-900">
+                <h1 className="text-2xl font-bold text-slate-800">
                   Chi tiết đơn đặt tour
                 </h1>
-                <p className="text-slate-600">Mã đơn: <span className="font-semibold">{booking.code}</span></p>
+                <div className="flex items-center gap-3 mt-1">
+                  <p className="text-sm text-slate-500">Mã đơn: <span className="font-semibold text-slate-700">{booking.code}</span></p>
+                  <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
+                  <div className="flex gap-2">
+                    {getStatusBadge(booking.bookingStatus)}
+                    {getPaymentStatusBadge(booking)}
+                  </div>
+                </div>
               </div>
             </div>
-            
-            <div className="flex flex-wrap items-center gap-4">
-              {getStatusBadge(booking.bookingStatus)}
-              {getPaymentStatusBadge(booking)}
-            </div>
+            <Link
+              href="/admin/bookings"
+              className="flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50 transition-all shrink-0"
+            >
+              <i className="ri-arrow-left-line text-lg"></i>
+              Quay lại
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main Info */}
             <div className="lg:col-span-2 space-y-6">
               {/* Customer Info */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold text-slate-900 mb-4">Thông tin khách hàng</h2>
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
+                <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <i className="ri-user-smile-line text-orange-500 text-xl"></i> 
+                  Thông tin khách hàng
+                </h2>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Họ tên</label>
@@ -228,8 +237,11 @@ export default function BookingDetailPage() {
               </div>
 
               {/* Tour Info */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold text-slate-900 mb-4">Thông tin tour</h2>
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
+                <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <i className="ri-map-pin-line text-orange-500 text-xl"></i>
+                  Thông tin tour
+                </h2>
                 <div className="space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Tên tour</label>
@@ -253,9 +265,12 @@ export default function BookingDetailPage() {
               </div>
 
               {/* Payment History */}
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-slate-900">Lịch sử thanh toán</h2>
+                  <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <i className="ri-history-line text-orange-500 text-xl"></i>
+                    Lịch sử thanh toán
+                  </h2>
                   <Link
                     href={`/admin/bookings/${booking._id}/payment-history`}
                     className="text-blue-950 hover:text-emerald-700 text-sm font-medium"
@@ -287,8 +302,11 @@ export default function BookingDetailPage() {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Payment Summary */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold text-slate-900 mb-4">Tóm tắt thanh toán</h2>
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
+                <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <i className="ri-wallet-3-line text-orange-500 text-xl"></i>
+                  Tóm tắt thanh toán
+                </h2>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-slate-700">Tổng giá:</span>
@@ -311,8 +329,11 @@ export default function BookingDetailPage() {
               </div>
 
               {/* Booking Info */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold text-slate-900 mb-4">Thông tin đặt tour</h2>
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
+                <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <i className="ri-information-line text-orange-500 text-xl"></i>
+                  Thông tin đặt tour
+                </h2>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-slate-700">Ngày đặt:</span>
@@ -330,8 +351,11 @@ export default function BookingDetailPage() {
               </div>
 
               {/* Actions */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold text-slate-900 mb-4">Hành động</h2>
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
+                <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <i className="ri-settings-4-line text-orange-500 text-xl"></i>
+                  Hành động
+                </h2>
                 <div className="space-y-3">
                   {booking.bookingStatus === "pending" && (
                     <>
@@ -347,9 +371,13 @@ export default function BookingDetailPage() {
                           )
                         }
                         disabled={activeAction === "confirm"}
-                        className="w-full px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
+                        className="w-full px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl hover:from-emerald-600 hover:to-emerald-700 font-semibold shadow-lg shadow-emerald-500/20 transition disabled:opacity-50 flex items-center justify-center gap-2"
                       >
-                        {activeAction === "confirm" ? "Đang xử lý..." : "Xác nhận đơn"}
+                        {activeAction === "confirm" ? (
+                          <><div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" /> Đang xử lý...</>
+                        ) : (
+                          <><i className="ri-check-line"></i> Xác nhận đơn</>
+                        )}
                       </button>
                       <button
                         onClick={() =>
@@ -363,9 +391,13 @@ export default function BookingDetailPage() {
                           )
                         }
                         disabled={activeAction === "cancel"}
-                        className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+                        className="w-full px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 font-semibold shadow-lg shadow-red-500/20 transition disabled:opacity-50 flex items-center justify-center gap-2"
                       >
-                        {activeAction === "cancel" ? "Đang xử lý..." : "Hủy đơn"}
+                        {activeAction === "cancel" ? (
+                          <><div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" /> Đang xử lý...</>
+                        ) : (
+                          <><i className="ri-close-line"></i> Hủy đơn</>
+                        )}
                       </button>
                     </>
                   )}
@@ -384,9 +416,13 @@ export default function BookingDetailPage() {
                         )
                       }
                       disabled={activeAction === "payment"}
-                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                      className="w-full px-4 py-2.5 bg-gradient-to-r from-sky-500 to-sky-600 text-white rounded-xl hover:from-sky-600 hover:to-sky-700 font-semibold shadow-lg shadow-sky-500/20 transition disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                      {activeAction === "payment" ? "Đang xử lý..." : "Xác nhận thanh toán"}
+                      {activeAction === "payment" ? (
+                        <><div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" /> Đang xử lý...</>
+                      ) : (
+                        <><i className="ri-money-dollar-circle-line"></i> Xác nhận thanh toán</>
+                      )}
                     </button>
                   )}
 
@@ -404,9 +440,13 @@ export default function BookingDetailPage() {
                         )
                       }
                       disabled={activeAction === "deposit"}
-                      className="w-full px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition disabled:opacity-50"
+                      className="w-full px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 font-semibold shadow-lg shadow-amber-500/20 transition disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                      {activeAction === "deposit" ? "Đang xử lý..." : "Xác nhận đặt cọc"}
+                      {activeAction === "deposit" ? (
+                        <><div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" /> Đang xử lý...</>
+                      ) : (
+                        <><i className="ri-copper-coin-line"></i> Xác nhận đặt cọc</>
+                      )}
                     </button>
                   )}
 
@@ -423,9 +463,13 @@ export default function BookingDetailPage() {
                         )
                       }
                       disabled={activeAction === "refund"}
-                      className="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition disabled:opacity-50"
+                      className="w-full px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 font-semibold shadow-lg shadow-orange-500/20 transition disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                      {activeAction === "refund" ? "Đang xử lý..." : "Hoàn tiền"}
+                      {activeAction === "refund" ? (
+                        <><div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" /> Đang xử lý...</>
+                      ) : (
+                        <><i className="ri-refund-2-line"></i> Hoàn tiền</>
+                      )}
                     </button>
                   )}
                 </div>

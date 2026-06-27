@@ -53,14 +53,18 @@ export default function AdminTourDetail() {
   const [startDateFilter, setStartDateFilter] = useState<string>("");
   const [endDateFilter, setEndDateFilter] = useState<string>("");
 
+  const [appliedStatus, setAppliedStatus] = useState<string>("");
+  const [appliedStartDate, setAppliedStartDate] = useState<string>("");
+  const [appliedEndDate, setAppliedEndDate] = useState<string>("");
+
   // ─── Departures ───────────────────────────────────────────────
   const { data: depData, isLoading: depLoading } = useQuery({
-    queryKey: ["adminDepartures", tourId, statusFilter, startDateFilter, endDateFilter],
+    queryKey: ["adminDepartures", tourId, appliedStatus, appliedStartDate, appliedEndDate],
     queryFn: () => listDeparturesAdmin(tourId, { 
       limit: 100, 
-      status: statusFilter || undefined,
-      startDate: startDateFilter || undefined,
-      endDate: endDateFilter || undefined,
+      status: appliedStatus || undefined,
+      startDate: appliedStartDate || undefined,
+      endDate: appliedEndDate || undefined,
     }),
     enabled: !!tourId,
   });
@@ -413,20 +417,23 @@ export default function AdminTourDetail() {
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 shrink-0">
+              <i className="ri-calendar-event-line text-orange-600 text-2xl"></i>
+            </div>
             <div>
-              <Link
-                href="/admin/tours"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm text-sm font-medium text-slate-600 hover:text-orange-600 hover:shadow-md transition mb-4"
-              >
-                <i className="ri-arrow-left-line"></i>
-                Quản lý Tours
-              </Link>
-              <h1 className="text-xl md:text-2xl font-bold text-slate-900">{tour.title}</h1>
-              <p className="text-slate-600 mt-1">📍 {tour.destination}</p>
+              <h1 className="text-2xl font-bold text-slate-800">{tour?.title || 'Đang tải...'}</h1>
+              <p className="text-sm text-slate-500">📍 {tour?.destination || 'Đang tải...'}</p>
             </div>
           </div>
+          <Link
+            href="/admin/tours"
+            className="flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50 transition-all shrink-0"
+          >
+            <i className="ri-arrow-left-line text-lg"></i>
+            Quay lại
+          </Link>
         </div>
 
         {/* Tour Info Cards */}
@@ -451,7 +458,8 @@ export default function AdminTourDetail() {
           ))}
         </div>
 
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 mb-8">
+        {/* Bộ lọc */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">
@@ -464,7 +472,7 @@ export default function AdminTourDetail() {
                 <select
                   value={statusFilter}
                   onChange={(e) => { setStatusFilter(e.target.value); }}
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent text-sm bg-slate-50 transition appearance-none outline-none"
+                  className="w-full pl-10 pr-10 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent text-sm bg-slate-50 transition appearance-none outline-none"
                 >
                   <option value="">Tất cả trạng thái</option>
                   <option value="pending">Chờ xác nhận</option>
@@ -515,7 +523,12 @@ export default function AdminTourDetail() {
 
             <div className="flex items-end">
                <button
-                 className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-bold text-sm transition shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2"
+                 onClick={() => {
+                   setAppliedStatus(statusFilter);
+                   setAppliedStartDate(startDateFilter);
+                   setAppliedEndDate(endDateFilter);
+                 }}
+                 className="w-full h-[42px] bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-bold text-sm transition shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2"
                >
                  <i className="ri-search-line"></i>
                  Tìm kiếm
@@ -523,13 +536,16 @@ export default function AdminTourDetail() {
             </div>
           </div>
 
-          {(statusFilter || startDateFilter || endDateFilter) && (
+          {(appliedStatus || appliedStartDate || appliedEndDate) && (
             <div className="mt-4 flex justify-end">
               <button 
                 onClick={() => {
                   setStatusFilter("");
                   setStartDateFilter("");
                   setEndDateFilter("");
+                  setAppliedStatus("");
+                  setAppliedStartDate("");
+                  setAppliedEndDate("");
                 }}
                 className="text-xs text-slate-400 hover:text-orange-600 transition flex items-center gap-1.5"
               >
@@ -540,19 +556,26 @@ export default function AdminTourDetail() {
         </div>
 
         {/* BẢNG LỊCH KHỞI HÀNH */}
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 mb-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-black text-slate-900 flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center">
-                <i className="ri-calendar-event-fill text-xl"></i>
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 shrink-0">
+                <i className="ri-calendar-event-line text-orange-600 text-2xl"></i>
               </div>
-              Danh Sách Lịch Khởi Hành
-            </h2>
+              <div>
+                <h2 className="text-xl font-bold text-slate-800">
+                  Danh sách Lịch Khởi Hành
+                </h2>
+                <p className="text-sm text-slate-500">
+                  Quản lý các chuyến đi của tour này
+                </p>
+              </div>
+            </div>
             <button
-              className={`px-5 py-2.5 rounded-lg font-semibold transition text-sm flex items-center gap-2 ${
+              className={`px-5 py-2.5 rounded-xl font-semibold transition-all text-sm flex items-center gap-2 ${
                 showCreateForm 
                   ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' 
-                  : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-lg shadow-orange-500/25'
+                  : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-lg shadow-orange-500/25 shrink-0'
               }`}
               onClick={() => setShowCreateForm(v => !v)}
             >

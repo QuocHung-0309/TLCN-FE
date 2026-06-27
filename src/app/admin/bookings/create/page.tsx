@@ -42,6 +42,14 @@ export default function AdminCreateBookingPage() {
   const selectedTour = toursData?.data?.find((t) => t._id === selectedTourId);
   const selectedDeparture = departuresData?.data?.find((d: any) => d._id === selectedDepartureId);
 
+  // Lọc ra các lịch trình chưa xuất phát (trong tương lai hoặc hôm nay)
+  const upcomingDepartures = useMemo(() => {
+    if (!departuresData?.data) return [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return departuresData.data.filter((d: any) => new Date(d.startDate) >= today);
+  }, [departuresData?.data]);
+
   const priceAdult = selectedDeparture?.priceAdult || selectedTour?.priceAdult || 0;
   const priceChild = selectedDeparture?.priceChild || selectedTour?.priceChild || Math.round(Number(priceAdult) * 0.6);
   
@@ -136,7 +144,7 @@ export default function AdminCreateBookingPage() {
             {/* Step 1: Chọn Tour & Lịch trình */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center shadow-sm border border-orange-100">
                   <i className="ri-map-2-line text-xl"></i>
                 </div>
                 <h2 className="text-xl font-bold text-slate-800">1. Chọn Tour & Lịch khởi hành</h2>
@@ -144,21 +152,29 @@ export default function AdminCreateBookingPage() {
 
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Tìm kiếm Tên tour <span className="text-red-500">*</span></label>
-                  <select
-                    value={selectedTourId}
-                    onChange={(e) => {
-                      setSelectedTourId(e.target.value);
-                      setSelectedDepartureId("");
-                    }}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:bg-white outline-none transition text-sm font-medium"
-                    required
-                  >
-                    <option value="">-- Chọn một tour từ danh sách --</option>
-                    {toursData?.data?.map((t) => (
-                      <option key={t._id} value={t._id}>{t.title}</option>
-                    ))}
-                  </select>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Chọn Tour <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                      <i className="ri-search-line text-lg"></i>
+                    </span>
+                    <select
+                      value={selectedTourId}
+                      onChange={(e) => {
+                        setSelectedTourId(e.target.value);
+                        setSelectedDepartureId("");
+                      }}
+                      className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 focus:bg-white outline-none transition text-sm font-medium appearance-none"
+                      required
+                    >
+                      <option value="">-- Chọn một tour từ danh sách --</option>
+                      {toursData?.data?.map((t) => (
+                        <option key={t._id} value={t._id}>{t.title}</option>
+                      ))}
+                    </select>
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                      <i className="ri-arrow-down-s-line text-xl"></i>
+                    </span>
+                  </div>
                 </div>
 
                 {selectedTourId && (
@@ -174,28 +190,33 @@ export default function AdminCreateBookingPage() {
                         {/* Scrollable departures list */}
                         <div className="max-h-[320px] overflow-y-auto pr-2 custom-scrollbar">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {departuresData?.data?.length > 0 ? (
-                              departuresData.data.map((d: any) => (
+                            {upcomingDepartures.length > 0 ? (
+                              upcomingDepartures.map((d: any) => (
                                 <div
                                   key={d._id}
                                   onClick={() => setSelectedDepartureId(d._id)}
-                                  className={`p-4 border-2 rounded-2xl cursor-pointer transition-all ${
+                                  className={`p-5 rounded-2xl cursor-pointer transition-all duration-300 relative overflow-hidden ${
                                     selectedDepartureId === d._id
-                                      ? "border-orange-500 bg-orange-50/40 ring-4 ring-orange-500/5"
-                                      : "border-slate-100 bg-slate-50 hover:border-slate-200"
+                                      ? "bg-gradient-to-br from-orange-50 to-orange-100/50 border-2 border-orange-400 shadow-md shadow-orange-500/10"
+                                      : "bg-white border border-slate-200 hover:border-orange-300 hover:shadow-md hover:-translate-y-0.5"
                                   }`}
                                 >
-                                  <div className="flex justify-between items-start mb-2">
-                                    <span className="font-bold text-slate-900 text-base">{localFormatDate(d.startDate)}</span>
-                                    <span className={`text-[10px] px-2 py-0.5 rounded-lg font-bold uppercase tracking-wider ${d.current_guests >= d.max_guests ? "bg-red-100 text-red-600" : "bg-emerald-100 text-blue-950"}`}>
+                                  {selectedDepartureId === d._id && (
+                                    <div className="absolute top-0 right-0 bg-orange-400 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">
+                                      <i className="ri-check-line"></i> Đã chọn
+                                    </div>
+                                  )}
+                                  <div className="flex justify-between items-start mb-3">
+                                    <span className="font-bold text-slate-800 text-lg">{localFormatDate(d.startDate)}</span>
+                                    <span className={`text-[10px] px-2.5 py-1 rounded-md font-bold uppercase tracking-wider ${d.current_guests >= d.max_guests ? "bg-red-50 text-red-600 border border-red-100" : "bg-emerald-50 text-emerald-600 border border-emerald-100"}`}>
                                       {d.max_guests - d.current_guests} Chỗ trống
                                     </span>
                                   </div>
-                                  <div className="text-xs text-slate-500 mb-3 flex items-center gap-1">
-                                    <i className="ri-calendar-check-line"></i>
-                                    Kết thúc: {localFormatDate(d.endDate)}
+                                  <div className="text-xs text-slate-500 mb-4 flex items-center gap-1.5 font-medium">
+                                    <i className="ri-calendar-check-line text-slate-400"></i>
+                                    Đến: {localFormatDate(d.endDate)}
                                   </div>
-                                  <div className="text-base font-black text-orange-600">{localFormatVND(d.priceAdult || selectedTour?.priceAdult || 0)}</div>
+                                  <div className="text-lg font-black text-orange-600 tracking-tight">{localFormatVND(d.priceAdult || selectedTour?.priceAdult || 0)}</div>
                                 </div>
                               ))
                             ) : (
@@ -215,7 +236,7 @@ export default function AdminCreateBookingPage() {
             {/* Step 2: Số lượng hành khách */}
             <div className={`bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8 transition-all ${!selectedDepartureId ? "opacity-40 grayscale pointer-events-none" : "opacity-100"}`}>
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm border border-blue-100">
                   <i className="ri-group-line text-xl"></i>
                 </div>
                 <h2 className="text-xl font-bold text-slate-800">2. Số lượng hành khách</h2>
@@ -275,8 +296,8 @@ export default function AdminCreateBookingPage() {
             {/* Step 3: Thông tin liên hệ */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-emerald-100 text-blue-950 rounded-full flex items-center justify-center">
-                  <i className="ri-contacts-book-line text-xl"></i>
+                <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shadow-sm border border-emerald-100">
+                  <i className="ri-contacts-book-2-line text-xl"></i>
                 </div>
                 <h2 className="text-xl font-bold text-slate-800">3. Thông tin liên hệ</h2>
               </div>
@@ -369,8 +390,8 @@ export default function AdminCreateBookingPage() {
               <div className="space-y-6">
                 <div>
                   <label className="block text-[10px] font-black text-slate-400 uppercase mb-3 tracking-[2px]">Kiểu thanh toán</label>
-                  <div className="space-y-2.5">
-                    <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${paymentType === 'full' ? 'border-orange-500 bg-orange-50/40 ring-4 ring-orange-500/5' : 'border-slate-50 bg-slate-50/50 hover:border-slate-100'}`}>
+                  <div className="space-y-3">
+                    <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${paymentType === 'full' ? 'border-orange-500 bg-orange-50/30' : 'border-slate-100 bg-white hover:border-slate-300'}`}>
                       <input 
                         type="radio" 
                         name="paymentType" 
@@ -384,7 +405,7 @@ export default function AdminCreateBookingPage() {
                       </div>
                     </label>
 
-                    <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${!canDeposit ? 'opacity-40 grayscale cursor-not-allowed border-slate-50' : (paymentType === 'deposit' ? 'border-orange-500 bg-orange-50/40 ring-4 ring-orange-500/5' : 'border-slate-50 bg-slate-50/50 hover:border-slate-100')}`}>
+                    <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${!canDeposit ? 'opacity-40 grayscale cursor-not-allowed border-slate-100 bg-slate-50' : (paymentType === 'deposit' ? 'border-orange-500 bg-orange-50/30' : 'border-slate-100 bg-white hover:border-slate-300')}`}>
                       <input 
                         type="radio" 
                         name="paymentType" 
@@ -442,7 +463,7 @@ export default function AdminCreateBookingPage() {
                   <button
                     type="submit"
                     disabled={mutation.isPending || !selectedDepartureId}
-                    className="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black text-lg shadow-xl hover:bg-black transition-all active:scale-[0.98] disabled:opacity-30 disabled:grayscale disabled:scale-100"
+                    className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl font-bold text-base shadow-lg shadow-orange-500/30 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                   >
                     {mutation.isPending ? (
                       <span className="flex items-center justify-center gap-3">

@@ -22,11 +22,15 @@ import {
   Star,
   Filter,
   ChevronRight,
+  Camera,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 import VnpayPayButton from "@/app/user/checkout/VnpayPayButton";
+import MemoryModal from "@/components/MemoryModal";
 
 type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled";
 
@@ -157,6 +161,7 @@ export default function HistoryPage() {
   const [cancelingCode, setCancelingCode] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<MyBookingItem | null>(null);
   const [reviewTarget, setReviewTarget] = useState<{ id: string; title: string } | null>(null);
+  const [memoryBookingId, setMemoryBookingId] = useState<string | null>(null);
 
   const accessToken =
     useAuthStore((s) => s.token.accessToken) || getUserToken();
@@ -490,12 +495,22 @@ export default function HistoryPage() {
                             Chi tiết
                           </Link>
                           {booking.bookingStatus === "completed" && (
-                            <button
-                              onClick={() => setReviewTarget({ id: booking.tourId || "", title: booking.tourTitle || "" })}
-                              className="px-5 py-2 rounded-lg bg-orange-600 text-white text-sm font-bold hover:bg-orange-700 transition-colors"
-                            >
-                              Đánh giá
-                            </button>
+                            <>
+                              <button
+                                onClick={() => setMemoryBookingId(booking._id)}
+                                className="px-5 py-2 rounded-lg bg-emerald-500 text-white text-sm font-bold hover:bg-emerald-600 transition-colors flex items-center gap-1.5"
+                              >
+                                <Camera className="w-4 h-4" />
+                                Kỷ niệm
+                              </button>
+                              <button
+                                onClick={() => setReviewTarget({ id: booking.tourId || "", title: booking.tourTitle || "" })}
+                                className="px-5 py-2 rounded-lg bg-orange-600 text-white text-sm font-bold hover:bg-orange-700 transition-colors flex items-center gap-1.5"
+                              >
+                                <Star className="w-4 h-4" />
+                                Đánh giá
+                              </button>
+                            </>
                           )}
                         </div>
                       </div>
@@ -592,12 +607,24 @@ export default function HistoryPage() {
       {/* REVIEW MODAL */}
       <AnimatePresence>
         {reviewTarget && (
-          <ReviewModal
-            tour={reviewTarget}
-            onClose={() => setReviewTarget(null)}
-            onSuccess={() => setReviewTarget(null)}
-          />
-        )}
+        <ReviewModal
+          tour={reviewTarget}
+          onClose={() => setReviewTarget(null)}
+          onSuccess={() => setReviewTarget(null)}
+        />
+      )}
+      {memoryBookingId && (
+        <MemoryModal
+          isOpen={true}
+          onClose={() => setMemoryBookingId(null)}
+          bookingId={memoryBookingId}
+          onSuccess={() => {
+            setMemoryBookingId(null);
+            toast.success("Đã đăng kỷ niệm thành công!");
+          }}
+          defaultPrivacy="public"
+        />
+      )}
       </AnimatePresence>
     </div>
   );

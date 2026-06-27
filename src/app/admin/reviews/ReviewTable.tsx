@@ -1,120 +1,109 @@
 "use client";
-import { ColumnDef } from "@tanstack/react-table";
-import { useMemo } from "react";
-import { GenericTable } from "@/shared/GenericTable";
+
 import { ReviewData } from "@/lib/admin/adminReviewApi";
 
 interface Props {
   data: ReviewData[];
-  onEdit?: (reviewId: string, rating: number, comment: string) => void;
   onDelete?: (reviewId: string, userName: string) => void;
   isDeleting?: boolean;
 }
 
-export function ReviewTable({ data, onEdit, onDelete, isDeleting }: Props) {
-  const columns = useMemo<ColumnDef<ReviewData>[]>(
-    () => [
-      {
-        header: "Tên Tác giả",
-        accessorKey: "userId.fullName",
-        cell: ({ row }) => {
-          const review = row.original;
-          if (!review.userId) {
-            return <span className="text-slate-500">Người dùng đã bị xóa</span>;
-          }
-          return (
-            <div className="flex gap-2 mr-6">
-              <img
-                src={review.userId.avatarUrl || "/default-avatar.png"}
-                alt=""
-                className="h-6 w-6 object-cover rounded-full"
-              />
-              <div className="flex flex-col">
-                <h2 className="clamp-1">{review.userId.fullName}</h2>
-                <h4 className="text-xs text-slate-500">
-                  @{review.userId.username}
-                </h4>
-              </div>
-            </div>
-          );
-        },
-      },
-      {
-        header: "Rating",
-        accessorKey: "rating",
-        cell: ({ getValue }) => {
-          const rating = getValue() as number;
-          return (
-            <div className="flex gap-1">
-              {[...Array(5)].map((_, i) => (
-                <i
-                  key={i}
-                  className={`ri-star-${
-                    i < rating ? "fill" : "line"
-                  } text-yellow-500`}
-                ></i>
-              ))}
-            </div>
-          );
-        },
-      },
-      {
-        header: "Nội dung",
-        accessorKey: "comment",
-        cell: ({ getValue }) => {
-          const value = getValue() as string;
-          return (
-            <span className="clamp-2">{value || "Không có bình luận"}</span>
-          );
-        },
-      },
-      {
-        header: "Ngày đăng",
-        accessorKey: "createdAt",
-        cell: ({ getValue }) => {
-          const date = new Date(getValue() as string);
-          return (
-            <span className="text-[#667085]">
-              {date.toLocaleDateString("vi-VN")}
-            </span>
-          );
-        },
-      },
-      {
-        header: "Action",
-        accessorKey: "action",
-        cell: ({ row }) => {
-          const review = row.original;
-          return (
-            <div className="flex gap-2 justify-center">
-              <button
-                onClick={() =>
-                  onEdit?.(review._id, review.rating, review.comment)
-                }
-                className="p-2 text-blue-950 hover:bg-emerald-50 rounded-lg transition"
-                title="Chỉnh sửa"
-              >
-                <i className="ri-pencil-line text-lg"></i>
-              </button>
-              <button
-                onClick={() => onDelete?.(review._id, review.userId.fullName)}
-                disabled={isDeleting}
-                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
-                title="Xóa"
-              >
-                <i className="ri-delete-bin-6-line text-lg"></i>
-              </button>
-            </div>
-          );
-        },
-      },
-    ],
-    [onEdit, onDelete, isDeleting]
-  );
+export function ReviewTable({ data, onDelete, isDeleting }: Props) {
+  if (data.length === 0) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <p className="text-gray-500">Không có bình luận nào</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="[&>div]:!border-0 [&>div]:!shadow-none [&>div]:!rounded-none">
-      <GenericTable data={data} columns={columns} />
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead className="bg-slate-50 border-b border-slate-100">
+          <tr>
+            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[250px]">
+              Tác giả
+            </th>
+            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">
+              Đánh giá
+            </th>
+            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Nội dung
+            </th>
+            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[120px]">
+              Ngày đăng
+            </th>
+            <th className="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-[120px]">
+              Hành động
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100 bg-white">
+          {data.map((review) => (
+            <tr key={review._id} className="hover:bg-slate-50/80 transition-colors group">
+              <td className="px-6 py-4 whitespace-nowrap">
+                {!review.userId ? (
+                  <span className="text-slate-400 italic text-sm">Người dùng đã bị xóa</span>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={review.userId.avatarUrl || "/default-avatar.png"}
+                      alt=""
+                      className="h-10 w-10 object-cover rounded-full border-2 border-white shadow-sm"
+                    />
+                    <div className="flex flex-col">
+                      <h2 className="text-sm font-bold text-slate-800 max-w-[150px] truncate" title={review.userId.fullName}>
+                        {review.userId.fullName}
+                      </h2>
+                      <h4 className="text-[11px] text-slate-500 font-medium">
+                        @{review.userId.username}
+                      </h4>
+                    </div>
+                  </div>
+                )}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="flex gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <i
+                      key={i}
+                      className={`text-lg ${
+                        i < review.rating ? "ri-star-fill text-yellow-400" : "ri-star-line text-slate-200"
+                      }`}
+                    ></i>
+                  ))}
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <p className="text-sm text-slate-600 line-clamp-2" title={review.comment}>
+                  {review.comment || <span className="text-slate-400 italic">Không có nội dung</span>}
+                </p>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm text-slate-700 font-medium">
+                  {new Date(review.createdAt).toLocaleDateString("vi-VN")}
+                </div>
+                <div className="text-[11px] text-slate-400">
+                  {new Date(review.createdAt).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' })}
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="flex gap-2 justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => onDelete?.(review._id, review.userId?.fullName || "Người dùng ẩn")}
+                    disabled={isDeleting}
+                    className="w-8 h-8 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-50"
+                    title="Xóa"
+                  >
+                    <i className="ri-delete-bin-6-line text-[17px]"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

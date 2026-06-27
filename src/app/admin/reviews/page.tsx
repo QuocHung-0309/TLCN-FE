@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
-import { getAdminReviews, deleteAdminReview, updateAdminReview } from '@/lib/admin/adminReviewApi';
+import { getAdminReviews, deleteAdminReview } from '@/lib/admin/adminReviewApi';
 import { Toast, useToast } from '@/components/ui/Toast';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ReviewTable } from './ReviewTable';
@@ -17,28 +17,35 @@ const Page = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  
+  // State cho bộ lọc thực tế (chỉ cập nhật khi ấn Tìm kiếm)
+  const [querySearchTerm, setQuerySearchTerm] = useState('')
+  const [queryStartDate, setQueryStartDate] = useState('')
+  const [queryEndDate, setQueryEndDate] = useState('')
+
   const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; reviewId: string; userName: string }>({
     isOpen: false,
     reviewId: '',
     userName: ''
   })
-  const [editModal, setEditModal] = useState<{
-    isOpen: boolean
-    reviewId: string
-    rating: number
-    comment: string
-  }>({ isOpen: false, reviewId: '', rating: 5, comment: '' })
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["adminReviews", page, searchTerm, startDate, endDate],
+    queryKey: ["adminReviews", page, querySearchTerm, queryStartDate, queryEndDate],
     queryFn: () => getAdminReviews({
       page,
-      limit: 20,
-      search: searchTerm || undefined,
-      startDate: startDate || undefined,
-      endDate: endDate || undefined,
+      limit: 50,
+      search: querySearchTerm || undefined,
+      startDate: queryStartDate || undefined,
+      endDate: queryEndDate || undefined,
     }),
   })
+
+  const handleSearch = () => {
+    setQuerySearchTerm(searchTerm)
+    setQueryStartDate(startDate)
+    setQueryEndDate(endDate)
+    setPage(1)
+  }
 
   const deleteMutation = useMutation({
     mutationFn: (reviewId: string) => deleteAdminReview(reviewId),
@@ -53,18 +60,6 @@ const Page = () => {
     }
   })
 
-  const updateMutation = useMutation({
-    mutationFn: (data: { reviewId: string; rating: number; comment: string }) =>
-      updateAdminReview(data.reviewId, { rating: data.rating, comment: data.comment }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminReviews'] })
-      showSuccess('Cập nhật bình luận thành công!')
-      setEditModal({ isOpen: false, reviewId: '', rating: 5, comment: '' })
-    },
-    onError: (error: any) => {
-      showError(error.response?.data?.message || 'Không thể cập nhật bình luận')
-    }
-  })
 
   const handleDelete = (reviewId: string, userName: string) => {
     setConfirmDelete({ isOpen: true, reviewId, userName })
@@ -76,26 +71,11 @@ const Page = () => {
     }
   }
 
-  const handleEdit = (reviewId: string, rating: number, comment: string) => {
-    setEditModal({ isOpen: true, reviewId, rating, comment })
-  }
-
-  const handleUpdateSubmit = () => {
-    if (editModal.rating < 1 || editModal.rating > 5) {
-      showError('Rating phải từ 1 đến 5')
-      return
-    }
-    updateMutation.mutate({
-      reviewId: editModal.reviewId,
-      rating: editModal.rating,
-      comment: editModal.comment
-    })
-  }
 
   if (isLoading)
     return (
       <div className="flex justify-center items-center min-h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
       </div>
     )
 
@@ -117,17 +97,17 @@ const Page = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
-              Quản lý Bình luận & Đánh giá
+              Quản lý Đánh giá
             </h1>
             <p className="text-sm text-slate-500">
-              Quản lý các bình luận và đánh giá từ khách hàng
+              Quản lý các đánh giá từ khách hàng
             </p>
           </div>
         </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow-md p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Search Input */}
           <div className="lg:col-span-2">
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Tìm kiếm</label>
@@ -139,11 +119,11 @@ const Page = () => {
                 type="text"
                 placeholder="Tên khách hàng, nội dung đánh giá..."
                 value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value)
-                  setPage(1)
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSearch()
                 }}
-                className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent text-sm bg-slate-50 transition outline-none"
+                className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent text-sm bg-slate-50 transition outline-none"
               />
             </div>
           </div>
@@ -158,11 +138,11 @@ const Page = () => {
               <input
                 type="date"
                 value={startDate}
-                onChange={(e) => {
-                  setStartDate(e.target.value)
-                  setPage(1)
+                onChange={(e) => setStartDate(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSearch()
                 }}
-                className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent text-sm bg-slate-50 transition outline-none"
+                className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent text-sm bg-slate-50 transition outline-none"
               />
             </div>
           </div>
@@ -176,35 +156,39 @@ const Page = () => {
               <input
                 type="date"
                 value={endDate}
-                onChange={(e) => {
-                  setEndDate(e.target.value)
-                  setPage(1)
+                onChange={(e) => setEndDate(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSearch()
                 }}
-                className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent text-sm bg-slate-50 transition outline-none"
+                className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent text-sm bg-slate-50 transition outline-none"
               />
             </div>
           </div>
 
           <div className="flex items-end">
             <button
-              className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-blue-950 hover:from-blue-950 hover:to-emerald-700 text-white rounded-xl font-bold text-sm transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+              onClick={handleSearch}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-orange-500/30"
             >
-              <i className="ri-search-line"></i>
+              <i className="ri-search-line text-lg"></i>
               Tìm kiếm
             </button>
           </div>
         </div>
         
-        {(searchTerm || startDate || endDate) && (
+        {(querySearchTerm || queryStartDate || queryEndDate) && (
           <div className="mt-4 flex justify-end">
             <button
               onClick={() => {
                 setSearchTerm('')
                 setStartDate('')
                 setEndDate('')
+                setQuerySearchTerm('')
+                setQueryStartDate('')
+                setQueryEndDate('')
                 setPage(1)
               }}
-              className="text-xs text-slate-400 hover:text-blue-950 transition flex items-center gap-1.5"
+              className="text-xs text-slate-400 hover:text-orange-500 transition flex items-center gap-1.5"
             >
               <i className="ri-refresh-line"></i> Làm mới bộ lọc
             </button>
@@ -214,15 +198,14 @@ const Page = () => {
 
       {/* Table */}
       {!data?.data || data.data.length === 0 ? (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <p className="text-yellow-800">Không tìm thấy bình luận nào</p>
+        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 shadow-sm">
+          <p className="text-yellow-800 flex items-center gap-2"><i className="ri-error-warning-line"></i> Không tìm thấy bình luận nào</p>
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
             <ReviewTable
               data={data?.data ?? []}
-              onEdit={handleEdit}
               onDelete={handleDelete}
               isDeleting={deleteMutation.isPending}
             />
@@ -230,11 +213,11 @@ const Page = () => {
 
           <AdminPagination 
             currentPage={page}
-            totalPages={Math.ceil((data?.total || 0) / 20)}
+            totalPages={Math.ceil((data?.total || 0) / 50)}
             onPageChange={setPage}
             totalItems={data?.total}
             itemsLabel="bình luận"
-            activeColor="emerald"
+            activeColor="orange"
           />
         </>
       )}
@@ -254,64 +237,6 @@ const Page = () => {
         onCancel={() => setConfirmDelete({ isOpen: false, reviewId: '', userName: '' })}
       />
 
-      {/* Edit Modal */}
-      {editModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="fixed inset-0 bg-black/70 transition-opacity" />
-          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all p-6">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">Chỉnh sửa bình luận</h3>
-
-            <div className="space-y-4">
-              {/* Rating */}
-              <div>
-                <label className="mb-2 block font-semibold text-slate-900">Đánh giá (1-5 sao)</label>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map(star => (
-                    <button
-                      key={star}
-                      onClick={() => setEditModal({ ...editModal, rating: star })}
-                      className="text-2xl transition"
-                    >
-                      <i className={`ri-star-${star <= editModal.rating ? 'fill' : 'line'} ${
-                        star <= editModal.rating ? 'text-yellow-400' : 'text-slate-300'
-                      }`}></i>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Comment */}
-              <div>
-                <label className="mb-2 block font-semibold text-slate-900">Bình luận</label>
-                <textarea
-                  value={editModal.comment}
-                  onChange={(e) => setEditModal({ ...editModal, comment: e.target.value })}
-                  rows={4}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="Nhập bình luận"
-                />
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3 justify-end mt-6">
-              <button
-                onClick={() => setEditModal({ isOpen: false, reviewId: '', rating: 5, comment: '' })}
-                className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleUpdateSubmit}
-                disabled={updateMutation.isPending}
-                className="px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
-              >
-                {updateMutation.isPending ? 'Đang xử lý...' : 'Lưu'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

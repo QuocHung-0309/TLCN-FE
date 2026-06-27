@@ -30,13 +30,13 @@ export function BlogForm({ initialData, isEditing = false }: BlogFormProps) {
     title: initialData?.title || '',
     summary: initialData?.summary || '',
     content: initialData?.content || '',
-    categories: initialData?.categories?.[0] || '',
+    categories: (initialData as any)?.categories?.[0] || '',
     tags: (initialData?.tags || []).join(', '),
     coverImageUrl: initialData?.coverImageUrl || '',
     status: (initialData?.status as 'draft' | 'published' | 'archived') || 'draft',
-    locationDetail: initialData?.locationDetail || '',
-    province: initialData?.province || '',
-    ward: initialData?.ward || ''
+    locationDetail: (initialData as any)?.locationDetail || '',
+    province: (initialData as any)?.province || '',
+    ward: (initialData as any)?.ward || ''
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})

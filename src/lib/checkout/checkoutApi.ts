@@ -55,6 +55,7 @@ export type PaymentRef = {
 };
 
 export type MyBookingItem = {
+  _id: string;
   code: string;
   tourId: string;
   tourTitle?: string;
@@ -125,6 +126,7 @@ function adaptMyBookings(res: any): MyBookingList {
     const tour = b.tourId && typeof b.tourId === "object" ? b.tourId : null;
 
     return {
+      _id: b._id,
       code: String(b.code ?? ""),
       tourId: String(tour?._id ?? b.tourId ?? ""),
 
@@ -232,6 +234,7 @@ export async function getBookingByCode(code: string): Promise<MyBookingItem> {
   const bookingData = res?.data ?? res;
 
   return {
+    _id: bookingData._id,
     code: bookingData.code ?? "",
     tourId: bookingData.tourId ?? bookingData.tour?._id ?? "",
     tourTitle: bookingData.tour?.title ?? bookingData.tourTitle,

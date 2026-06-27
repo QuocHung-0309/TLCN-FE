@@ -286,55 +286,106 @@ export default function AdminNotificationsPage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="mb-6 flex flex-wrap items-center gap-4">
-        {/* Search */}
-        <div className="relative flex-1 min-w-[250px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Tìm kiếm thông báo..."
-            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
-          />
+      {/* Filters Section */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 border border-slate-100">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* Search Input */}
+          <div className="md:col-span-2">
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">
+              Tìm kiếm
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                <i className="ri-search-line text-lg"></i>
+              </span>
+              <input
+                type="text"
+                placeholder="Tìm kiếm thông báo..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent text-sm bg-slate-50 transition outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Type Filter */}
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">
+              Loại thông báo
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                <i className="ri-filter-3-line text-lg"></i>
+              </span>
+              <select
+                value={typeFilter}
+                onChange={(e) => {
+                  setTypeFilter(e.target.value as NotificationType | "");
+                  setPage(1);
+                }}
+                className="w-full pl-10 pr-10 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent text-sm bg-slate-50 transition appearance-none outline-none"
+              >
+                <option value="">Tất cả loại</option>
+                {(Object.keys(NOTIFICATION_TYPE_LABELS) as NotificationType[]).map(
+                  (type) => (
+                    <option key={type} value={type}>
+                      {NOTIFICATION_TYPE_LABELS[type]}
+                    </option>
+                  )
+                )}
+              </select>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                <i className="ri-arrow-down-s-line"></i>
+              </span>
+            </div>
+          </div>
+
+          {/* Target Filter */}
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">
+              Đối tượng
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                <i className="ri-group-line text-lg"></i>
+              </span>
+              <select
+                value={targetFilter}
+                onChange={(e) => {
+                  setTargetFilter(e.target.value as TargetType | "");
+                  setPage(1);
+                }}
+                className="w-full pl-10 pr-10 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent text-sm bg-slate-50 transition appearance-none outline-none"
+              >
+                <option value="">Tất cả đối tượng</option>
+                {(Object.keys(TARGET_TYPE_LABELS) as TargetType[]).map((target) => (
+                  <option key={target} value={target}>
+                    {TARGET_TYPE_LABELS[target]}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                <i className="ri-arrow-down-s-line"></i>
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Type Filter */}
-        <select
-          value={typeFilter}
-          onChange={(e) => {
-            setTypeFilter(e.target.value as NotificationType | "");
-            setPage(1);
-          }}
-          className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none"
-        >
-          <option value="">Tất cả loại</option>
-          {(Object.keys(NOTIFICATION_TYPE_LABELS) as NotificationType[]).map(
-            (type) => (
-              <option key={type} value={type}>
-                {NOTIFICATION_TYPE_LABELS[type]}
-              </option>
-            )
-          )}
-        </select>
-
-        {/* Target Filter */}
-        <select
-          value={targetFilter}
-          onChange={(e) => {
-            setTargetFilter(e.target.value as TargetType | "");
-            setPage(1);
-          }}
-          className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none"
-        >
-          <option value="">Tất cả đối tượng</option>
-          {(Object.keys(TARGET_TYPE_LABELS) as TargetType[]).map((target) => (
-            <option key={target} value={target}>
-              {TARGET_TYPE_LABELS[target]}
-            </option>
-          ))}
-        </select>
+        {(searchTerm || typeFilter || targetFilter) && (
+          <div className="mt-4 flex justify-end">
+            <button 
+              onClick={() => {
+                setSearchTerm("");
+                setTypeFilter("");
+                setTargetFilter("");
+                setPage(1);
+              }}
+              className="text-xs text-slate-400 hover:text-orange-600 transition flex items-center gap-1.5"
+            >
+              <i className="ri-refresh-line"></i> Làm mới bộ lọc
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Table */}

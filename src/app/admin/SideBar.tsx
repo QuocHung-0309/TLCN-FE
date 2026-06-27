@@ -18,6 +18,7 @@ import {
   Bell,
   LogOut,
   ChevronRight,
+  Camera,
 } from "lucide-react";
 
 interface NavLink {
@@ -73,6 +74,12 @@ const navLinks: NavLink[] = [
     display: "Đánh giá",
     path: "/admin/reviews",
     icon: <Star className="w-5 h-5" />,
+    category: "users",
+  },
+  {
+    display: "Kỷ niệm",
+    path: "/admin/memories",
+    icon: <Camera className="w-5 h-5" />,
     category: "users",
   },
 
