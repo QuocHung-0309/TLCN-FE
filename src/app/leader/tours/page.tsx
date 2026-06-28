@@ -6,6 +6,7 @@ import {
   Calendar, MapPin, Users, ChevronRight, Plane, Search, X, Filter,
 } from "lucide-react";
 import { leaderToursApi, LeaderTour } from "@/lib/leader/leaderApi";
+import AdminPagination from "@/components/admin/AdminPagination";
 
 const STATUS_CFG: Record<string, { bg: string; text: string; border: string; dot: string; label: string; bar: string }> = {
   pending:     { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-200",  dot: "bg-amber-500",   label: "Chờ xác nhận",  bar: "from-amber-400 to-amber-500" },
@@ -44,20 +45,34 @@ export default function LeaderToursPage() {
   const [isLoading, setIsLoading]       = useState(true);
   const [statusFilter, setStatus]       = useState("");
   const [searchTerm, setSearch]         = useState("");
+  const [page, setPage]                 = useState(1);
+  const limit = 5;
 
   useEffect(() => {
     setIsLoading(true);
-    leaderToursApi.getMyTours(statusFilter ? { status: statusFilter } : undefined)
-      .then(d => { setTours(d); setFiltered(d); })
+    leaderToursApi.getMyTours()
+      .then(d => {
+        // Sort newest first based on startDate
+        const sorted = [...d].sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+        setTours(sorted);
+        setFiltered(sorted);
+      })
       .catch(console.error)
       .finally(() => setIsLoading(false));
-  }, [statusFilter]);
+  }, []);
 
   useEffect(() => {
-    if (!searchTerm.trim()) { setFiltered(tours); return; }
-    const lo = searchTerm.toLowerCase();
-    setFiltered(tours.filter(t => t.title.toLowerCase().includes(lo) || t.destination.toLowerCase().includes(lo)));
-  }, [searchTerm, tours]);
+    let result = tours;
+    if (statusFilter) {
+      result = result.filter(t => t.status === statusFilter);
+    }
+    if (searchTerm.trim()) {
+      const lo = searchTerm.toLowerCase();
+      result = result.filter(t => t.title.toLowerCase().includes(lo) || t.destination.toLowerCase().includes(lo));
+    }
+    setFiltered(result);
+    setPage(1); // Reset page on filter
+  }, [searchTerm, statusFilter, tours]);
 
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -179,7 +194,7 @@ export default function LeaderToursPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredTours.map(tour => {
+            {filteredTours.slice((page - 1) * limit, page * limit).map(tour => {
               const cfg = STATUS_CFG[tour.status] || STATUS_CFG.pending;
               const capacity = tour.quantity ?? 0;
               const pct = capacity > 0 ? Math.round((tour.bookedCount||0)/capacity*100) : 0;
@@ -234,15 +249,17 @@ export default function LeaderToursPage() {
           </div>
         )}
 
-        {/* Summary */}
+        {/* Summary and Pagination */}
         {!isLoading && filteredTours.length > 0 && (
-          <div className="bg-white rounded-xl border border-slate-200 p-3.5 text-center shadow-sm">
-            <p className="text-sm text-slate-500">
-              Hiển thị <span className="font-semibold text-slate-800">{filteredTours.length}</span> trong tổng số{" "}
-              <span className="font-semibold text-slate-800">{tours.length}</span> tour
-              {statusFilter && <> — lọc:{" "}
-                <span className="text-orange-500 font-medium">{STATUS_CFG[statusFilter]?.label}</span></>}
-            </p>
+          <div className="mt-6 bg-white rounded-xl border border-slate-200 p-2 shadow-sm">
+            <AdminPagination
+              currentPage={page}
+              totalPages={Math.ceil(filteredTours.length / limit) || 1}
+              onPageChange={setPage}
+              totalItems={filteredTours.length}
+              itemsLabel="tour"
+              activeColor="orange"
+            />
           </div>
         )}
       </div>

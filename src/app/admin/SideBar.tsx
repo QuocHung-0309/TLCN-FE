@@ -51,6 +51,12 @@ const navLinks: NavLink[] = [
     category: "business",
   },
   {
+    display: "Báo cáo",
+    path: "/admin/reports",
+    icon: <FileText className="w-5 h-5" />,
+    category: "business",
+  },
+  {
     display: "Mã Khuyến mãi",
     path: "/admin/vouchers",
     icon: <Gift className="w-5 h-5" />,

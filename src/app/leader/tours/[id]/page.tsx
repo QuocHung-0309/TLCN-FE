@@ -223,9 +223,9 @@ export default function TourDetailPage() {
 
         {/* Back */}
         <button onClick={() => router.push("/leader/tours")}
-          className="group flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors">
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-          <span className="text-sm font-medium">Quay lại</span>
+          className="group inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-orange-600 transition-all shadow-sm mb-2">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Quay lại danh sách
         </button>
 
         {/* Hero */}
@@ -260,8 +260,8 @@ export default function TourDetailPage() {
                 </div>
               </div>
               {/* Actions */}
-              {(tour.status==="confirmed"||tour.status==="in_progress") && (
-                <div className="flex gap-3 flex-shrink-0">
+              {(tour.status==="confirmed"||tour.status==="in_progress") ? (
+                <div className="flex flex-wrap gap-3 w-full lg:w-auto lg:flex-shrink-0 mt-2 lg:mt-0">
                   {tour.status==="confirmed" && (
                     <button onClick={() => { setTlForm({...tlForm, eventType:"departed"}); setShowTL(true); }}
                       className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-blue-800
@@ -277,18 +277,23 @@ export default function TourDetailPage() {
                     </button>
                   )}
                 </div>
-              )}
+              ) : tour.status==="pending" ? (
+                <div className="text-sm px-4 py-2.5 bg-white/20 text-white rounded-xl border border-white/30 backdrop-blur-sm mt-2 lg:mt-0 max-w-xs leading-relaxed flex gap-2">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 opacity-80" />
+                  <span>Tour đang <strong>Chờ xác nhận</strong> (chưa đủ khách). Các chức năng quản lý tạm khóa.</span>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1.5 bg-white border border-slate-200 p-1.5 rounded-2xl shadow-sm">
+        <div className="flex gap-1.5 bg-white border border-slate-200 p-1.5 rounded-2xl shadow-sm overflow-x-auto hide-scrollbar">
           {tabs.map(tab => {
             const active = activeTab === tab.key;
             return (
               <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm
+                className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm
                   font-medium transition-all duration-200
                   ${active
                     ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md shadow-orange-500/20"
@@ -339,18 +344,38 @@ export default function TourDetailPage() {
                 <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4 mt-6 pt-6 border-t border-slate-100">
                   <Clock className="w-5 h-5 text-blue-500" /> Lịch trình dự kiến (Itinerary)
                 </h3>
-                <div className="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
-                  {tour.tourId.itinerary.map((day: any, i: number) => (
-                    <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-slate-100 text-slate-500 group-hover:bg-blue-500 group-hover:text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 transition-colors">
-                        <span className="font-bold text-sm">{i + 1}</span>
+                <div className="relative">
+                  <div className="absolute left-5 top-5 bottom-5 w-px bg-slate-200" />
+                  <div className="space-y-5">
+                    {tour.tourId.itinerary.map((day: any, i: number) => (
+                      <div key={i} className="relative flex gap-4 group">
+                        <div className="relative z-10 w-10 h-10 rounded-xl border border-slate-200 bg-white
+                          flex items-center justify-center flex-shrink-0 text-slate-500 font-bold group-hover:bg-blue-500 group-hover:text-white group-hover:border-blue-500 transition-all shadow-sm">
+                          {i + 1}
+                        </div>
+                        <div className="flex-1 bg-slate-50 border border-slate-200 p-4 rounded-xl shadow-sm hover:bg-white transition-colors">
+                          <h4 className="font-bold text-slate-800 mb-1">{day.title || `Ngày ${i + 1}`}</h4>
+                          <p className="text-sm text-slate-600 whitespace-pre-line">{day.summary || day.activities || day.description}</p>
+                          {day.segments && day.segments.length > 0 && (
+                            <div className="mt-3 space-y-2">
+                              {day.segments.map((seg: any, idx: number) => (
+                                <div key={idx} className="text-sm">
+                                  <span className="font-medium text-slate-700">{seg.title || "Buổi"}</span>
+                                  {seg.items && seg.items.length > 0 && (
+                                    <ul className="list-disc list-inside mt-1 text-slate-600 ml-2">
+                                      {seg.items.map((item: any, idxx: number) => (
+                                        <li key={idxx}>{item.description || item.title || item}</li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-slate-50 border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                        <h4 className="font-bold text-slate-800 mb-1">{day.title || `Ngày ${i + 1}`}</h4>
-                        <p className="text-sm text-slate-600 whitespace-pre-line">{day.activities || day.description}</p>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -367,6 +392,12 @@ export default function TourDetailPage() {
                   transition-all flex items-center justify-center gap-2 text-sm font-medium">
                 <Plus className="w-5 h-5" /> Thêm sự kiện mới
               </button>
+            )}
+            {tour.status==="pending" && (
+              <div className="bg-amber-50 text-amber-700 p-4 rounded-xl border border-amber-200 text-sm flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <p>Tour hiện đang ở trạng thái <strong>Chờ xác nhận</strong> (có thể do chưa đủ số lượng khách tối thiểu). Bạn chỉ có thể cập nhật Timeline khi tour đã được xác nhận khởi hành.</p>
+              </div>
             )}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
               {!tour.timeline || tour.timeline.length===0 ? (
@@ -425,7 +456,7 @@ export default function TourDetailPage() {
               </div>
             ) : (
               <>
-                <div className="px-5 py-4 border-b border-slate-100 bg-slate-50 flex justify-between">
+                <div className="px-5 py-4 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between gap-2">
                   <p className="text-sm font-medium text-slate-600">
                     <span className="text-slate-900 font-bold text-lg">{passengers.length}</span> đặt chỗ
                   </p>
@@ -520,9 +551,15 @@ export default function TourDetailPage() {
                 <Plus className="w-5 h-5" /> Thêm chi phí phát sinh
               </button>
             )}
+            {tour.status==="pending" && (
+              <div className="bg-amber-50 text-amber-700 p-4 rounded-xl border border-amber-200 text-sm flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <p>Tour hiện đang ở trạng thái <strong>Chờ xác nhận</strong>. Bạn chỉ có thể thêm các khoản chi phí phát sinh khi tour đã được xác nhận khởi hành.</p>
+              </div>
+            )}
             {expenses.length>0 && (
               <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl p-4
-                flex items-center justify-between">
+                flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
                     <TrendingUp className="w-5 h-5 text-orange-600" />
@@ -590,7 +627,14 @@ export default function TourDetailPage() {
 
         {/* REPORT */}
         {activeTab==="report" && (
-          <form onSubmit={submitReport} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+          <div className="space-y-4">
+            {tour.status !== "completed" && tour.status !== "closed" && (
+              <div className="bg-amber-50 text-amber-700 p-4 rounded-xl border border-amber-200 text-sm flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <p>Bạn chỉ có thể nộp báo cáo tổng kết khi chuyến đi đã <strong>Hoàn thành</strong> (kết thúc hành trình).</p>
+              </div>
+            )}
+            <form onSubmit={submitReport} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="font-bold text-slate-800 flex items-center gap-2">
@@ -644,13 +688,14 @@ export default function TourDetailPage() {
             )}
 
             <div className="flex justify-end">
-              <button type="submit" disabled={submReport || !reportForm.summary.trim()}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold shadow-md shadow-orange-500/20 disabled:opacity-50">
+              <button type="submit" disabled={submReport || !reportForm.summary.trim() || (tour.status !== "completed" && tour.status !== "closed")}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold shadow-md shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
                 {submReport ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 Nộp báo cáo
               </button>
             </div>
           </form>
+          </div>
         )}
 
         </div>{/* end min-h tab content wrapper */}

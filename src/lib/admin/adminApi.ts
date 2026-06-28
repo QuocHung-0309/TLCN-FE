@@ -398,3 +398,26 @@ export async function getOngoingDepartures() {
   );
   return response.data?.data ?? [];
 }
+
+export const getAllReportsAdmin = async (params: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  leaderId?: string;
+  startDate?: string;
+  endDate?: string;
+}) => {
+  const { data } = await adminApi.get("/admin/reports", { params });
+  return data;
+};
+
+
+export const getReportDetailAdmin = async (id: string) => {
+  const { data } = await adminApi.get(`/admin/departures/${id}`);
+  return data;
+};
+
+export const getReportExpensesAdmin = async (id: string) => {
+  const { data } = await adminApi.get(`/admin/departures/${id}/expenses`);
+  return data;
+};
