@@ -598,11 +598,6 @@ export default function TourDetailPage() {
                         </div>
                         <div className="flex items-center gap-3 mt-0.5">
                           {exp.note && <p className="text-xs text-slate-500 truncate">{exp.note}</p>}
-                          {!exp.visibleToCustomers && (
-                            <span className="flex items-center gap-1 text-xs text-amber-600">
-                              <EyeOff className="w-3 h-3" /> Ẩn khách
-                            </span>
-                          )}
                         </div>
                         {exp.receiptImages && exp.receiptImages.length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-1">
@@ -807,16 +802,6 @@ export default function TourDetailPage() {
                   placeholder-slate-400 text-sm focus:outline-none focus:border-orange-400
                   focus:ring-2 focus:ring-orange-400/20 transition-all resize-none" />
             </div>
-            <label className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200
-              bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors">
-              <input type="checkbox" checked={expForm.visibleToCustomers}
-                onChange={e => setExpForm({...expForm,visibleToCustomers:e.target.checked})}
-                className="w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-400" />
-              <div>
-                <p className="text-sm font-medium text-slate-700">Hiển thị cho khách hàng</p>
-                <p className="text-xs text-slate-500">Khách hàng có thể xem khoản chi này</p>
-              </div>
-            </label>
             <div className="flex gap-3 pt-1">
               <button type="button" onClick={() => setShowExp(false)}
                 className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600
