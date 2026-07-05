@@ -53,13 +53,25 @@ export default function ContactPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Giả lập gọi API
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "/api"}/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-    console.log("Form submitted:", formData);
-    toast.success("Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất.");
-    setIsSubmitting(false);
-    setFormData({ name: "", phone: "", email: "", subject: "", message: "" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Gửi thất bại");
+      }
+
+      toast.success("Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi trong vòng 2 giờ.");
+      setFormData({ name: "", phone: "", email: "", subject: "", message: "" });
+    } catch (err: any) {
+      toast.error(err.message || "Có lỗi xảy ra, vui lòng thử lại sau.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -107,7 +119,7 @@ export default function ContactPage() {
                   title: "Hotline tư vấn",
                   text: "+84 (0) 123 456 789",
                   subtext: "Hỗ trợ 24/7",
-                  action: "tel:+0001234588",
+                  action: "tel:+84123456789",
                   color: "bg-blue-50 text-blue-600",
                 },
                 {

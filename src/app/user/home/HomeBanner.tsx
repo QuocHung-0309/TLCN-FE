@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay, EffectFade } from "swiper/modules";
 import { ArrowRight } from "lucide-react";
@@ -71,10 +72,15 @@ const HomeBanner = () => {
         >
           {slides.map((slide, i) => (
             <SwiperSlide key={i} className="min-h-[62vh] sm:min-h-[88vh]">
-              <div
-                className="w-full min-h-[62vh] sm:min-h-[88vh] bg-cover bg-center relative flex flex-col justify-end pb-10 sm:pb-28 lg:pb-32"
-                style={{ backgroundImage: `url(${slide.image})` }}
-              >
+              <div className="w-full min-h-[62vh] sm:min-h-[88vh] relative flex flex-col justify-end pb-10 sm:pb-28 lg:pb-32">
+                <Image
+                  src={slide.image}
+                  alt={slide.label}
+                  fill
+                  priority={i === 0}
+                  sizes="100vw"
+                  className="object-cover object-center"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-black/5" />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent" />
 

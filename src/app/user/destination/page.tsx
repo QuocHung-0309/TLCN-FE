@@ -119,13 +119,13 @@ type SearchQuery = {
 
 // ========= Skeleton Component =========
 const TourSkeleton = () => (
-  <div className="flex flex-col rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
-    <div className="h-48 w-full rounded-xl bg-slate-100" />
-    <div className="mt-3 h-4 w-3/4 rounded bg-slate-100" />
-    <div className="mt-2 h-3 w-1/2 rounded bg-slate-100" />
+  <div className="flex flex-col rounded-2xl border border-slate-100 bg-white p-3 shadow-sm animate-pulse">
+    <div className="h-48 w-full rounded-xl bg-slate-200" />
+    <div className="mt-3 h-4 w-3/4 rounded bg-slate-200" />
+    <div className="mt-2 h-3 w-1/2 rounded bg-slate-200" />
     <div className="mt-4 flex justify-between">
-      <div className="h-4 w-1/4 rounded bg-slate-100" />
-      <div className="h-4 w-1/4 rounded bg-slate-100" />
+      <div className="h-4 w-1/4 rounded bg-slate-200" />
+      <div className="h-4 w-1/4 rounded bg-slate-200" />
     </div>
   </div>
 );
@@ -183,7 +183,7 @@ function DestinationPageContent() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await getTours(1, 200, {});
+        const res = await getTours(1, 50, {});
         const destSet = new Set<string>();
         const timeSet = new Set<string>();
 

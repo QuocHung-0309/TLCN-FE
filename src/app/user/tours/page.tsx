@@ -118,6 +118,9 @@ function ToursPageContent() {
         destination: filters.destination || undefined,
         minPrice: filters.minPrice ? parseInt(filters.minPrice, 10) : undefined,
         maxPrice: filters.maxPrice ? parseInt(filters.maxPrice, 10) : undefined,
+        duration: filters.duration || undefined,
+        rating: filters.rating ? parseFloat(filters.rating) : undefined,
+        sortBy: filters.sortBy || undefined,
       });
       setTours(res.data || []);
       setTotal(res.total || 0);
@@ -262,7 +265,7 @@ function ToursPageContent() {
             </button>
 
             <div className="text-slate-600 text-sm">
-              Hiển thị <span className="font-semibold text-slate-900">{(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, total)}</span> trong <span className="font-semibold text-orange-600">{total}</span> tour
+              Hiển thị <span className="font-semibold text-slate-900">{total > 0 ? `${(page - 1) * PER_PAGE + 1}–${Math.min(page * PER_PAGE, total)}` : "0"}</span> trong <span className="font-semibold text-orange-600">{total}</span> tour
             </div>
 
             {hasActiveFilters && (
@@ -425,7 +428,7 @@ function ToursPageContent() {
                     key={id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
+                    transition={{ delay: Math.min(index * 0.04, 0.2) }}
                   className={`group bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl hover:border-orange-200 transition-all ${
                     viewMode === "list" ? "flex" : ""
                   }`}
@@ -514,28 +517,52 @@ function ToursPageContent() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center mt-10">
-                <div className="inline-flex items-center gap-2 bg-white rounded-2xl border border-slate-200 p-2 shadow-sm">
-                  {Array.from({ length: totalPages }).map((_, i) => {
-                    const pageNum = i + 1;
-                    const isActive = page === pageNum;
-                    return (
-                      <button
-                        key={pageNum}
-                        type="button"
-                        onClick={() => {
-                          setPage(pageNum);
-                          updateURL(filters, pageNum);
-                        }}
-                        className={`min-w-[40px] h-10 rounded-xl text-sm font-semibold transition-all ${
-                          isActive
-                            ? "bg-orange-500 text-white shadow-md shadow-orange-500/25"
-                            : "text-slate-600 hover:bg-slate-100"
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
+                <div className="inline-flex items-center gap-1 bg-white rounded-2xl border border-slate-200 p-2 shadow-sm flex-wrap">
+                  <button
+                    type="button"
+                    disabled={page === 1}
+                    onClick={() => { setPage(page - 1); updateURL(filters, page - 1); }}
+                    className="min-w-[40px] h-10 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
+                    &lt;
+                  </button>
+                  {(() => {
+                    const pages: (number | "...")[] = [];
+                    const delta = 2;
+                    const left = Math.max(2, page - delta);
+                    const right = Math.min(totalPages - 1, page + delta);
+                    pages.push(1);
+                    if (left > 2) pages.push("...");
+                    for (let i = left; i <= right; i++) pages.push(i);
+                    if (right < totalPages - 1) pages.push("...");
+                    if (totalPages > 1) pages.push(totalPages);
+                    return pages.map((p, idx) =>
+                      p === "..." ? (
+                        <span key={`e-${idx}`} className="min-w-[40px] h-10 flex items-center justify-center text-slate-400 text-sm">…</span>
+                      ) : (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => { setPage(p as number); updateURL(filters, p as number); }}
+                          className={`min-w-[40px] h-10 rounded-xl text-sm font-semibold transition-all ${
+                            page === p
+                              ? "bg-orange-500 text-white shadow-md shadow-orange-500/25"
+                              : "text-slate-600 hover:bg-slate-100"
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      )
                     );
-                  })}
+                  })()}
+                  <button
+                    type="button"
+                    disabled={page === totalPages}
+                    onClick={() => { setPage(page + 1); updateURL(filters, page + 1); }}
+                    className="min-w-[40px] h-10 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
+                    &gt;
+                  </button>
                 </div>
               </div>
             )}

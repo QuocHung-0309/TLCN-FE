@@ -276,7 +276,7 @@ function BookingRow({
           {/* actions */}
           <div className="mt-1 flex flex-wrap items-center gap-10">
             <Link
-              href={`/user/booking/${booking.code}`}
+              href={`/user/bookings/${encodeURIComponent(booking.code ?? "")}`}
               className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm transition hover:border-blue-500 hover:text-blue-600"
             >
               Chi tiết

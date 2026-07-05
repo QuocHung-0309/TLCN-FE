@@ -78,7 +78,6 @@ export default function ProfilePage() {
     try {
       setLoading(true);
       const response = await authApi.getProfile(accessToken);
-      console.log("👤 Profile data:", response);
       
       // Use stored user data first, then API data
       const res = response as any;

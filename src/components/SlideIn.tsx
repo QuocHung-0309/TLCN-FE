@@ -14,16 +14,16 @@ type Props = {
 };
 
 export default function SlideIn({ children, delay = 0, dir = 'left', className, offset = 60 }: Props) {
-  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.2 });
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.08 });
   const x = dir === 'left' ? -offset : offset;
 
   return (
     <motion.div
       ref={ref}
       className={className}
-      initial={{ opacity: 0, x }}
+      initial={{ opacity: 0, x: x * 0.6 }}
       animate={inView ? { opacity: 1, x: 0 } : {}}
-      transition={{ duration: 0.6, ease: 'easeOut', delay }}
+      transition={{ duration: 0.4, ease: 'easeOut', delay }}
     >
       {children}
     </motion.div>

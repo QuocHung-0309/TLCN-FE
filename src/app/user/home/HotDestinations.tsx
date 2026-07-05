@@ -130,7 +130,7 @@ const HotDestinations = () => {
             !isError &&
             cards.map((c, idx) => (
               <SwiperSlide key={`${c.title}-${idx}`} className="!h-auto">
-                <DestinationCard {...c} />
+                <DestinationCard {...c} priority={idx < 4} />
               </SwiperSlide>
             ))}
         </Swiper>

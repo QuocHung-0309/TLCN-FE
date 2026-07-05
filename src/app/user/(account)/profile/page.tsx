@@ -566,7 +566,6 @@ function ProfileContent() {
     try {
       setUploadingAvatar(true);
       const data = await authApi.uploadAvatarCloud(file, accessToken);
-      console.log("Avatar response:", data); // Debug log
 
       // Cloudinary API trả về avatarUrl
       const newAvatarUrl = data.avatarUrl || data.user?.avatar || data.avatar;

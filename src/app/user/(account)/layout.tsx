@@ -17,6 +17,9 @@ import {
   Camera,
   Menu,
   X,
+  Trophy,
+  Bell,
+  Ticket,
 } from "lucide-react";
 
 type UserProfile = {
@@ -31,6 +34,9 @@ const NAV_ITEMS = [
   { name: "Tour yêu thích", href: "/user/favorites", icon: Heart },
   { name: "Bài viết của tôi", href: "/user/my-posts", icon: FileText },
   { name: "Kỷ niệm của tôi", href: "/user/my-memories", icon: Camera },
+  { name: "Điểm thưởng", href: "/user/score", icon: Trophy },
+  { name: "Thông báo", href: "/user/notifications", icon: Bell },
+  { name: "Voucher của tôi", href: "/user/vouchers", icon: Ticket },
   { name: "Tài khoản", href: "/user/profile", icon: Settings },
 ];
 

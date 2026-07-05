@@ -273,9 +273,16 @@ function BlogListContent() {
             <h3 className="text-xl font-bold text-red-600 mb-2">
               Đã có lỗi xảy ra!
             </h3>
-            <p className="text-red-500">
+            <p className="text-red-500 mb-6">
               Không tải được danh sách bài viết. Vui lòng thử lại sau.
             </p>
+            <button
+              type="button"
+              onClick={() => setPage(1)}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-all"
+            >
+              Thử lại
+            </button>
           </div>
         ) : filteredBlogs.length === 0 ? (
           // Empty state
@@ -465,7 +472,7 @@ function BlogListContent() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
-                className="mt-12 flex justify-center gap-2"
+                className="mt-12 flex justify-center gap-1 flex-wrap"
               >
                 <button
                   type="button"
@@ -476,24 +483,35 @@ function BlogListContent() {
                   &lt;
                 </button>
 
-                {Array.from({ length: totalPages }).map((_, i) => {
-                  const num = i + 1;
-                  const active = num === page;
-                  return (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => setPage(num)}
-                      className={`h-10 w-10 rounded-xl text-sm font-bold transition-all ${
-                        active
-                          ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30"
-                          : "border border-slate-200 bg-white text-slate-600 hover:border-orange-500 hover:text-orange-600 shadow-sm"
-                      }`}
-                    >
-                      {num}
-                    </button>
+                {(() => {
+                  const pages: (number | "...")[] = [];
+                  const delta = 2;
+                  const left = Math.max(2, page - delta);
+                  const right = Math.min(totalPages - 1, page + delta);
+                  pages.push(1);
+                  if (left > 2) pages.push("...");
+                  for (let i = left; i <= right; i++) pages.push(i);
+                  if (right < totalPages - 1) pages.push("...");
+                  if (totalPages > 1) pages.push(totalPages);
+                  return pages.map((num, idx) =>
+                    num === "..." ? (
+                      <span key={`e-${idx}`} className="flex h-10 w-10 items-center justify-center text-slate-400 text-sm">…</span>
+                    ) : (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => setPage(num as number)}
+                        className={`h-10 w-10 rounded-xl text-sm font-bold transition-all ${
+                          num === page
+                            ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30"
+                            : "border border-slate-200 bg-white text-slate-600 hover:border-orange-500 hover:text-orange-600 shadow-sm"
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    )
                   );
-                })}
+                })()}
 
                 <button
                   type="button"
@@ -514,7 +532,11 @@ function BlogListContent() {
 
 export default function BlogListPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50" />}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-orange-200 border-t-orange-500" />
+      </div>
+    }>
       <BlogListContent />
     </Suspense>
   );

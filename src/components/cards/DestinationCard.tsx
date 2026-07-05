@@ -12,6 +12,7 @@ export type DestinationCardProps = {
   price: string;
   href?: string;
   destination?: string;
+  priority?: boolean;
 };
 
 const DestinationCard: React.FC<DestinationCardProps> = ({
@@ -21,15 +22,17 @@ const DestinationCard: React.FC<DestinationCardProps> = ({
   price,
   href = "#",
   destination,
+  priority = false,
 }) => {
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm border border-slate-100 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-slate-200/60">
       {/* Image */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
         <Image
           src={image}
           alt={title}
           fill
+          priority={priority}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />

@@ -192,6 +192,7 @@ export default function TourRecommendations({
           <CardHot
             key={tour._id}
             id={tour._id}
+            priority={index < 4}
             image={tour.images?.[0] || ""}
             title={tour.title}
             badgeText={

@@ -181,9 +181,7 @@ export default function HistoryPage() {
     try {
       setLoading(true);
       setError("");
-      console.log("Fetching bookings with token:", accessToken?.slice(0, 10) + "...");
       const response = await getMyBookings(page, 10, statusFilter, debouncedSearch);
-      console.log("Bookings response:", response);
       if (response && Array.isArray(response.data)) {
         setBookings(response.data);
         setTotalPages(Math.ceil(response.total / response.limit) || 1);

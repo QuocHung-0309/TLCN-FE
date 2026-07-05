@@ -75,6 +75,11 @@ export type ToursQuery = Partial<{
   priceMin: number;         // alias
   priceMax: number;         // alias
   time: string;             // cụ thể: "3 ngày 2 đêm"
+  duration: string;         // day range: "1-2", "3-4", "5-7", "7+"
+  sortBy: string;           // "newest" | "price_asc" | "price_desc" | "rating" | "popular"
+  sort: string;             // alias
+  rating: number;           // minimum star rating
+  minRating: number;        // alias
 }>;
 
 /** Chuẩn hoá query gửi lên để backend nào cũng “ăn” */
@@ -172,6 +177,19 @@ export const searchTours = async (
   }
   if (query?.time) {
     params.time = query.time;
+  }
+  if (query?.duration) {
+    params.duration = query.duration;
+  }
+  const sortBy = query?.sortBy ?? query?.sort;
+  if (sortBy) {
+    params.sortBy = sortBy;
+    params.sort = sortBy;
+  }
+  const minRating = query?.rating ?? query?.minRating;
+  if (typeof minRating === "number") {
+    params.rating = minRating;
+    params.minRating = minRating;
   }
 
   const res = await axiosInstance.get<ToursResponse>("/tours/search", {

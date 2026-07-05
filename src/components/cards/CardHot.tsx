@@ -36,6 +36,7 @@ export type CardHotProps = {
   }>;
   onClick?: () => void;
   id?: string;
+  priority?: boolean;
 };
 
 /* ============== helpers ============== */
@@ -77,6 +78,7 @@ export default function CardHot(props: CardHotProps) {
     discountAmount,
     href = "#",
     startDate,
+    priority = false,
   } = props;
 
   // Kiểm tra tour đã khởi hành
@@ -116,11 +118,12 @@ export default function CardHot(props: CardHotProps) {
       "
     >
       {/* media */}
-      <div className="relative aspect-[16/9] w-full overflow-hidden">
+      <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
         <Image
           src={image}
           alt={title}
           fill
+          priority={priority}
           sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
