@@ -382,9 +382,9 @@ export default function AboutPage() {
                       fb: "https://facebook.com/whuq394",
                     },
                     {
-                      name: "TRINH NGOC HIEU",
+                      name: "Đỗ Quốc Việt",
                       role: "Co-Founder & COO",
-                      img: "/hieu.jpg",
+                      img: "/viet.jpg",
                       fb: "https://www.facebook.com/hieu.779761",
                     },
                   ].map((member, idx) => (
