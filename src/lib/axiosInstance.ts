@@ -24,7 +24,14 @@ axiosInstance.interceptors.request.use(
     const adminToken = getAdminToken();
     const userToken = useAuthStore.getState().token?.accessToken;
 
-    const token = adminToken || userToken;
+    let token = adminToken || userToken;
+    if (typeof window !== "undefined") {
+      if (window.location.pathname.startsWith("/admin")) {
+        token = adminToken || userToken;
+      } else {
+        token = userToken || adminToken;
+      }
+    }
 
     if (token) {
       config.headers = config.headers || {};
@@ -56,8 +63,9 @@ axiosInstance.interceptors.response.use(
       // Nếu Admin bị hết hạn token, hiện tại sẽ bị logout hoặc lỗi.
       // Để đơn giản, ta kiểm tra xem đang dùng token nào.
 
-      if (getAdminToken()) {
-        // Nếu là Admin mà bị 401 -> Thường là hết phiên -> Redirect về login admin
+      const isAdminPage = typeof window !== "undefined" && window.location.pathname.startsWith("/admin");
+      if (isAdminPage) {
+        // Nếu là trang Admin mà bị 401 -> Thường là hết phiên -> Redirect về login admin
         if (typeof window !== "undefined") {
           window.location.href = "/admin/login";
         }

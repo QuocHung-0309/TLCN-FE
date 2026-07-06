@@ -31,7 +31,11 @@ api.interceptors.response.use(
                 console.log("Refresh token failed, user must login again");
                 localStorage.removeItem("accessToken");
                 localStorage.removeItem("refreshToken");
-                window.location.href = "/admin/login"; 
+                if (window.location.pathname.startsWith("/admin")) {
+                    window.location.href = "/admin/login"; 
+                } else {
+                    window.location.href = "/auth/login"; 
+                }
                 return Promise.reject(err);
             }
         } 
