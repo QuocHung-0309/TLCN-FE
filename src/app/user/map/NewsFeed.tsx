@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { createPortal } from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
 import Image from "next/image";
 import {
   MapPin,
@@ -84,6 +86,13 @@ export default function NewsFeed() {
   const [feed, setFeed] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [shareEvent, setShareEvent] = useState<TimelineEvent | null>(null);
+  const [fullImage, setFullImage] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [userAchievement, setUserAchievement] = useState<typeof ACHIEVEMENTS[0] | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchFeed = async () => {
@@ -135,6 +144,10 @@ export default function NewsFeed() {
 
         // Sort descending by date
         events.sort((a, b) => b.date.getTime() - a.date.getTime());
+        // Find highest achievement for the user to display as badge
+        const highestAch = [...ACHIEVEMENTS].reverse().find(a => totalProvinces >= a.req) || ACHIEVEMENTS[0];
+        setUserAchievement(highestAch);
+
         setFeed(events);
       } catch (error) {
         console.error("Error fetching feed:", error);
@@ -238,9 +251,17 @@ export default function NewsFeed() {
                   />
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-800 text-sm md:text-base leading-tight">
-                    {user?.fullName || "Người dùng"}
-                  </h4>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-bold text-slate-800 text-sm md:text-base leading-tight">
+                      {user?.fullName || "Người dùng"}
+                    </h4>
+                    {userAchievement && (
+                      <div className="flex items-center gap-1 rounded-full bg-gradient-to-r px-2 py-0.5 text-[10px] font-bold uppercase text-white shadow-sm opacity-90" style={{ backgroundImage: `linear-gradient(to right, var(--tw-gradient-stops))` }} className={`flex items-center gap-1 rounded-full bg-gradient-to-r ${userAchievement.color} px-2 py-0.5 text-[10px] font-bold uppercase text-white shadow-sm`}>
+                        {React.createElement(userAchievement.icon, { size: 10 })}
+                        <span className="hidden sm:inline">{userAchievement.name}</span>
+                      </div>
+                    )}
+                  </div>
                   <div className="flex items-center text-xs text-slate-500 mt-0.5 gap-1.5">
                     <span>{timeAgo(event.date)}</span>
                     {event.type === "checkin" && (
@@ -282,12 +303,15 @@ export default function NewsFeed() {
                   Đã đặt chân đến vùng đất <span className="font-bold text-slate-900">{event.province}</span>! 
                   {event.source === "tour" ? " (Đi cùng AHH Travel)" : ""}
                 </div>
-                <div className="relative w-full aspect-video bg-slate-100">
+                <div 
+                  className="relative w-full aspect-video bg-slate-100 cursor-pointer overflow-hidden group"
+                  onClick={() => setFullImage(event.image || "/hot1.jpg")}
+                >
                   <Image
                     src={event.image || "/hot1.jpg"}
                     alt={event.province || "Location"}
                     fill
-                    className="object-cover"
+                    className="object-cover transition duration-300 group-hover:scale-105 pointer-events-none"
                   />
                   {event.source === "tour" && (
                     <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md text-emerald-600 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1.5 border border-emerald-100">
@@ -411,6 +435,33 @@ export default function NewsFeed() {
             </div>
           </motion.div>
         </div>
+      )}
+
+      {/* Lightbox Modal */}
+      {mounted && fullImage && typeof document !== "undefined" && createPortal(
+        <div 
+          className="fixed inset-0 flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm" 
+          style={{ zIndex: 99999 }}
+          onClick={() => setFullImage(null)}
+        >
+          <button 
+            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 transition"
+            onClick={() => setFullImage(null)}
+            title="Đóng"
+          >
+            <X size={24} />
+          </button>
+          <div className="relative h-[90vh] w-[90vw] max-w-6xl" onClick={(e) => e.stopPropagation()}>
+            <Image 
+              src={fullImage} 
+              alt="Full size image" 
+              fill 
+              className="object-contain"
+              unoptimized 
+            />
+          </div>
+        </div>,
+        document.body
       )}
     </section>
   );

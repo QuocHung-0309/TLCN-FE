@@ -301,6 +301,84 @@ export default function Achievements() {
           );
         })}
       </div>
+
+      <AnimatePresence>
+        {selectedAchievement && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={() => setSelectedAchievement(null)}
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-white shadow-2xl"
+            >
+              {(() => {
+                const unlocked = provincesCount >= selectedAchievement.requirement;
+                const rarity = RARITY_STYLES[selectedAchievement.rarity as keyof typeof RARITY_STYLES];
+                const Icon = selectedAchievement.icon;
+                
+                return (
+                  <div className="p-6">
+                    <button
+                      onClick={() => setSelectedAchievement(null)}
+                      className="absolute right-4 top-4 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+                    >
+                      <X size={20} />
+                    </button>
+
+                    <div className={`mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl ${
+                      unlocked ? `bg-gradient-to-br ${selectedAchievement.color} text-white shadow-lg` : "bg-slate-200 text-slate-400"
+                    }`}>
+                      {unlocked ? <Icon size={40} /> : <Lock size={32} />}
+                    </div>
+
+                    <div className="text-center">
+                      <div className="mb-2 inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        {rarity.label}
+                      </div>
+                      <h3 className={`mb-2 text-2xl font-bold ${unlocked ? "text-slate-800" : "text-slate-500"}`}>
+                        {selectedAchievement.name}
+                      </h3>
+                      
+                      <p className="mb-6 text-sm text-slate-600 bg-blue-50/50 p-3 rounded-xl border border-blue-100/50">
+                        <span className="font-semibold text-blue-700 block mb-1">Cách đạt được:</span>
+                        {selectedAchievement.description}
+                      </p>
+
+                      {!unlocked ? (
+                        <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+                          <div className="mb-2 flex items-center justify-between text-sm font-semibold">
+                            <span className="text-slate-600">Tiến độ hiện tại</span>
+                            <span className="text-slate-900">{provincesCount}/{selectedAchievement.requirement}</span>
+                          </div>
+                          <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
+                            <div
+                              className="h-full bg-slate-400 transition-all duration-500"
+                              style={{ width: `${Math.min((provincesCount / selectedAchievement.requirement) * 100, 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="rounded-2xl bg-emerald-50 p-4 border border-emerald-100 text-emerald-700 font-semibold flex items-center justify-center gap-2">
+                          <CheckCircle size={20} />
+                          Đã đạt thành tựu này!
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

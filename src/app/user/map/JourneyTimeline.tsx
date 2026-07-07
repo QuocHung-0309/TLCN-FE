@@ -1,6 +1,7 @@
 "use client";
 
 import React, { FormEvent, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -24,6 +25,12 @@ import {
   TrendingUp,
   Users,
   X,
+  Map,
+  Compass,
+  Mountain,
+  TreePine,
+  Star,
+  Award,
 } from "lucide-react";
 import {
   travelMemoryApi,
@@ -51,7 +58,17 @@ interface TimelineItem {
   commentsCount?: number;
   sharesCount?: number;
   isLikedByMe?: boolean;
+  posterAchievementId?: string;
 }
+
+const ACHIEVEMENT_MAP: Record<string, { name: string; color: string; icon: any; desc: string }> = {
+  first_step: { name: "Bước chân đầu tiên", color: "bg-green-100 text-green-700", icon: Map, desc: "Bắt đầu hành trình: Check-in thành công 1 tỉnh/thành phố." },
+  explorer_5: { name: "Lữ khách mới", color: "bg-blue-100 text-blue-700", icon: Compass, desc: "Cố lên nhé: Check-in thành công 5 tỉnh/thành phố." },
+  explorer_10: { name: "Phượt thủ tập sự", color: "bg-purple-100 text-purple-700", icon: Mountain, desc: "Dày dạn kinh nghiệm: Check-in thành công 10 tỉnh/thành phố." },
+  explorer_20: { name: "Thám hiểm gia", color: "bg-teal-100 text-teal-700", icon: TreePine, desc: "Đi khắp chốn: Check-in thành công 20 tỉnh/thành phố." },
+  explorer_28: { name: "Chinh phục gần trọn VN", color: "bg-orange-100 text-orange-700", icon: Star, desc: "Tuyệt vời: Check-in thành công 28 tỉnh/thành phố." },
+  explorer_34: { name: "Huyền thoại Việt Nam", color: "bg-amber-100 text-amber-700 font-extrabold", icon: Award, desc: "Huyền thoại sống: Check-in thành công 34 tỉnh/thành phố." },
+};
 
 const DEFAULT_IMAGE = "/hot1.jpg";
 
@@ -171,18 +188,21 @@ const Avatar = ({
   );
 };
 
-const ImageGrid = ({ images, title }: { images?: string[]; title: string }) => {
+const ImageGrid = ({ images, title, onImageClick }: { images?: string[]; title: string; onImageClick?: (img: string) => void }) => {
   const safeImages = images?.length ? images.slice(0, 3) : [DEFAULT_IMAGE];
 
   if (safeImages.length === 1) {
     return (
-      <div className="relative h-52 overflow-hidden rounded-xl bg-slate-100 sm:h-60">
+      <div 
+        className="relative h-52 overflow-hidden rounded-xl bg-slate-100 sm:h-60 cursor-pointer group"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onImageClick?.(safeImages[0]); }}
+      >
         <Image
           src={safeImages[0]}
           alt={title}
           fill
           sizes="(max-width: 768px) 100vw, 680px"
-          className="object-cover"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
       </div>
     );
@@ -192,8 +212,12 @@ const ImageGrid = ({ images, title }: { images?: string[]; title: string }) => {
     return (
       <div className="grid h-52 grid-cols-2 gap-1.5 sm:h-60">
         {safeImages.map((image, index) => (
-          <div key={image + index} className="relative overflow-hidden rounded-xl bg-slate-100">
-            <Image src={image} alt={title} fill sizes="340px" className="object-cover" />
+          <div 
+            key={image + index} 
+            className="relative overflow-hidden rounded-xl bg-slate-100 cursor-pointer group"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onImageClick?.(image); }}
+          >
+            <Image src={image} alt={title} fill sizes="340px" className="object-cover pointer-events-none transition-transform duration-300 group-hover:scale-105" />
           </div>
         ))}
       </div>
@@ -202,13 +226,20 @@ const ImageGrid = ({ images, title }: { images?: string[]; title: string }) => {
 
   return (
     <div className="grid h-60 grid-cols-[1.25fr_0.9fr] gap-1.5 sm:h-64">
-      <div className="relative overflow-hidden rounded-xl bg-slate-100">
-        <Image src={safeImages[0]} alt={title} fill sizes="430px" className="object-cover" />
+      <div 
+        className="relative overflow-hidden rounded-xl bg-slate-100 cursor-pointer group"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onImageClick?.(safeImages[0]); }}
+      >
+        <Image src={safeImages[0]} alt={title} fill sizes="430px" className="object-cover pointer-events-none transition-transform duration-300 group-hover:scale-105" />
       </div>
       <div className="grid gap-1.5">
         {safeImages.slice(1).map((image, index) => (
-          <div key={image + index} className="relative overflow-hidden rounded-xl bg-slate-100">
-            <Image src={image} alt={title} fill sizes="250px" className="object-cover" />
+          <div 
+            key={image + index} 
+            className="relative overflow-hidden rounded-xl bg-slate-100 cursor-pointer group"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onImageClick?.(image); }}
+          >
+            <Image src={image} alt={title} fill sizes="250px" className="object-cover pointer-events-none transition-transform duration-300 group-hover:scale-105" />
           </div>
         ))}
       </div>
@@ -219,9 +250,11 @@ const ImageGrid = ({ images, title }: { images?: string[]; title: string }) => {
 const CompactImageGrid = ({
   images,
   title,
+  onImageClick,
 }: {
   images?: string[];
   title: string;
+  onImageClick?: (img: string) => void;
 }) => {
   const safeImages = images?.length ? images.slice(0, 3) : [DEFAULT_IMAGE];
   const layoutClass =
@@ -238,20 +271,21 @@ const CompactImageGrid = ({
       {safeImages.map((image, index) => (
         <div
           key={image + index}
-          className={`relative overflow-hidden ${
+          className={`relative overflow-hidden cursor-pointer group ${
             safeImages.length === 1
               ? "h-full w-full"
               : index === 0 && safeImages.length === 3
                 ? "row-span-2"
                 : ""
           }`}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onImageClick?.(image); }}
         >
           <Image
             src={image}
             alt={title}
             fill
             sizes="176px"
-            className="object-cover"
+            className="object-cover pointer-events-none transition-transform duration-300 group-hover:scale-105"
           />
         </div>
       ))}
@@ -296,12 +330,22 @@ export default function JourneyTimeline({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
+  const [fullImage, setFullImage] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const PAGE_SIZE = 20;
 
   const isCommunity = initialTab === "community" || mode === "user";
+
+  const handleImageClick = (url: string) => {
+    setFullImage(url);
+  };
 
   const fetchTimeline = async (pageToLoad = 1) => {
     // If fetching "me" tab and not authenticated, return
@@ -698,12 +742,23 @@ export default function JourneyTimeline({
                         <Avatar src={item.userId?.avatar} name={displayName} size="md" />
                       </Link>
                       <div className="min-w-0">
-                        <Link
-                          href={`/user/traveler/${item.userId?._id}`}
-                          className="truncate text-base font-bold text-slate-900 hover:underline"
-                        >
-                          {displayName}
-                        </Link>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Link
+                            href={`/user/traveler/${item.userId?._id}`}
+                            className="truncate text-base font-bold text-slate-900 hover:underline flex items-center gap-1.5"
+                          >
+                            {displayName}
+                          </Link>
+                          {item.posterAchievementId && ACHIEVEMENT_MAP[item.posterAchievementId] && (
+                            <div 
+                              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold shadow-sm transition cursor-help ${ACHIEVEMENT_MAP[item.posterAchievementId].color}`}
+                              title={`${ACHIEVEMENT_MAP[item.posterAchievementId].name} - ${ACHIEVEMENT_MAP[item.posterAchievementId].desc}`}
+                            >
+                              {React.createElement(ACHIEVEMENT_MAP[item.posterAchievementId].icon, { size: 14 })}
+                              {ACHIEVEMENT_MAP[item.posterAchievementId].name}
+                            </div>
+                          )}
+                        </div>
                         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                           <span>{formatRelativeTime(item.visitedAt)}</span>
                           <span className="h-1 w-1 rounded-full bg-slate-300" />
@@ -766,7 +821,7 @@ export default function JourneyTimeline({
                 </div>
 
                 <div className="px-3 sm:px-4">
-                  <ImageGrid images={item.images} title={item.provinceName} />
+                  <ImageGrid images={item.images} title={item.provinceName} onImageClick={handleImageClick} />
                 </div>
 
                 <div className="px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-3">
@@ -1207,6 +1262,7 @@ export default function JourneyTimeline({
                     <CompactImageGrid
                       images={item.images}
                       title={item.provinceName}
+                      onImageClick={handleImageClick}
                     />
 
                     <div className="min-w-0 flex-1">
@@ -1270,6 +1326,34 @@ export default function JourneyTimeline({
           </button>
         </div>
       )}
+
+      {/* Lightbox Modal */}
+      {mounted && fullImage && createPortal(
+        <div 
+          className="fixed inset-0 flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm" 
+          style={{ zIndex: 99999 }}
+          onClick={() => setFullImage(null)}
+        >
+          <button 
+            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 transition"
+            onClick={() => setFullImage(null)}
+            title="Đóng"
+          >
+            <X size={24} />
+          </button>
+          <div className="relative h-[90vh] w-[90vw] max-w-6xl" onClick={(e) => e.stopPropagation()}>
+            <Image 
+              src={fullImage} 
+              alt="Full size image" 
+              fill 
+              className="object-contain"
+              unoptimized 
+            />
+          </div>
+        </div>,
+        document.body
+      )}
+
     </section>
   );
 }
