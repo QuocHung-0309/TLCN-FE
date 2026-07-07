@@ -2,7 +2,7 @@
 
 import React, { FormEvent, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -193,8 +193,9 @@ const ImageGrid = ({ images, title, onImageClick }: { images?: string[]; title: 
 
   if (safeImages.length === 1) {
     return (
-      <div 
-        className="relative h-52 overflow-hidden rounded-xl bg-slate-100 sm:h-60 cursor-pointer group"
+      <button 
+        type="button"
+        className="relative h-52 w-full overflow-hidden rounded-xl bg-slate-100 sm:h-60 group block"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); onImageClick?.(safeImages[0]); }}
       >
         <Image
@@ -204,7 +205,7 @@ const ImageGrid = ({ images, title, onImageClick }: { images?: string[]; title: 
           sizes="(max-width: 768px) 100vw, 680px"
           className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
-      </div>
+      </button>
     );
   }
 
@@ -212,13 +213,14 @@ const ImageGrid = ({ images, title, onImageClick }: { images?: string[]; title: 
     return (
       <div className="grid h-52 grid-cols-2 gap-1.5 sm:h-60">
         {safeImages.map((image, index) => (
-          <div 
+          <button 
+            type="button"
             key={image + index} 
-            className="relative overflow-hidden rounded-xl bg-slate-100 cursor-pointer group"
+            className="relative h-full w-full overflow-hidden rounded-xl bg-slate-100 group block"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onImageClick?.(image); }}
           >
             <Image src={image} alt={title} fill sizes="340px" className="object-cover pointer-events-none transition-transform duration-300 group-hover:scale-105" />
-          </div>
+          </button>
         ))}
       </div>
     );
@@ -226,21 +228,23 @@ const ImageGrid = ({ images, title, onImageClick }: { images?: string[]; title: 
 
   return (
     <div className="grid h-60 grid-cols-[1.25fr_0.9fr] gap-1.5 sm:h-64">
-      <div 
-        className="relative overflow-hidden rounded-xl bg-slate-100 cursor-pointer group"
+      <button 
+        type="button"
+        className="relative h-full w-full overflow-hidden rounded-xl bg-slate-100 group block"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); onImageClick?.(safeImages[0]); }}
       >
         <Image src={safeImages[0]} alt={title} fill sizes="430px" className="object-cover pointer-events-none transition-transform duration-300 group-hover:scale-105" />
-      </div>
+      </button>
       <div className="grid gap-1.5">
         {safeImages.slice(1).map((image, index) => (
-          <div 
+          <button 
+            type="button"
             key={image + index} 
-            className="relative overflow-hidden rounded-xl bg-slate-100 cursor-pointer group"
+            className="relative h-full w-full overflow-hidden rounded-xl bg-slate-100 group block"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onImageClick?.(image); }}
           >
             <Image src={image} alt={title} fill sizes="250px" className="object-cover pointer-events-none transition-transform duration-300 group-hover:scale-105" />
-          </div>
+          </button>
         ))}
       </div>
     </div>
@@ -269,14 +273,15 @@ const CompactImageGrid = ({
       className={`relative h-28 w-full shrink-0 overflow-hidden rounded-2xl bg-slate-100 sm:w-44 ${layoutClass}`}
     >
       {safeImages.map((image, index) => (
-        <div
+        <button
+          type="button"
           key={image + index}
-          className={`relative overflow-hidden cursor-pointer group ${
+          className={`relative overflow-hidden group block ${
             safeImages.length === 1
               ? "h-full w-full"
               : index === 0 && safeImages.length === 3
-                ? "row-span-2"
-                : ""
+                ? "row-span-2 h-full w-full"
+                : "h-full w-full"
           }`}
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); onImageClick?.(image); }}
         >
@@ -287,7 +292,7 @@ const CompactImageGrid = ({
             sizes="176px"
             className="object-cover pointer-events-none transition-transform duration-300 group-hover:scale-105"
           />
-        </div>
+        </button>
       ))}
 
       <div className="absolute bottom-2 right-2 rounded-full bg-slate-950/70 px-2 py-1 text-xs font-bold text-white">
@@ -1212,6 +1217,44 @@ export default function JourneyTimeline({
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeletingId(null)}
       />
+
+      {/* Lightbox Modal for Community Feed */}
+      {mounted && createPortal(
+        <AnimatePresence>
+          {fullImage && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm" 
+              onClick={() => setFullImage(null)}
+            >
+              <button 
+                type="button"
+                className="absolute right-4 top-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/30 transition shadow-lg"
+                onClick={() => setFullImage(null)}
+                title="Đóng"
+              >
+                <X size={24} />
+              </button>
+              <motion.div 
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.95 }}
+                className="relative h-[90vh] w-[90vw] max-w-6xl" 
+                onClick={(e) => e.stopPropagation()}
+              >
+                <img 
+                  src={fullImage} 
+                  alt="Full size image" 
+                  className="h-full w-full object-contain"
+                />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </>
     );
   }
@@ -1328,32 +1371,42 @@ export default function JourneyTimeline({
       )}
 
       {/* Lightbox Modal */}
-      {mounted && fullImage && createPortal(
-        <div 
-          className="fixed inset-0 flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm" 
-          style={{ zIndex: 99999 }}
-          onClick={() => setFullImage(null)}
-        >
-          <button 
-            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 transition"
-            onClick={() => setFullImage(null)}
-            title="Đóng"
-          >
-            <X size={24} />
-          </button>
-          <div className="relative h-[90vh] w-[90vw] max-w-6xl" onClick={(e) => e.stopPropagation()}>
-            <Image 
-              src={fullImage} 
-              alt="Full size image" 
-              fill 
-              className="object-contain"
-              unoptimized 
-            />
-          </div>
-        </div>,
+      {mounted && createPortal(
+        <AnimatePresence>
+          {fullImage && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm" 
+              onClick={() => setFullImage(null)}
+            >
+              <button 
+                type="button"
+                className="absolute right-4 top-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/30 transition shadow-lg"
+                onClick={() => setFullImage(null)}
+                title="Đóng"
+              >
+                <X size={24} />
+              </button>
+              <motion.div 
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.95 }}
+                className="relative h-[90vh] w-[90vw] max-w-6xl" 
+                onClick={(e) => e.stopPropagation()}
+              >
+                <img 
+                  src={fullImage} 
+                  alt="Full size image" 
+                  className="h-full w-full object-contain"
+                />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
         document.body
       )}
-
     </section>
   );
 }
