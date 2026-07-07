@@ -517,7 +517,7 @@ export default function UserHomeMapPage() {
         </motion.div>
 
         {/* tabs */}
-        <div className="mx-auto flex w-fit items-center gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
+        <div className="mx-auto flex w-full items-center gap-1.5 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm sm:w-fit sm:gap-2 sm:p-2 no-scrollbar">
           {[
             { key: "map", label: "Bản đồ", icon: MapIcon },
             { key: "timeline", label: "Dòng thời gian", icon: Clock },
@@ -529,7 +529,7 @@ export default function UserHomeMapPage() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as any)}
-                className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-all ${
+                className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium transition-all sm:gap-2 sm:px-5 sm:py-2.5 sm:text-sm ${
                   active
                     ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
                     : "text-slate-600 hover:bg-slate-100"
@@ -590,16 +590,7 @@ export default function UserHomeMapPage() {
           )}
         </AnimatePresence>
 
-        {/* checkin list */}
-        {activeTab === "map" && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <CheckinAccordion />
-          </motion.div>
-        )}
+        {/* checkin list - ẩn theo yêu cầu */}
 
         {/* suggested tours */}
         <section className="border-t border-slate-200 pt-8">

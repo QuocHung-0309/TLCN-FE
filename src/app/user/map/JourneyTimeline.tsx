@@ -628,17 +628,17 @@ export default function JourneyTimeline({
   if (isCommunity) {
     return (
       <>
-      <section className="mx-auto grid max-w-6xl grid-cols-1 gap-5 lg:grid-cols-[minmax(0,680px)_280px] lg:justify-center">
+      <section className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-5 lg:grid-cols-[1fr_300px] px-1 sm:px-0">
         <div className="space-y-4">
           {initialTab === "community" && (
-            <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+            <div className="rounded-2xl border border-slate-100 bg-white p-3 shadow-sm sm:p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="mb-2 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-blue-700">
                     <Users size={14} />
                     Cộng đồng AHH Travel
                   </p>
-                  <h2 className="text-xl font-black text-slate-900 md:text-2xl">
+                  <h2 className="text-lg font-black text-slate-900 sm:text-xl md:text-2xl">
                     Bảng tin cộng đồng
                   </h2>
                   <p className="mt-1 text-sm leading-6 text-slate-500">
@@ -655,13 +655,13 @@ export default function JourneyTimeline({
           {initialTab === "community" && (
           <button
             onClick={() => setIsComposeOpen(true)}
-            className="flex w-full items-center gap-3 rounded-2xl border border-slate-100 bg-white p-4 text-left shadow-sm transition hover:border-blue-200 hover:shadow-md"
+            className="flex w-full items-center gap-2 rounded-2xl border border-slate-100 bg-white p-3 text-left shadow-sm transition hover:border-blue-200 hover:shadow-md sm:gap-3 sm:p-4"
           >
             <Avatar src={user?.avatar} name={user?.fullName} size="md" />
             <span className="flex-1 rounded-full bg-slate-100 px-4 py-2.5 text-sm text-slate-500">
               Chia sẻ kỷ niệm du lịch của bạn...
             </span>
-            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700">
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700 sm:px-4 sm:py-2.5 sm:text-sm">
               <Camera size={16} /> Đăng kỷ niệm
             </span>
           </button>
@@ -691,7 +691,7 @@ export default function JourneyTimeline({
                 transition={{ delay: index * 0.04 }}
                 className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm"
               >
-                <div className="p-4">
+                <div className="p-3 sm:p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 gap-3">
                       <Link href={`/user/traveler/${item.userId?._id}`} className="shrink-0">
@@ -765,11 +765,11 @@ export default function JourneyTimeline({
                   )}
                 </div>
 
-                <div className="px-4">
+                <div className="px-3 sm:px-4">
                   <ImageGrid images={item.images} title={item.provinceName} />
                 </div>
 
-                <div className="px-4 pb-4 pt-3">
+                <div className="px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-3">
                   <div className="mb-2 flex items-center justify-between text-xs text-slate-500">
                     <div className="flex items-center gap-3">
                       <span className="inline-flex items-center gap-1.5">
@@ -1024,7 +1024,7 @@ export default function JourneyTimeline({
           )}
         </div>
 
-        <aside className="space-y-3 lg:sticky lg:top-24 lg:h-fit">
+        <aside className="hidden space-y-3 lg:block lg:sticky lg:top-24 lg:h-fit">
           <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
             <h3 className="mb-3 flex items-center gap-2 text-base font-black text-slate-900">
               <TrendingUp size={18} className="text-blue-600" />
