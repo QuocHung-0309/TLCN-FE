@@ -73,12 +73,9 @@ const DestinationList = () => {
 
   // Hàm tạo link theo đúng format của bạn
   const createSearchLink = (destinationName: string) => {
-    // Tạo đối tượng params
     const params = new URLSearchParams({
       page: "1",
       destination: destinationName, // VD: "Nha Trang"
-      budgetMin: "0",
-      budgetMax: "1000000000",
     });
 
     // Kết quả sẽ là: /user/destination?page=1&destination=Nha+Trang&budgetMin=0...
