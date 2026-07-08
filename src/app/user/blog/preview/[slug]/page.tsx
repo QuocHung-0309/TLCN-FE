@@ -54,17 +54,8 @@ export default function BlogPreviewPage() {
   const isLoggedIn = !!(token?.accessToken || user);
 
   const [blog, setBlog] = useState<BlogDetail | null>(null);
-  const [comments, setComments] = useState<BlogComment[]>([]);
-  const [ratingAvg, setRatingAvg] = useState<number | undefined>(undefined);
-  const [ratingCount, setRatingCount] = useState<number | undefined>(undefined);
-
   const [loading, setLoading] = useState(true);
-  const [loadingComments, setLoadingComments] = useState(true);
   const [error, setError] = useState("");
-
-  const [myRating, setMyRating] = useState(5);
-  const [myContent, setMyContent] = useState("");
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchBlog = async () => {
@@ -80,52 +71,8 @@ export default function BlogPreviewPage() {
       }
     };
 
-    const fetchComments = async () => {
-      try {
-        setLoadingComments(true);
-        const res = await blogApi.getComments(slug);
-        setComments(res.comments || []);
-        setRatingAvg(res.ratingAvg);
-        setRatingCount(res.ratingCount);
-      } catch (err) {
-        console.error("getComments error", err);
-      } finally {
-        setLoadingComments(false);
-      }
-    };
-
     fetchBlog();
-    fetchComments();
   }, [slug]);
-
-  const handleSubmitComment = async () => {
-    if (!isLoggedIn) {
-      toast.error("Bạn cần đăng nhập để bình luận.");
-      return;
-    }
-    if (!myContent.trim()) return;
-
-    try {
-      setSubmitting(true);
-      const newComment = await blogApi.createComment(slug, {
-        rating: myRating,
-        content: myContent.trim(),
-      });
-      setComments((prev) => [newComment, ...prev]);
-      setMyContent("");
-
-      const newCount = (ratingCount || 0) + 1;
-      const newAvg =
-        ((ratingAvg || 0) * (ratingCount || 0) + myRating) / newCount;
-      setRatingAvg(newAvg);
-      setRatingCount(newCount);
-    } catch (err) {
-      console.error("createComment error", err);
-      toast.error("Không gửi được bình luận.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -241,54 +188,6 @@ export default function BlogPreviewPage() {
           )}
         </section>
 
-        {/* Comments */}
-        <section className="mt-10 opacity-70 cursor-not-allowed">
-          <h2 className="mb-4 text-lg font-semibold text-slate-900">
-            Bình luận & đánh giá
-          </h2>
-
-          <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-100 p-4 text-center shadow-sm">
-             <p className="text-sm font-semibold text-slate-500">
-               Tính năng bình luận không khả dụng cho bài viết nháp/riêng tư.
-             </p>
-          </div>
-          
-          {/* List comments if any existed before becoming private */}
-          <div className="space-y-3">
-            {loadingComments ? (
-              <p className="text-sm text-slate-500">Đang tải bình luận…</p>
-            ) : comments.length === 0 ? null : (
-              comments.map((c) => (
-                <div
-                  key={c.id}
-                  className="rounded-2xl border border-slate-200 bg-white p-4 text-sm shadow-sm"
-                >
-                  <div className="mb-1 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                       <p className="font-medium text-slate-800">
-                          {c.userName || "Ẩn danh"}
-                        </p>
-                        {c.createdAt && (
-                          <p className="text-[11px] text-slate-400">
-                            {new Date(c.createdAt).toLocaleString("vi-VN")}
-                          </p>
-                        )}
-                    </div>
-                    {c.rating != null && (
-                      <div className="flex items-center gap-1 text-xs text-amber-500">
-                        <Star className="h-3 w-3 fill-current" />
-                        <span>{c.rating.toFixed(1)}</span>
-                      </div>
-                    )}
-                  </div>
-                  <p className="mt-1 text-[13px] leading-relaxed text-slate-700">
-                    {c.content}
-                  </p>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
       </article>
     </div>
   );
