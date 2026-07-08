@@ -297,7 +297,9 @@ export default function AdminReportDetailPage() {
                             {(pax.numAdults || 0) + (pax.numChildren || 0)} khách
                           </td>
                           <td className="px-6 py-4">
-                            {isNoShow ? (
+                            {pax.bookingStatus === "cancelled" ? (
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full">Đã hủy</span>
+                            ) : isNoShow ? (
                               <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 bg-red-100 text-red-700 rounded-full">Vắng mặt (No-show)</span>
                             ) : tour.status === "completed" || tour.status === "closed" ? (
                               <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full">Đã tham gia</span>
