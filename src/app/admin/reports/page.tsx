@@ -272,11 +272,13 @@ export default function AdminReportsPage() {
           </div>
         )}
       </div>
-      {totalPages > 1 && (
-        <div className="flex justify-center">
-          <AdminPagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
-        </div>
-      )}
+      <AdminPagination 
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        totalItems={total}
+        itemsLabel="báo cáo"
+      />
     </div>
   );
 }
