@@ -45,3 +45,14 @@ export async function getMyBookings(page = 1, limit = 10): Promise<MyBookingsRes
   });
   return data;
 }
+
+export async function checkOverlapBooking(departureId: string): Promise<{ hasOverlap: boolean; overlapDetails?: any }> {
+  try {
+    const { data } = await axiosInstance.get("/bookings/check-overlap", {
+      params: { departureId },
+    });
+    return data;
+  } catch (error) {
+    return { hasOverlap: false };
+  }
+}

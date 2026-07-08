@@ -23,6 +23,8 @@ import { getRelatedBlogsForTour, type BlogSummary } from "@/lib/blog/blogApi";
 import FavoriteButton from "@/components/ui/FavoriteButton";
 import useUser from "@/hooks/useUser";
 import { startViewTracking, trackReview } from "@/utils/tracking";
+import { checkOverlapBooking } from "@/lib/bookings/bookingApi";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 const toNum = (v?: number | string) => {
   if (typeof v === "number") return v;
@@ -437,6 +439,41 @@ export default function TourDetailPage() {
   const isLoggedIn = !!accessToken;
   const { user } = useUser();
 
+  const [checkingOverlap, setCheckingOverlap] = useState(false);
+  const [overlapModal, setOverlapModal] = useState({
+    isOpen: false,
+    message: "",
+    checkoutUrl: ""
+  });
+
+  const handleBookTour = async () => {
+    if (!selectedDeparture) return;
+    const checkoutUrl = `/user/checkout?id=${encodeURIComponent(String(selectedDeparture._id))}&adults=1&children=0`;
+    
+    if (!isLoggedIn) {
+      router.push(checkoutUrl);
+      return;
+    }
+    
+    setCheckingOverlap(true);
+    try {
+      const { hasOverlap, overlapDetails } = await checkOverlapBooking(String(selectedDeparture._id));
+      if (hasOverlap && overlapDetails) {
+        setOverlapModal({
+          isOpen: true,
+          message: `Bạn đang có đơn đặt tour "${overlapDetails.tourTitle}" (Mã: ${overlapDetails.bookingCode}) diễn ra vào cùng khoảng thời gian này. Bạn có chắc chắn muốn tiếp tục đặt thêm chuyến đi này không?`,
+          checkoutUrl
+        });
+      } else {
+        router.push(checkoutUrl);
+      }
+    } catch (err) {
+      router.push(checkoutUrl);
+    } finally {
+      setCheckingOverlap(false);
+    }
+  };
+
   useEffect(() => {
     if (!id || isLoading) return;
     const stopTracking = startViewTracking(id, { userId: user?.id });
@@ -827,16 +864,11 @@ export default function TourDetailPage() {
                     </div>
                   ) : (
                     <button
-                      onClick={() =>
-                        router.push(
-                          `/user/checkout?id=${encodeURIComponent(
-                            String(selectedDeparture._id)
-                          )}&adults=1&children=0`
-                        )
-                      }
-                      className="flex-1 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-400 px-4 py-3 text-sm font-bold text-white shadow-md shadow-orange-500/40 transition hover:brightness-[1.05] active:scale-[0.98]"
+                      onClick={handleBookTour}
+                      disabled={checkingOverlap}
+                      className="flex-1 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-400 px-4 py-3 text-sm font-bold text-white shadow-md shadow-orange-500/40 transition hover:brightness-[1.05] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                      Đặt tour ngay
+                      {checkingOverlap ? "Đang xử lý..." : "Đặt tour ngay"}
                     </button>
                   )}
                   <button
@@ -1336,14 +1368,11 @@ export default function TourDetailPage() {
                     </div>
                   ) : (
                     <button
-                      onClick={() =>
-                        router.push(
-                          `/user/checkout?id=${encodeURIComponent(String(selectedDeparture._id))}&adults=1&children=0`
-                        )
-                      }
-                      className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 py-4 text-center text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:brightness-110 active:scale-95"
+                      onClick={handleBookTour}
+                      disabled={checkingOverlap}
+                      className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 py-4 text-center text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:brightness-110 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                      Đặt tour ngay &rarr;
+                      {checkingOverlap ? "Đang xử lý..." : "Đặt tour ngay \u2192"}
                       <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-500 group-hover:translate-x-full" />
                     </button>
                   )}
@@ -1449,6 +1478,20 @@ export default function TourDetailPage() {
           <div className="absolute inset-0 -z-10 cursor-pointer" onClick={() => setActiveItineraryImg(null)} />
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={overlapModal.isOpen}
+        title="Trùng lặp lịch trình"
+        message={overlapModal.message}
+        confirmText="Tiếp tục đặt"
+        cancelText="Hủy"
+        type="warning"
+        onConfirm={() => {
+          setOverlapModal(prev => ({ ...prev, isOpen: false }));
+          router.push(overlapModal.checkoutUrl);
+        }}
+        onCancel={() => setOverlapModal(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }
