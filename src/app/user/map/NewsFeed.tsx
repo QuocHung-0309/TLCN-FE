@@ -256,7 +256,7 @@ export default function NewsFeed() {
                       {user?.fullName || "Người dùng"}
                     </h4>
                     {userAchievement && (
-                      <div className="flex items-center gap-1 rounded-full bg-gradient-to-r px-2 py-0.5 text-[10px] font-bold uppercase text-white shadow-sm opacity-90" style={{ backgroundImage: `linear-gradient(to right, var(--tw-gradient-stops))` }} className={`flex items-center gap-1 rounded-full bg-gradient-to-r ${userAchievement.color} px-2 py-0.5 text-[10px] font-bold uppercase text-white shadow-sm`}>
+                      <div style={{ backgroundImage: `linear-gradient(to right, var(--tw-gradient-stops))` }} className={`flex items-center gap-1 rounded-full bg-gradient-to-r ${userAchievement.color} px-2 py-0.5 text-[10px] font-bold uppercase text-white shadow-sm opacity-90`}>
                         {React.createElement(userAchievement.icon, { size: 10 })}
                         <span className="hidden sm:inline">{userAchievement.name}</span>
                       </div>
