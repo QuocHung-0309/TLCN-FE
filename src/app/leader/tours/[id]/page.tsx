@@ -607,7 +607,7 @@ export default function TourDetailPage() {
                   <table className="w-full text-sm">
                     <thead className="bg-slate-50 border-b border-slate-100">
                       <tr>
-                        {["Mã","Khách hàng","Liên hệ","NL/TE","Thanh toán","Trạng thái","Điểm danh","Thao tác"].map(h=>(
+                        {["Mã","Khách hàng","Liên hệ","NL/TE","Thanh toán","Trạng thái","Điểm danh"].map(h=>(
                           <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
                             {h}
                           </th>
@@ -659,16 +659,6 @@ export default function TourDetailPage() {
                                   ${(tour.status !== "in_progress" || !!tour.leaderReport) ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}>
                                 <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${p.isPresent ? "translate-x-4" : "translate-x-1"}`} />
                               </button>
-                            </td>
-                            <td className="px-4 py-3.5">
-                              <div className="flex items-center gap-1">
-                                {p.note && (
-                                  <button title={`Ghi chú: ${p.note}`}
-                                    className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors">
-                                    <FileText className="w-4 h-4" />
-                                  </button>
-                                )}
-                              </div>
                             </td>
                           </tr>
                         );
