@@ -196,7 +196,7 @@ export default function TourDetailPage() {
   };
 
   const handleEditExpense = (exp: Expense) => {
-    setEditingExpenseId(exp._id);
+    setEditingExpenseId(exp._id || null);
     setExpForm({
       title: exp.title,
       amount: String(exp.amount),
