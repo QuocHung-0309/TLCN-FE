@@ -491,9 +491,10 @@ export default function TourDetailPage() {
                                   <span className="font-medium text-slate-700">{seg.title || "Buổi"}</span>
                                   {seg.items && seg.items.length > 0 && (
                                     <ul className="list-disc list-inside mt-1 text-slate-600 ml-2">
-                                      {seg.items.map((item: any, idxx: number) => (
-                                        <li key={idxx}>{item.description || item.title || item}</li>
-                                      ))}
+                                      {seg.items.map((item: any, idxx: number) => {
+                                        const text = typeof item === 'object' && item !== null ? (item.text || item.description || item.title || "") : item;
+                                        return <li key={idxx}>{text}</li>;
+                                      })}
                                     </ul>
                                   )}
                                 </div>
@@ -827,7 +828,7 @@ export default function TourDetailPage() {
               <button type="submit" disabled={submReport || !reportForm.summary.trim() || (tour.status !== "completed" && tour.status !== "closed")}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold shadow-md shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
                 {submReport ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                Nộp báo cáo
+                {tour.leaderReport ? "Cập nhật báo cáo" : "Nộp báo cáo"}
               </button>
             </div>
           </form>
