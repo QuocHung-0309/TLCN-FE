@@ -6,7 +6,7 @@ import { toast } from "react-hot-toast";
 import {
   ArrowLeft, Calendar, MapPin, Users, Clock, Plus, Send,
   DollarSign, CheckCircle2, AlertCircle, Plane, Flag,
-  FileText, Loader2, X, TrendingUp, EyeOff, MessageSquare,
+  FileText, Loader2, X, TrendingUp, EyeOff, MessageSquare, Trash2, Edit2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -114,6 +114,7 @@ export default function TourDetailPage() {
   const [showExp, setShowExp] = useState(false);
   const [expForm, setExpForm] = useState({ title: "", amount: "", note: "", receiptImages: "", visibleToCustomers: true });
   const [submExp, setSubmExp] = useState(false);
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
 
   const [reportForm, setReportForm] = useState({ summary: "", incidents: "", expenseNote: "" });
   const [submReport, setSubmReport] = useState(false);
@@ -166,18 +167,62 @@ export default function TourDetailPage() {
         .map(url => url.trim())
         .filter(Boolean)
         .slice(0, 5);
-      await leaderToursApi.addExpense(tourId, {
-        title: expForm.title,
-        amount: Number(expForm.amount),
-        note: expForm.note||undefined,
-        receiptImages,
-        visibleToCustomers: expForm.visibleToCustomers,
-      });
+      
+      if (editingExpenseId) {
+        await leaderToursApi.updateExpense(tourId, editingExpenseId, {
+          title: expForm.title,
+          amount: Number(expForm.amount),
+          note: expForm.note||undefined,
+          receiptImages,
+          visibleToCustomers: expForm.visibleToCustomers,
+        });
+        toast.success("Đã cập nhật chi phí!");
+      } else {
+        await leaderToursApi.addExpense(tourId, {
+          title: expForm.title,
+          amount: Number(expForm.amount),
+          note: expForm.note||undefined,
+          receiptImages,
+          visibleToCustomers: expForm.visibleToCustomers,
+        });
+        toast.success("Đã thêm chi phí!");
+      }
       setExpenses((await leaderToursApi.getTourExpenses(tourId)).data??[]);
-      setExpForm({ title:"", amount:"", note:"", receiptImages:"", visibleToCustomers:true }); setShowExp(false);
-      toast.success("Đã thêm chi phí!");
+      setExpForm({ title:"", amount:"", note:"", receiptImages:"", visibleToCustomers:true });
+      setEditingExpenseId(null);
+      setShowExp(false);
     } catch (err: any) { toast.error(err.response?.data?.message || "Lỗi"); }
     finally { setSubmExp(false); }
+  };
+
+  const handleEditExpense = (exp: Expense) => {
+    setEditingExpenseId(exp._id);
+    setExpForm({
+      title: exp.title,
+      amount: String(exp.amount),
+      note: exp.note || "",
+      receiptImages: (exp.receiptImages || []).join("\n"),
+      visibleToCustomers: exp.visibleToCustomers !== false,
+    });
+    setShowExp(true);
+  };
+
+  const handleDeleteExpense = async (expId: string) => {
+    if (!confirm("Bạn có chắc muốn xóa khoản chi này?")) return;
+    try {
+      await leaderToursApi.deleteExpense(tourId!, expId);
+      setExpenses((await leaderToursApi.getTourExpenses(tourId!)).data??[]);
+      toast.success("Đã xóa chi phí!");
+    } catch(err: any) { toast.error(err.response?.data?.message || "Lỗi"); }
+  };
+
+  const handleDeleteTimeline = async (tlId: string) => {
+    if (!confirm("Bạn có chắc muốn xóa sự kiện này? (Nếu xóa sự kiện Kết thúc, tour sẽ quay về trạng thái Đang diễn ra)")) return;
+    try {
+      await leaderToursApi.deleteTimeline(tourId!, tlId);
+      setTour(await leaderToursApi.getTourDetail(tourId!));
+      toast.success("Đã xóa sự kiện!");
+    } catch(err: any) { toast.error(err.response?.data?.message || "Lỗi"); }
   };
 
   const submitReport = async (e: React.FormEvent) => {
@@ -507,7 +552,16 @@ export default function TourDetailPage() {
                           <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-4 hover:bg-white transition-colors">
                             <div className="flex items-start justify-between gap-2 mb-1">
                               <span className={`font-semibold text-sm ${ec.color}`}>{ec.label}</span>
-                              <span className="text-xs text-slate-400 flex-shrink-0">{fmtDateTime(ev.at)}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-slate-400 flex-shrink-0">{fmtDateTime(ev.at)}</span>
+                                {(!tour.leaderReport || tour.leaderReport.status !== "submitted") && ev._id && (
+                                  <button onClick={() => handleDeleteTimeline(ev._id!)}
+                                    className="p-1 rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                    title="Xóa sự kiện">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
                             </div>
                             {ev.place && (
                               <p className="text-sm text-slate-600 flex items-center gap-1.5 mt-1">
@@ -696,7 +750,19 @@ export default function TourDetailPage() {
                         )}
                         <p className="text-xs text-slate-400 mt-0.5">{fmtDateTime(exp.occurredAt)}</p>
                       </div>
-                      <p className="font-bold text-orange-600 flex-shrink-0">{fmtVND(exp.amount)}</p>
+                      <div className="flex flex-col items-end justify-center gap-2 flex-shrink-0">
+                        <p className="font-bold text-orange-600">{fmtVND(exp.amount)}</p>
+                        {exp.status === "pending" && (!tour.leaderReport || tour.leaderReport.status !== "submitted") && (
+                          <div className="flex gap-2">
+                            <button onClick={() => handleEditExpense(exp)} className="p-1 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-md transition-colors" title="Sửa chi phí">
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleDeleteExpense(exp._id!)} className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors" title="Xóa chi phí">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

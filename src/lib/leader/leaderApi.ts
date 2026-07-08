@@ -290,6 +290,34 @@ export const leaderToursApi = {
     return res.data as { total: number; count: number; data: Expense[] };
   },
 
+  // Cập nhật chi phí phát sinh
+  updateExpense: async (
+    departureId: string,
+    expenseId: string,
+    expense: {
+      title?: string;
+      amount?: number;
+      note?: string;
+      receiptImages?: string[];
+      visibleToCustomers?: boolean;
+    }
+  ) => {
+    const res = await leaderAxios.put(`/leader/departures/${departureId}/expenses/${expenseId}`, expense);
+    return res.data;
+  },
+
+  // Xóa chi phí phát sinh
+  deleteExpense: async (departureId: string, expenseId: string) => {
+    const res = await leaderAxios.delete(`/leader/departures/${departureId}/expenses/${expenseId}`);
+    return res.data;
+  },
+
+  // Xóa sự kiện timeline
+  deleteTimeline: async (departureId: string, timelineId: string) => {
+    const res = await leaderAxios.delete(`/leader/departures/${departureId}/timeline/${timelineId}`);
+    return res.data;
+  },
+
   submitReport: async (
     departureId: string,
     report: {
