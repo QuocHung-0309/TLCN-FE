@@ -9,6 +9,7 @@ import SearchBox from "@/components/ui/SearchBox";
 import HomeBanner from "./HomeBanner";
 import ServiceSection from "./ServiceSection";
 import HotDestinations from "./HotDestinations";
+import TourList from "./TourList";
 import QNASection from "./QNASection";
 import BlogSection from "./BlogSection";
 import VoucherEventsSection from "./VoucherEventsSection";
@@ -46,6 +47,11 @@ export default function UserHomePage() {
       {/* Services */}
       <SlideIn dir="left">
         <ServiceSection />
+      </SlideIn>
+
+      {/* Điểm đến hot nhất */}
+      <SlideIn dir="right">
+        <TourList />
       </SlideIn>
 
       {/* Tour nổi bật */}
