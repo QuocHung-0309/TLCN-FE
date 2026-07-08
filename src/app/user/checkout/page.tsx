@@ -22,6 +22,7 @@ import {
   Copy,
   ExternalLink,
   FileText,
+  Calendar,
 } from "lucide-react";
 
 import { useGetTourById, useGetDepartureById } from "#/hooks/tours-hook/useTourDetail";
@@ -136,6 +137,7 @@ function CheckoutContent() {
   >({});
   const [submitting, setSubmitting] = React.useState(false);
   const [isReadOnly, setIsReadOnly] = React.useState(false);
+  const [agreedToTerms, setAgreedToTerms] = React.useState(false);
 
   /* ---------- Voucher state ---------- */
   const [voucherCode, setVoucherCode] = React.useState("");
@@ -788,10 +790,27 @@ function CheckoutContent() {
                   </div>
                 )}
 
+                <div className="mt-4 flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <input
+                    type="checkbox"
+                    id="agree-terms"
+                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    checked={agreedToTerms}
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  />
+                  <label htmlFor="agree-terms" className="text-sm text-slate-600 cursor-pointer select-none leading-relaxed">
+                    Tôi đã đọc và đồng ý với{" "}
+                    <a href="#" className="font-semibold text-blue-600 hover:underline">
+                      Điều khoản dịch vụ
+                    </a>{" "}
+                    của hệ thống.
+                  </label>
+                </div>
+
                 <Button
                   type="submit"
                   full
-                  disabled={submitting || isSoldOut}
+                  disabled={submitting || isSoldOut || !agreedToTerms}
                   className="h-12 text-base mt-2"
                 >
                   {submitting
@@ -819,105 +838,162 @@ function CheckoutContent() {
         {showVoucherModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl border border-slate-100"
             >
-              <div className="p-4 border-b flex justify-between items-center bg-slate-50">
-                <h3 className="font-bold text-lg text-slate-800">
-                  Chọn Voucher Travela
-                </h3>
-                <button
-                  onClick={() => setShowVoucherModal(false)}
-                  className="p-1 hover:bg-slate-200 rounded-full"
-                >
-                  <X size={20} />
-                </button>
+              {/* Header */}
+              <div className="relative overflow-hidden bg-gradient-to-r from-blue-900 to-indigo-900 p-6">
+                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+                <div className="absolute -left-10 -bottom-10 h-24 w-24 rounded-full bg-blue-500/20 blur-xl" />
+                
+                <div className="relative flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-white">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                      <Ticket size={20} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold tracking-tight">Chọn Voucher Travela</h3>
+                      <p className="text-xs text-blue-100 mt-0.5">Mã giảm giá và ưu đãi đặc quyền</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowVoucherModal(false)}
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
               </div>
 
-              <div className="p-4 bg-slate-50 border-b">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Nhập mã voucher"
-                    className="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-                    value={voucherCode}
-                    onChange={(e) =>
-                      setVoucherCode(e.target.value.toUpperCase())
-                    }
-                  />
+              {/* Input Area */}
+              <div className="p-6 bg-slate-50 border-b border-slate-100">
+                <div className="flex gap-3">
+                  <div className="relative flex-1">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                      <Ticket size={18} className="text-slate-400" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Nhập mã voucher của bạn..."
+                      className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm font-medium text-slate-800 placeholder-slate-400 shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 uppercase"
+                      value={voucherCode}
+                      onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                    />
+                  </div>
                   <button
                     type="button"
                     onClick={() => doApplyVoucher(voucherCode)}
                     disabled={!voucherCode || loadingVoucher}
-                    className="px-4 py-2 bg-blue-950 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 disabled:opacity-50"
+                    className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow disabled:opacity-50 active:scale-95"
                   >
-                    {loadingVoucher ? "Đang kiểm tra..." : "Áp dụng"}
+                    {loadingVoucher ? "Đang xử lý..." : "Áp dụng"}
                   </button>
                 </div>
                 {voucherError && (
-                  <p className="text-xs text-red-500 mt-2 ml-1 flex items-center gap-1">
-                    <AlertCircle size={12} /> {voucherError}
-                  </p>
+                  <motion.p 
+                    initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }}
+                    className="mt-3 flex items-center gap-1.5 text-sm font-medium text-red-500"
+                  >
+                    <AlertCircle size={16} /> {voucherError}
+                  </motion.p>
                 )}
               </div>
 
-              <div className="p-4 max-h-[300px] overflow-y-auto space-y-3">
-                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2">
-                  Mã giảm giá của tôi
-                </p>
+              {/* List Vouchers */}
+              <div className="p-6 max-h-[360px] overflow-y-auto bg-white">
+                <div className="mb-4 flex items-center gap-2">
+                  <div className="h-4 w-1 rounded-full bg-orange-500" />
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                    Mã giảm giá của tôi
+                  </p>
+                </div>
 
                 {loadingMyVouchers ? (
-                  <p className="text-center text-sm text-slate-400 py-4">
-                    Đang tải...
-                  </p>
+                  <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-blue-500" />
+                    <p className="mt-4 text-sm">Đang tải danh sách voucher...</p>
+                  </div>
                 ) : myVouchers.length === 0 ? (
-                  <p className="text-center text-sm text-slate-400 py-4">
-                    Bạn chưa có voucher nào
-                  </p>
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                      <Ticket size={24} />
+                    </div>
+                    <p className="text-sm font-medium text-slate-600">Bạn chưa có voucher nào</p>
+                    <p className="mt-1 text-xs text-slate-400">Các voucher bạn lưu sẽ xuất hiện ở đây.</p>
+                  </div>
                 ) : (
-                  myVouchers.map((v) => (
-                    <button
-                      type="button"
-                      key={v._id}
-                      onClick={() => handleSelectVoucher(v)}
-                      className={`relative flex items-center p-3 rounded-lg border cursor-pointer transition-all w-full text-left ${
-                        voucher?.code === v.code
-                          ? "border-emerald-500 bg-emerald-50"
-                          : "border-slate-200 hover:border-emerald-300 bg-white"
-                      }`}
-                    >
-                      <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center text-blue-950 mr-3 shrink-0">
-                        {v.type === "percent" ? (
-                          <Percent size={20} />
-                        ) : (
-                          <Banknote size={20} />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-bold text-slate-800 text-sm">
-                          {v.code}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          {v.description ||
-                            `Giảm ${
-                              v.type === "percent"
-                                ? v.value + "%"
-                                : vnd(v.value)
-                            }`}
-                        </p>
-                        <p className="text-[10px] text-slate-400 mt-1">
-                          HSD: {dmy(v.expiresAt)}
-                        </p>
-                      </div>
-                      {voucher?.code === v.code && (
-                        <div className="text-blue-950">
-                          <Check size={20} />
-                        </div>
-                      )}
-                    </button>
-                  ))
+                  <div className="space-y-4">
+                    {myVouchers.map((v) => {
+                      const isSelected = voucher?.code === v.code;
+                      return (
+                        <button
+                          type="button"
+                          key={v._id}
+                          onClick={() => handleSelectVoucher(v)}
+                          className={`group relative flex w-full items-stretch overflow-hidden rounded-2xl border text-left transition-all hover:shadow-md ${
+                            isSelected
+                              ? "border-blue-500 bg-blue-50/50 shadow-sm ring-1 ring-blue-500"
+                              : "border-slate-200 bg-white hover:border-blue-300"
+                          }`}
+                        >
+                          {/* Ticket stub edge decoration */}
+                          <div className="absolute -left-2 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border border-slate-200 bg-slate-50" />
+                          <div className="absolute -right-2 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border border-slate-200 bg-slate-50" />
+                          
+                          <div className={`flex w-24 shrink-0 flex-col items-center justify-center border-r border-dashed p-3 transition-colors ${
+                            isSelected ? "border-blue-300 bg-blue-100/50" : "border-slate-200 bg-slate-50 group-hover:bg-blue-50/50"
+                          }`}>
+                            {v.type === "percent" ? (
+                              <Percent size={28} className={isSelected ? "text-blue-600" : "text-slate-400 group-hover:text-blue-500"} />
+                            ) : (
+                              <Banknote size={28} className={isSelected ? "text-blue-600" : "text-slate-400 group-hover:text-blue-500"} />
+                            )}
+                            <span className={`mt-2 text-[10px] font-bold uppercase tracking-wider ${isSelected ? "text-blue-600" : "text-slate-500"}`}>
+                              {v.type === "percent" ? "Giảm %" : "Tiền mặt"}
+                            </span>
+                          </div>
+
+                          <div className="flex flex-1 items-center justify-between p-4 pl-5">
+                            <div>
+                              <p className={`text-base font-bold ${isSelected ? "text-blue-700" : "text-slate-800"}`}>
+                                {v.code}
+                              </p>
+                              <p className="mt-0.5 text-sm text-slate-600 line-clamp-2">
+                                {v.description ||
+                                  `Giảm ${
+                                    v.type === "percent"
+                                      ? v.value + "%"
+                                      : vnd(v.value)
+                                  }`}
+                              </p>
+                              <div className="mt-2.5 flex items-center gap-4 text-[11px] font-medium text-slate-500">
+                                <div className="flex items-center gap-1.5">
+                                  <Calendar size={12} className="text-slate-400" />
+                                  <span>Từ: {v.validFrom ? dmy(v.validFrom) : "-"}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <Calendar size={12} className="text-slate-400" />
+                                  <span>Đến: {v.validUntil ? dmy(v.validUntil) : "Không thời hạn"}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="ml-4 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors">
+                              {isSelected ? (
+                                <div className="flex h-full w-full items-center justify-center rounded-full border-transparent bg-blue-600 text-white">
+                                  <Check size={14} strokeWidth={3} />
+                                </div>
+                              ) : (
+                                <div className="h-full w-full rounded-full border-slate-300 group-hover:border-blue-400" />
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
             </motion.div>

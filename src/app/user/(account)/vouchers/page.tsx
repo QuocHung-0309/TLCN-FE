@@ -395,7 +395,7 @@ export default function MyVouchersPage() {
                             )}
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3.5 h-3.5" />
-                            HSD: {formatDate(voucher.expiresAt)}
+                            HSD: {formatDate(voucher.validUntil)}
                           </span>
                           {voucher.usedAt && (
                             <span className="flex items-center gap-1">

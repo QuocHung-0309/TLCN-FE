@@ -15,7 +15,8 @@ export interface Voucher {
   description?: string;
   provinceName?: string; // Voucher thuộc tỉnh nào (từ check-in)
   status: "active" | "used" | "expired";
-  expiresAt?: string;
+  validFrom?: string;
+  validUntil?: string;
   usedAt?: string;
   createdAt: string;
   userId?: string;
@@ -211,7 +212,8 @@ export interface CreateVoucherInput {
   minOrderValue?: number;
   maxDiscount?: number;
   description?: string;
-  expiresAt?: string;
+  validFrom?: string;
+  validUntil?: string;
   userId?: string; // Nếu muốn tạo voucher cho user cụ thể
   quantity?: number; // Số lượng voucher tạo (nếu tạo hàng loạt)
 }
