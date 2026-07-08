@@ -607,7 +607,7 @@ export default function TourDetailPage() {
                   <table className="w-full text-sm">
                     <thead className="bg-slate-50 border-b border-slate-100">
                       <tr>
-                        {["Mã","Khách hàng","Liên hệ","NL/TE","Thanh toán","Trạng thái","Thao tác"].map(h=>(
+                        {["Mã","Khách hàng","Liên hệ","NL/TE","Thanh toán","Trạng thái","Điểm danh","Thao tác"].map(h=>(
                           <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
                             {h}
                           </th>
@@ -651,7 +651,15 @@ export default function TourDetailPage() {
                                 {BOOKING_STATUS_CFG[p.bookingStatus]?.label || p.bookingStatus}
                               </span>
                             </td>
-                            {/* Cột "Có mặt" (Điểm danh) đã được ẩn theo yêu cầu */}
+                            <td className="px-4 py-3.5">
+                              <button onClick={() => toggleCheckin(p._id, !!p.isPresent)}
+                                disabled={tour.status !== "in_progress" || !!tour.leaderReport}
+                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none 
+                                  ${p.isPresent ? "bg-emerald-500" : "bg-slate-200"}
+                                  ${(tour.status !== "in_progress" || !!tour.leaderReport) ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}>
+                                <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${p.isPresent ? "translate-x-4" : "translate-x-1"}`} />
+                              </button>
+                            </td>
                             <td className="px-4 py-3.5">
                               <div className="flex items-center gap-1">
                                 {p.note && (
@@ -660,12 +668,6 @@ export default function TourDetailPage() {
                                     <FileText className="w-4 h-4" />
                                   </button>
                                 )}
-                                <button
-                                  onClick={() => openChat(p)}
-                                  title="Nhắn tin với hành khách"
-                                  className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
-                                  <MessageSquare className="w-4 h-4" />
-                                </button>
                               </div>
                             </td>
                           </tr>
