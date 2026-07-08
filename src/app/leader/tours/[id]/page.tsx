@@ -553,7 +553,7 @@ export default function TourDetailPage() {
                   <table className="w-full text-sm">
                     <thead className="bg-slate-50 border-b border-slate-100">
                       <tr>
-                        {["Mã","Khách hàng","Liên hệ","NL/TE","Thanh toán","Trạng thái","Có mặt","Thao tác"].map(h=>(
+                        {["Mã","Khách hàng","Liên hệ","NL/TE","Thanh toán","Trạng thái","Thao tác"].map(h=>(
                           <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
                             {h}
                           </th>
@@ -597,18 +597,7 @@ export default function TourDetailPage() {
                                 {BOOKING_STATUS_CFG[p.bookingStatus]?.label || p.bookingStatus}
                               </span>
                             </td>
-                            <td className="px-4 py-3.5 text-center">
-                              <label className="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" className="sr-only peer"
-                                  checked={!!p.isPresent}
-                                  onChange={() => toggleCheckin(p._id, !!p.isPresent)} />
-                                <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer
-                                  peer-checked:after:translate-x-full peer-checked:after:border-white after:content-['']
-                                  after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300
-                                  after:border after:rounded-full after:h-4 after:w-4 after:transition-all
-                                  peer-checked:bg-orange-500 transition-colors"></div>
-                              </label>
-                            </td>
+                            {/* Cột "Có mặt" (Điểm danh) đã được ẩn theo yêu cầu */}
                             <td className="px-4 py-3.5">
                               <div className="flex items-center gap-1">
                                 {p.note && (
@@ -737,9 +726,7 @@ export default function TourDetailPage() {
                     : "Tổng kết tình hình thực tế để admin đối soát."}
                 </p>
               </div>
-              <span className="text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                {noShowCount} booking chưa điểm danh có mặt
-              </span>
+              {/* Ẩn bộ đếm chưa điểm danh */}
             </div>
 
             <div>
