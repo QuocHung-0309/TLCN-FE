@@ -145,13 +145,10 @@ export default function AdminReportDetailPage() {
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="bg-blue-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                   <h3 className="font-bold text-slate-800 flex items-center gap-2"><FileText className="w-5 h-5 text-blue-600" /> Báo cáo tổng kết</h3>
-                  <span className={`text-xs font-semibold px-2 py-1 rounded-full ${report.status === "reviewed" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
-                    {report.status === "reviewed" ? "Đã kiểm duyệt" : "Mới nộp"}
-                  </span>
                 </div>
                 <div className="p-6 space-y-6">
                   <div>
-                    <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">1. Tổng kết chung</h4>
+                    <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">1. Tổng kết chuyến đi</h4>
                     <p className="text-slate-700 whitespace-pre-line bg-slate-50 p-4 rounded-xl border border-slate-100">{report.summary || "Không có nội dung."}</p>
                   </div>
                   <div>
@@ -159,8 +156,8 @@ export default function AdminReportDetailPage() {
                     <p className="text-slate-700 whitespace-pre-line bg-red-50 p-4 rounded-xl border border-red-100">{report.incidents || "Không có sự cố nào được ghi nhận."}</p>
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">3. Giải trình chi phí</h4>
-                    <p className="text-slate-700 whitespace-pre-line bg-emerald-50 p-4 rounded-xl border border-emerald-100">{report.expenseNote || "Không có giải trình thêm."}</p>
+                    <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">3. Ghi chú chi phí</h4>
+                    <p className="text-slate-700 whitespace-pre-line bg-emerald-50 p-4 rounded-xl border border-emerald-100">{report.expenseNote || "Không có ghi chú thêm."}</p>
                   </div>
                   {report.noShowBookingIds?.length > 0 && (
                     <div>
