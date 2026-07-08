@@ -303,6 +303,7 @@ function CheckoutContent() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+    let isRedirecting = false;
 
     // Validate
     const newErrors: typeof errors = {};
@@ -362,6 +363,7 @@ function CheckoutContent() {
 
           if (redirectUrl) {
             // Chuyển hướng đến VNPay để thanh toán
+            isRedirecting = true;
             window.location.href = redirectUrl;
             return;
           } else {
@@ -376,6 +378,7 @@ function CheckoutContent() {
           sp.append("email", payload.contact.email);
           sp.append("paymentMethod", "vnpay-payment");
           sp.append("paymentError", "true");
+          isRedirecting = true;
           router.replace(`/user/checkout/success?${sp.toString()}`);
           return;
         }
@@ -386,6 +389,7 @@ function CheckoutContent() {
       sp.append("bookingId", res.code);
       sp.append("email", payload.contact.email);
       sp.append("paymentMethod", String(paymentMethod));
+      isRedirecting = true;
       router.replace(`/user/checkout/success?${sp.toString()}`);
     } catch (err: any) {
       console.error(err);
@@ -394,7 +398,9 @@ function CheckoutContent() {
           err?.response?.data?.message || err?.message || "Đặt chỗ thất bại.",
       });
     } finally {
-      setSubmitting(false);
+      if (!isRedirecting) {
+        setSubmitting(false);
+      }
     }
   };
 
