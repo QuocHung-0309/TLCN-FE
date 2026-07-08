@@ -91,6 +91,8 @@ export default function BlogPreviewPage() {
   }
 
   const cover = blog.cover || blog.thumbnail || "/blog-placeholder.jpg";
+  const ratingAvg = blog.ratingAvg ?? null;
+  const ratingCount = blog.ratingCount ?? 0;
 
   return (
     <div className="bg-slate-50 pb-16">

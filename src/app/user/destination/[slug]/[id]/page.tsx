@@ -685,9 +685,11 @@ export default function TourDetailPage() {
                 />
               ) : Array.isArray(day.activities) && day.activities.length > 0 ? (
                 <ul className="space-y-2">
-                  {day.activities.map((a: string, idx: number) => (
-                    <DaySegmentItem key={idx} text={a} img={null} />
-                  ))}
+                  {day.activities.map((a: any, idx: number) => {
+                    const text = typeof a === 'object' && a !== null ? a.text : a;
+                    const img = typeof a === 'object' && a !== null ? a.imageUrl : null;
+                    return <DaySegmentItem key={idx} text={text} img={img} />;
+                  })}
                 </ul>
               ) : (
                 <p className="text-sm text-slate-500">
