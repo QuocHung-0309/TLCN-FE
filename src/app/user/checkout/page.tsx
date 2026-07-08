@@ -217,6 +217,16 @@ function CheckoutContent() {
   const listed = adults * priceAdult + children * priceChild;
   const totalDisplay = Math.max(0, listed - discountAmount);
 
+  /* ---------- Ngày khởi hành và điều kiện đặt cọc ---------- */
+  const diffDays = departure?.startDate ? Math.ceil((new Date(departure.startDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24)) : 999;
+  const isDepositDisabled = diffDays < 3;
+
+  React.useEffect(() => {
+    if (isDepositDisabled && paymentType === "deposit") {
+      setPaymentType("full");
+    }
+  }, [isDepositDisabled, paymentType]);
+
   /* ---------- Chỗ trống còn lại của lịch khởi hành ---------- */
   const remainingSeats =
     departure?.max_guests != null
@@ -595,24 +605,31 @@ function CheckoutContent() {
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <label
-                    onClick={() => setPaymentType("deposit")}
-                    className={`relative flex flex-col p-4 rounded-2xl border cursor-pointer transition-all ${
-                      paymentType === "deposit"
-                        ? "border-orange-500 bg-orange-50/30 ring-1 ring-orange-500"
-                        : "border-slate-200 hover:border-orange-200 hover:bg-slate-50"
+                    onClick={() => {
+                      if (!isDepositDisabled) setPaymentType("deposit");
+                    }}
+                    className={`relative flex flex-col p-4 rounded-2xl border transition-all ${
+                      isDepositDisabled
+                        ? "opacity-50 cursor-not-allowed bg-slate-50 grayscale"
+                        : paymentType === "deposit"
+                        ? "border-orange-500 bg-orange-50/30 ring-1 ring-orange-500 cursor-pointer"
+                        : "border-slate-200 hover:border-orange-200 hover:bg-slate-50 cursor-pointer"
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <input
                         type="radio"
                         checked={paymentType === "deposit"}
+                        disabled={isDepositDisabled}
                         readOnly
                         className="w-4 h-4 text-orange-600"
                       />
                       <span className="text-sm font-bold text-slate-800">Đặt cọc 50%</span>
                     </div>
                     <p className="text-base font-bold text-orange-600">{vnd(totalDisplay / 2)}</p>
-                    <p className="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-wider">Thanh toán trước để giữ chỗ</p>
+                    <p className="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-wider">
+                      {isDepositDisabled ? "Chỉ hỗ trợ đặt cọc trước ngày đi ít nhất 3 ngày" : "Thanh toán trước để giữ chỗ"}
+                    </p>
                     {paymentType === "deposit" && (
                       <div className="absolute top-2 right-2">
                         <Check size={16} className="text-orange-500" />
