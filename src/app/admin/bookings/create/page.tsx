@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { adminCreateBooking } from "@/lib/admin/adminBookingApi";
 import { getTours, getTourDepartures } from "@/lib/tours/tour";
 import { useToast } from "@/components/ui/Toast";
+import { computeAge, getPassengerType, requiresCCCD, createBlankPassenger, validateCCCD } from '@/types/passenger';
+import type { PassengerFormState } from '@/types/passenger';
 
 export default function AdminCreateBookingPage() {
   const router = useRouter();
@@ -25,6 +27,9 @@ export default function AdminCreateBookingPage() {
     address: "",
     note: "",
   });
+
+  const [passengers, setPassengers] = React.useState<PassengerFormState[]>([]);
+  const [passengerErrors, setPassengerErrors] = React.useState<Record<string, string>>({});
 
   // 2. Data Fetching
   const { data: toursData } = useQuery({
@@ -73,6 +78,14 @@ export default function AdminCreateBookingPage() {
     }
   }, [canDeposit, paymentType]);
 
+  // Sync passenger slots
+  useEffect(() => {
+    const total = numAdults + numChildren;
+    setPassengers((prev) => {
+      return Array.from({ length: total }, (_, i) => prev[i] || createBlankPassenger());
+    });
+  }, [numAdults, numChildren]);
+
   const paidAmount = paymentType === "full" ? totalPrice : depositAmount;
 
   // 4. Mutation
@@ -93,10 +106,45 @@ export default function AdminCreateBookingPage() {
     setContactInfo((prev) => ({ ...prev, [name]: value }));
   };
 
+  const updatePassenger = useCallback((idx: number, field: keyof PassengerFormState, value: string) => {
+    setPassengers((prev) => prev.map((p, i) => i === idx ? { ...p, [field]: value } : p));
+    setPassengerErrors((prev) => { const n = { ...prev }; delete n[`${idx}_${field}`]; return n; });
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedDepartureId) return showError("Vui lòng chọn lịch khởi hành.");
     if (!contactInfo.fullName || !contactInfo.phoneNumber) return showError("Vui lòng nhập thông tin liên lạc.");
+
+    // Validate passengers
+    const pErrors: Record<string, string> = {};
+    let hasPError = false;
+    passengers.forEach((p, i) => {
+      const isAdultSlot = i < numAdults;
+      if (!p.fullName.trim()) { pErrors[`${i}_fullName`] = 'Vui lòng nhập họ tên'; hasPError = true; }
+      if (!p.dateOfBirth) { pErrors[`${i}_dateOfBirth`] = 'Vui lòng nhập ngày sinh'; hasPError = true; }
+      if (p.dateOfBirth) {
+        const age = computeAge(p.dateOfBirth);
+        if (isAdultSlot && age < 12) {
+          pErrors[`${i}_dateOfBirth`] = 'Độ tuổi không hợp lệ cho Người lớn (phải >= 12 tuổi)'; hasPError = true;
+        } else if (!isAdultSlot && age >= 12) {
+          pErrors[`${i}_dateOfBirth`] = 'Độ tuổi không hợp lệ cho Trẻ em (phải < 12 tuổi)'; hasPError = true;
+        }
+
+        if (requiresCCCD(age)) {
+          if (!p.idNumber.trim()) {
+            pErrors[`${i}_idNumber`] = 'Vui lòng nhập CCCD (bắt buộc với người từ 14 tuổi)'; hasPError = true;
+          } else {
+            const cccdError = validateCCCD(p.idNumber.trim(), p.dateOfBirth, p.gender as any);
+            if (cccdError) {
+              pErrors[`${i}_idNumber`] = cccdError;
+              hasPError = true;
+            }
+          }
+        }
+      }
+    });
+    if (hasPError) { setPassengerErrors(pErrors); return showError('Vui lòng điền đầy đủ thông tin hành khách.'); }
 
     mutation.mutate({
       tourDepartureId: selectedDepartureId,
@@ -105,6 +153,16 @@ export default function AdminCreateBookingPage() {
       numChildren,
       paymentMethod,
       paidAmount,
+      passengers: passengers.map((p) => {
+        const age = computeAge(p.dateOfBirth);
+        return {
+          fullName: p.fullName.trim(),
+          dateOfBirth: p.dateOfBirth,
+          gender: p.gender || undefined,
+          idNumber: requiresCCCD(age) ? p.idNumber.trim() || undefined : undefined,
+          type: getPassengerType(age),
+        };
+      }),
     });
   };
 
@@ -361,7 +419,75 @@ export default function AdminCreateBookingPage() {
                   />
                 </div>
               </div>
-            </div>
+          </div>
+
+            {/* Step 4: Thông tin từng hành khách */}
+            {passengers.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-violet-50 text-violet-600 rounded-2xl flex items-center justify-center shadow-sm border border-violet-100">
+                    <i className="ri-id-card-line text-xl"></i>
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-800">4. Thông tin từng hành khách</h2>
+                </div>
+                <div className="space-y-4">
+                  {passengers.map((p, idx) => {
+                    const isAdultSlot = idx < numAdults;
+                    const slotLabel = isAdultSlot ? `Người lớn ${idx + 1}` : `Trẻ em ${idx - numAdults + 1}`;
+                    const age = p.dateOfBirth ? computeAge(p.dateOfBirth) : null;
+                    const needId = age !== null && requiresCCCD(age);
+                    return (
+                      <div key={idx} className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4">
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-100 text-xs font-bold text-violet-700">{idx + 1}</span>
+                          <span className="text-sm font-semibold text-slate-700">{slotLabel}</span>
+                          {age !== null && (
+                            <span className={`ml-auto text-xs font-semibold px-2 py-0.5 rounded-full ${
+                              age < 12 ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                            }`}>{age < 12 ? 'Trẻ em' : 'Người lớn'} · {age} tuổi</span>
+                          )}
+                        </div>
+                        <div className="grid gap-3 md:grid-cols-2">
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-600 mb-1">Họ và tên <span className="text-red-500">*</span></label>
+                            <input value={p.fullName} onChange={(e) => updatePassenger(idx, 'fullName', e.target.value)}
+                              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 outline-none"
+                              placeholder="Họ và tên đầy đủ" />
+                            {passengerErrors[`${idx}_fullName`] && <p className="mt-1 text-xs text-red-500">{passengerErrors[`${idx}_fullName`]}</p>}
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-600 mb-1">Ngày sinh <span className="text-red-500">*</span></label>
+                            <input type="date" value={p.dateOfBirth} max={new Date().toISOString().split('T')[0]}
+                              onChange={(e) => updatePassenger(idx, 'dateOfBirth', e.target.value)}
+                              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 outline-none" />
+                            {passengerErrors[`${idx}_dateOfBirth`] && <p className="mt-1 text-xs text-red-500">{passengerErrors[`${idx}_dateOfBirth`]}</p>}
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-600 mb-1">Giới tính</label>
+                            <select value={p.gender} onChange={(e) => updatePassenger(idx, 'gender', e.target.value)}
+                              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 outline-none">
+                              <option value="">-- Chọn --</option>
+                              <option value="male">Nam</option>
+                              <option value="female">Nữ</option>
+                              <option value="other">Khác</option>
+                            </select>
+                          </div>
+                          {needId && (
+                            <div>
+                              <label className="block text-xs font-semibold text-slate-600 mb-1">Số CCCD <span className="text-red-500">*</span></label>
+                              <input value={p.idNumber} onChange={(e) => updatePassenger(idx, 'idNumber', e.target.value)}
+                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 outline-none"
+                                placeholder="12 chữ số" maxLength={12} />
+                              {passengerErrors[`${idx}_idNumber`] && <p className="mt-1 text-xs text-red-500">{passengerErrors[`${idx}_idNumber`]}</p>}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Cột Phải: Tóm tắt & Thanh toán */}

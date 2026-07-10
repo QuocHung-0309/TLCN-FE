@@ -687,16 +687,19 @@ export default function UserChatPage() {
                         const isStaff = isStaffRole(role);
                         const isMyMessage = !isStaff;
 
-                        // System message
-                        if (msg.isSystem) {
+                        // System message or First auto-generated summary message
+                        const isFirstSummary = idx === 0 && isMyMessage;
+                        if (msg.isSystem || isFirstSummary) {
                           return (
-                            <div key={idx} className="flex justify-center">
-                              <span className="rounded-full bg-white shadow-sm px-4 py-1.5 text-xs text-slate-500">
+                            <div key={idx} className="flex justify-center my-4 w-full">
+                              <span className="rounded-full bg-slate-100 shadow-sm px-4 py-2 text-[11px] text-slate-500 max-w-[90%] text-center break-words">
                                 {msg.content}
                               </span>
                             </div>
                           );
                         }
+
+                        if (msg.content === "Yêu cầu hỗ trợ từ chatbot" || msg.content === "[System] Manual Escalate") return null;
 
                         return (
                           <div
@@ -755,7 +758,7 @@ export default function UserChatPage() {
                                   }`}
                                 >
                                   <p className="whitespace-pre-wrap leading-relaxed">
-                                    {msg.content}
+                                    {msg.content.replace(/^\[Quan tâm Tour:[^\]]*\]\n?/g, "")}
                                   </p>
                                 </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,6 +13,7 @@ import {
 } from "@/lib/admin/adminBookingApi";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { getAdminBookingPassengers } from '@/lib/checkout/checkoutApi';
 
 export default function BookingDetailPage() {
   const router = useRouter();
@@ -22,6 +23,9 @@ export default function BookingDetailPage() {
   const queryClient = useQueryClient();
 
   const [booking, setBooking] = useState<BookingData | null>(null);
+  const [passengers, setPassengers] = useState<any[]>([]);
+  const [loadingPassengers, setLoadingPassengers] = useState(false);
+  const [showPassengers, setShowPassengers] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeAction, setActiveAction] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -50,6 +54,19 @@ export default function BookingDetailPage() {
       }
     })();
   }, [id, router, showError]);
+
+  const fetchPassengers = useCallback(async () => {
+    if (!id || loadingPassengers || passengers.length > 0) return;
+    setLoadingPassengers(true);
+    try {
+      const res = await getAdminBookingPassengers(id);
+      setPassengers(res.passengers || []);
+    } catch {
+      setPassengers([]);
+    } finally {
+      setLoadingPassengers(false);
+    }
+  }, [id, loadingPassengers, passengers.length]);
 
   // Update status mutation
   const statusMutation = useMutation({
@@ -264,6 +281,70 @@ export default function BookingDetailPage() {
                 </div>
               </div>
 
+              {/* Passengers Section */}
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <i className="ri-group-line text-violet-500 text-xl"></i>
+                    Danh sách hành khách
+                    <span className="text-xs font-normal bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-full ml-1 flex items-center gap-1 w-fit">
+                      <i className="ri-shield-keyhole-line"></i> Dữ liệu nhạy cảm
+                    </span>
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (showPassengers) {
+                        setShowPassengers(false);
+                      } else {
+                        setShowPassengers(true);
+                        fetchPassengers();
+                      }
+                    }}
+                    className="text-sm font-medium text-violet-600 hover:text-violet-700 border border-violet-200 px-3 py-1.5 rounded-lg hover:bg-violet-50 transition"
+                  >
+                    {loadingPassengers ? 'Đang tải...' : (showPassengers ? 'Ẩn' : 'Xem hành khách')}
+                  </button>
+                </div>
+
+                {!showPassengers ? (
+                  <p className="text-sm text-slate-400 italic text-center py-4">Nhấn &quot;Xem hành khách&quot; để tải danh sách (yêu cầu xác thực Admin)</p>
+                ) : passengers.length === 0 && !loadingPassengers ? (
+                  <p className="text-sm text-slate-500 italic text-center py-4">Không có thông tin hành khách</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-100">
+                          <th className="text-left py-2 px-3 text-xs font-bold text-slate-500 uppercase">STT</th>
+                          <th className="text-left py-2 px-3 text-xs font-bold text-slate-500 uppercase">Họ tên</th>
+                          <th className="text-left py-2 px-3 text-xs font-bold text-slate-500 uppercase">Ngày sinh</th>
+                          <th className="text-left py-2 px-3 text-xs font-bold text-slate-500 uppercase">Giới tính</th>
+                          <th className="text-left py-2 px-3 text-xs font-bold text-slate-500 uppercase">Loại</th>
+                          <th className="text-left py-2 px-3 text-xs font-bold text-slate-500 uppercase">Số CCCD</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {passengers.map((p, i) => (
+                          <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
+                            <td className="py-3 px-3 text-slate-500">{i + 1}</td>
+                            <td className="py-3 px-3 font-semibold text-slate-900">{p.fullName}</td>
+                            <td className="py-3 px-3 text-slate-600">{p.dateOfBirth ? new Date(p.dateOfBirth).toLocaleDateString('vi-VN') : '—'}</td>
+                            <td className="py-3 px-3 text-slate-600">{p.gender === 'male' ? 'Nam' : p.gender === 'female' ? 'Nữ' : p.gender || '—'}</td>
+                            <td className="py-3 px-3">
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap ${
+                                p.type === 'child' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                              }`}>{p.type === 'child' ? 'Trẻ em' : 'Người lớn'}</span>
+                            </td>
+                            <td className="py-3 px-3 font-mono text-slate-800">{p.idNumber || '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
               {/* Payment History */}
               <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
                 <div className="flex items-center justify-between mb-4">
@@ -271,12 +352,6 @@ export default function BookingDetailPage() {
                     <i className="ri-history-line text-orange-500 text-xl"></i>
                     Lịch sử thanh toán
                   </h2>
-                  <Link
-                    href={`/admin/bookings/${booking._id}/payment-history`}
-                    className="text-blue-950 hover:text-emerald-700 text-sm font-medium"
-                  >
-                    Xem chi tiết →
-                  </Link>
                 </div>
                 <div className="space-y-2">
                   {booking.paymentRefs && booking.paymentRefs.length > 0 ? (

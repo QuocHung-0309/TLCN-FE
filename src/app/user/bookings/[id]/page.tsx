@@ -21,11 +21,14 @@ import {
   Receipt,
   Printer,
   History,
+  IdCard,
+  User as UserIcon,
 } from "lucide-react";
 import {
   useBookingDetail,
   useCancelBooking,
 } from "#/hooks/bookings-hook/useBooking";
+import { initBookingPayment } from "@/lib/checkout/checkoutApi";
 
 // --- Helpers ---
 const formatCurrency = (val: number) =>
@@ -57,6 +60,33 @@ export default function BookingDetailPage() {
       toast.success("Đã hủy đơn hàng thành công");
     },
   });
+  const [isPaying, setIsPaying] = useState(false);
+
+  // --- Handlers ---
+  const handlePayNow = async () => {
+    try {
+      setIsPaying(true);
+      if (!booking) {
+        toast.error("Không tìm thấy thông tin đơn hàng.");
+        setIsPaying(false);
+        return;
+      }
+      const isFullPayment = booking.requireFullPayment || booking.depositPaid; 
+      const payData = await initBookingPayment(bookingCode, isFullPayment);
+      const redirectUrl = payData?.paymentUrl || payData?.payUrl || payData?.deeplink || payData?.payment?.redirectUrl;
+
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      } else {
+        toast.error("Không thể khởi tạo thanh toán. Vui lòng thử lại.");
+        setIsPaying(false);
+      }
+    } catch (err: any) {
+      console.error("Payment error:", err);
+      toast.error(err.response?.data?.message || "Đã xảy ra lỗi khi thanh toán");
+      setIsPaying(false);
+    }
+  };
 
   // --- Render Loading ---
   if (isLoading) {
@@ -298,6 +328,55 @@ export default function BookingDetailPage() {
                 </div>
               </div>
             </div>
+
+            {/* Passengers Section */}
+            {booking.passengers && booking.passengers.length > 0 && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-5">
+                  <Users size={20} className="text-violet-600" /> Danh sách hành khách
+                </h3>
+                <div className="space-y-3">
+                  {booking.passengers.map((p: any, i: number) => {
+                    const age = p.dateOfBirth
+                      ? (() => { const b = new Date(p.dateOfBirth); const n = new Date(); let a = n.getFullYear() - b.getFullYear(); if (n.getMonth() < b.getMonth() || (n.getMonth() === b.getMonth() && n.getDate() < b.getDate())) a--; return a; })()
+                      : null;
+                    return (
+                      <div key={i} className="flex flex-col gap-2 rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-100 text-xs font-bold text-violet-700">{i + 1}</span>
+                            <span className="font-semibold text-slate-900">{p.fullName}</span>
+                          </div>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                            p.type === 'child' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                          }`}>{p.type === 'child' ? 'Trẻ em' : 'Người lớn'}{age !== null ? ` · ${age} tuổi` : ''}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 mt-1 text-sm text-slate-600">
+                          {p.dateOfBirth && (
+                            <span className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4 text-slate-400" />
+                              {new Date(p.dateOfBirth).toLocaleDateString('vi-VN')}
+                            </span>
+                          )}
+                          {p.gender && (
+                            <span className="flex items-center gap-2">
+                              <UserIcon className="w-4 h-4 text-slate-400" />
+                              {p.gender === 'male' ? 'Nam' : p.gender === 'female' ? 'Nữ' : 'Khác'}
+                            </span>
+                          )}
+                          {p.idNumber && (
+                            <span className="col-span-2 flex items-center gap-2 font-mono text-xs bg-slate-100 rounded-lg px-3 py-2 border border-slate-200 mt-1">
+                              <IdCard className="w-4 h-4 text-slate-500" />
+                              CCCD: {p.idNumber}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* CỘT PHẢI: THANH TOÁN (1/3) */}
@@ -378,16 +457,11 @@ export default function BookingDetailPage() {
                 {/* Nút thanh toán tiếp (nếu chưa đủ tiền) */}
                 {booking.bookingStatus === "pending" && !isPaidFull && (
                   <button
-                    onClick={() =>
-                      router.push(`/user/checkout?bookingCode=${bookingCode}`)
-                    }
-                    className="w-full py-3.5 bg-[#003580] hover:bg-[#002860] text-white font-bold rounded-xl shadow-lg shadow-blue-900/10 transition-all flex items-center justify-center gap-2 active:scale-95"
+                    onClick={handlePayNow}
+                    disabled={isPaying}
+                    className="w-full py-3.5 bg-[#003580] hover:bg-[#002860] text-white font-bold rounded-xl shadow-lg shadow-blue-900/10 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
                   >
-                    Thanh toán ngay (
-                    {formatCurrency(
-                      booking.totalPrice - (booking.paidAmount || 0)
-                    )}
-                    )
+                    {isPaying ? "Đang xử lý..." : `Thanh toán ngay (${formatCurrency(booking.totalPrice - (booking.paidAmount || 0))})`}
                   </button>
                 )}
 

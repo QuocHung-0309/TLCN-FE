@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import {
@@ -104,6 +104,7 @@ export default function TourDetailPage() {
   const [tour,       setTour]       = useState<LeaderTour | null>(null);
   const [expenses,   setExpenses]   = useState<Expense[]>([]);
   const [passengers, setPassengers] = useState<Passenger[]>([]);
+  const [expandedPassengers, setExpandedPassengers] = useState<Set<string>>(new Set());
   const [isLoading,  setIsLoading]  = useState(true);
   const [activeTab,  setActiveTab]  = useState<"info"|"timeline"|"expenses"|"passengers"|"report">("info");
 
@@ -125,6 +126,15 @@ export default function TourDetailPage() {
   const [chatLoading, setChatLoading] = useState(false);
   const [sendingChat, setSendingChat] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const toggleExpandPassengers = (bookingId: string) => {
+    setExpandedPassengers(prev => {
+      const next = new Set(prev);
+      if (next.has(bookingId)) next.delete(bookingId);
+      else next.add(bookingId);
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!tourId) return;
@@ -242,17 +252,41 @@ export default function TourDetailPage() {
     finally { setSubmReport(false); }
   };
 
-  const toggleCheckin = async (bookingId: string, currentStatus: boolean) => {
+  const toggleCheckin = async (bookingId: string, currentStatus: boolean, attendedIds?: string[]) => {
     if (!tourId) return;
     const nextStatus = !currentStatus;
-    // Optimistic UI update
-    setPassengers(prev => prev.map(p => p._id === bookingId ? { ...p, isPresent: nextStatus } : p));
+    setPassengers(prev => prev.map(p => p._id === bookingId ? { ...p, isPresent: nextStatus, attendedPassengerIds: nextStatus ? (p.passengers?.map((sp:any, idx:number) => sp._id || idx.toString()) || []) : [] } : p));
     try {
-      await leaderToursApi.updateBookingCheckin(tourId, bookingId, nextStatus);
+      await leaderToursApi.updateBookingCheckin(tourId, bookingId, nextStatus, nextStatus ? (passengers.find(p => p._id === bookingId)?.passengers?.map((sp:any, idx:number) => sp._id || idx.toString()) || []) : []);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Lỗi khi điểm danh");
-      // Revert on error
-      setPassengers(prev => prev.map(p => p._id === bookingId ? { ...p, isPresent: currentStatus } : p));
+      setPassengers(prev => prev.map(p => p._id === bookingId ? { ...p, isPresent: currentStatus, attendedPassengerIds: attendedIds || [] } : p));
+    }
+  };
+
+  const togglePassengerCheckin = async (bookingId: string, passengerId: string, currentIsAttended: boolean) => {
+    if (!tourId) return;
+    const p = passengers.find(b => b._id === bookingId);
+    if (!p) return;
+    
+    let nextAttendedIds = [...(p.attendedPassengerIds || [])];
+    if (currentIsAttended) {
+      nextAttendedIds = nextAttendedIds.filter(id => id !== passengerId);
+    } else {
+      nextAttendedIds.push(passengerId);
+    }
+    const nextIsPresent = nextAttendedIds.length > 0;
+    
+    const prevIsPresent = p.isPresent;
+    const prevAttendedIds = p.attendedPassengerIds || [];
+    
+    setPassengers(prev => prev.map(b => b._id === bookingId ? { ...b, isPresent: nextIsPresent, attendedPassengerIds: nextAttendedIds } : b));
+    
+    try {
+      await leaderToursApi.updateBookingCheckin(tourId, bookingId, nextIsPresent, nextAttendedIds);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Lỗi khi điểm danh hành khách");
+      setPassengers(prev => prev.map(b => b._id === bookingId ? { ...b, isPresent: prevIsPresent, attendedPassengerIds: prevAttendedIds } : b));
     }
   };
 
@@ -620,48 +654,104 @@ export default function TourDetailPage() {
                         const name = p.userId?.fullName??p.fullName??"—";
                         const phone= p.userId?.phoneNumber??p.phoneNumber??"—";
                         const init = name.split(" ").map((n:string)=>n[0]).slice(-2).join("").toUpperCase();
+                        const isExpanded = expandedPassengers.has(p._id as string);
                         return (
-                          <tr key={p._id||i} className="hover:bg-slate-50 transition-colors">
-                            <td className="px-4 py-3.5 font-mono text-xs text-slate-400">{p.code}</td>
-                            <td className="px-4 py-3.5">
-                              <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-100 to-orange-200
-                                  flex items-center justify-center text-orange-600 font-bold text-xs flex-shrink-0">
-                                  {init}
+                          <React.Fragment key={p._id||i}>
+                            <tr className="hover:bg-slate-50 transition-colors">
+                              <td className="px-4 py-3.5 font-mono text-xs text-slate-400">
+                                {p.code}
+                              </td>
+                              <td className="px-4 py-3.5">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-100 to-orange-200
+                                    flex items-center justify-center text-orange-600 font-bold text-xs flex-shrink-0">
+                                    {init}
+                                  </div>
+                                  <span className="font-medium text-slate-800">{name}</span>
                                 </div>
-                                <span className="font-medium text-slate-800">{name}</span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3.5 text-slate-500 text-xs">{phone}</td>
-                            <td className="px-4 py-3.5 text-center text-slate-700">
-                              {p.numAdults}<span className="text-slate-300 mx-1">/</span>{p.numChildren}
-                            </td>
-                            <td className="px-4 py-3.5 text-right">
-                              <p className="font-semibold text-orange-600">{p.totalPrice?.toLocaleString("vi-VN")} đ</p>
-                              {p.paidAmount !== undefined && p.paidAmount > 0 && (
-                                <p className="text-xs text-slate-400 mt-0.5">Đã trả: {p.paidAmount.toLocaleString("vi-VN")} đ</p>
-                              )}
-                              {p.depositPaid && (
-                                <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-600 font-semibold mt-0.5">
-                                  <CheckCircle2 className="w-3 h-3" /> Cọc
+                              </td>
+                              <td className="px-4 py-3.5 text-slate-500 text-xs">{phone}</td>
+                              <td className="px-4 py-3.5 text-center">
+                                <div className="text-slate-700 font-medium mb-1.5">
+                                  {p.numAdults}<span className="text-slate-300 mx-1">/</span>{p.numChildren}
+                                </div>
+                                {(p as any).passengers && (p as any).passengers.length > 0 && (
+                                  <button
+                                    onClick={() => toggleExpandPassengers(p._id as string)}
+                                    className="inline-flex items-center justify-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded border border-indigo-100 text-[10px] font-bold uppercase tracking-wider transition-all shadow-sm"
+                                  >
+                                    <Users className="w-3 h-3" />
+                                    {isExpanded ? "Ẩn" : "Chi tiết"}
+                                  </button>
+                                )}
+                              </td>
+                              <td className="px-4 py-3.5 text-right">
+                                <p className="font-semibold text-orange-600">{p.totalPrice?.toLocaleString("vi-VN")} đ</p>
+                                {p.paidAmount !== undefined && p.paidAmount > 0 && (
+                                  <p className="text-xs text-slate-400 mt-0.5">Đã trả: {p.paidAmount.toLocaleString("vi-VN")} đ</p>
+                                )}
+                                {p.depositPaid && (
+                                  <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-600 font-semibold mt-0.5">
+                                    <CheckCircle2 className="w-3 h-3" /> Cọc
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3.5">
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${BOOKING_STATUS_CFG[p.bookingStatus]?.className || BOOKING_STATUS_CFG.pending.className}`}>
+                                  {BOOKING_STATUS_CFG[p.bookingStatus]?.label || p.bookingStatus}
                                 </span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3.5">
-                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${BOOKING_STATUS_CFG[p.bookingStatus]?.className || BOOKING_STATUS_CFG.pending.className}`}>
-                                {BOOKING_STATUS_CFG[p.bookingStatus]?.label || p.bookingStatus}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3.5">
-                              <button onClick={() => toggleCheckin(p._id, !!p.isPresent)}
-                                disabled={tour.status !== "in_progress" || !!tour.leaderReport}
-                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none 
-                                  ${p.isPresent ? "bg-emerald-500" : "bg-slate-200"}
-                                  ${(tour.status !== "in_progress" || !!tour.leaderReport) ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}>
-                                <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${p.isPresent ? "translate-x-4" : "translate-x-1"}`} />
-                              </button>
-                            </td>
-                          </tr>
+                              </td>
+                              <td className="px-4 py-3.5">
+                                <button onClick={() => toggleCheckin(p._id, !!p.isPresent, p.attendedPassengerIds)}
+                                  disabled={tour.status !== "in_progress" || !!tour.leaderReport}
+                                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none 
+                                    ${p.isPresent ? "bg-emerald-500" : "bg-slate-200"}
+                                    ${(tour.status !== "in_progress" || !!tour.leaderReport) ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}>
+                                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${p.isPresent ? "translate-x-4" : "translate-x-1"}`} />
+                                </button>
+                              </td>
+                            </tr>
+                            {isExpanded && (p as any).passengers && (
+                              <tr>
+                                <td colSpan={7} className="px-4 py-3 bg-slate-50 border-t border-slate-100">
+                                  <div className="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm">
+                                    <table className="w-full text-xs">
+                                      <thead className="bg-slate-100/50">
+                                        <tr>
+                                          <th className="px-3 py-2 text-left font-semibold text-slate-500">Họ tên</th>
+                                          <th className="px-3 py-2 text-left font-semibold text-slate-500">Ngày sinh</th>
+                                          <th className="px-3 py-2 text-left font-semibold text-slate-500">Giới tính</th>
+                                          <th className="px-3 py-2 text-left font-semibold text-slate-500">Loại</th>
+                                          <th className="px-3 py-2 text-left font-semibold text-slate-500">CCCD</th>
+                                          <th className="px-3 py-2 text-center font-semibold text-slate-500">Có mặt</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-slate-100">
+                                        {(p as any).passengers.map((sp: any, pIdx: number) => (
+                                          <tr key={pIdx}>
+                                            <td className="px-3 py-2 font-medium text-slate-700">{sp.fullName}</td>
+                                            <td className="px-3 py-2 text-slate-500">{sp.dateOfBirth ? new Date(sp.dateOfBirth).toLocaleDateString("vi-VN") : "—"}</td>
+                                            <td className="px-3 py-2 text-slate-500">{sp.gender === "male" ? "Nam" : sp.gender === "female" ? "Nữ" : sp.gender || "—"}</td>
+                                            <td className="px-3 py-2"><span className={`px-2 py-0.5 rounded-full ${sp.type === "child" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>{sp.type === "child" ? "Trẻ em" : "Người lớn"}</span></td>
+                                            <td className="px-3 py-2 font-mono text-slate-800">{sp.idNumber || '—'}</td>
+                                            <td className="px-3 py-2 text-center">
+                                              <button onClick={() => togglePassengerCheckin(p._id, sp._id || pIdx.toString(), p.attendedPassengerIds?.includes(sp._id || pIdx.toString()) || false)}
+                                                disabled={tour.status !== "in_progress" || !!tour.leaderReport}
+                                                className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none 
+                                                  ${p.attendedPassengerIds?.includes(sp._id || pIdx.toString()) ? "bg-emerald-500" : "bg-slate-200"}
+                                                  ${(tour.status !== "in_progress" || !!tour.leaderReport) ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}>
+                                                <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${p.attendedPassengerIds?.includes(sp._id || pIdx.toString()) ? "translate-x-3" : "translate-x-0.5"}`} />
+                                              </button>
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
                         );
                       })}
                     </tbody>

@@ -14,6 +14,7 @@ import {
   Crown,
   Clock,
   XCircle,
+  MapPin,
 } from "lucide-react";
 import {
   getAllSupportChats,
@@ -450,11 +451,12 @@ export default function AdminChatPage() {
                   const isStaff = isStaffRole(role);
                   const colors = ROLE_COLORS[role] || ROLE_COLORS.guest;
 
-                  if (msg.isSystem) {
+                  const isFirstSummary = idx === 0 && !isStaff;
+                  if (msg.isSystem || msg.content === "Yêu cầu hỗ trợ từ chatbot" || msg.content === "[System] Manual Escalate" || isFirstSummary) {
                     return (
-                      <div key={idx} className="flex justify-center my-4">
-                        <span className="bg-slate-200 text-slate-500 text-[10px] px-3 py-1 rounded-full">
-                          {msg.content}
+                      <div key={idx} className="flex justify-center my-4 w-full">
+                        <span className="bg-slate-200 text-slate-500 text-[11px] px-4 py-2 rounded-full max-w-[80%] text-center break-words">
+                          {msg.isSystem || isFirstSummary ? msg.content : "Khách hàng vừa mở kênh chat hỗ trợ."}
                         </span>
                       </div>
                     );
@@ -494,7 +496,21 @@ export default function AdminChatPage() {
                               : "bg-white text-slate-800 border border-slate-200 rounded-tl-none"
                           }`}
                         >
-                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                          {(() => {
+                            const match = msg.content.match(/^\[Quan tâm Tour:\s*(.*?)\s*\]\n?([\s\S]*)/);
+                            if (match) {
+                              return (
+                                <>
+                                  <div className="mb-2 text-xs font-medium text-orange-600 bg-orange-50 p-2 rounded-lg border border-orange-100 flex items-start gap-1">
+                                    <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                                    <span>Quan tâm Tour: {match[1]}</span>
+                                  </div>
+                                  <p className="whitespace-pre-wrap">{match[2]}</p>
+                                </>
+                              );
+                            }
+                            return <p className="whitespace-pre-wrap">{msg.content}</p>;
+                          })()}
                         </div>
 
                         {/* Time */}

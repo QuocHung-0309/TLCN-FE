@@ -10,6 +10,7 @@ import {
   Send,
   X,
   Minimize2,
+  Maximize2,
   Loader2,
   Headset,
   Trash2,
@@ -18,6 +19,7 @@ import {
   UserCircle2,
 } from "lucide-react";
 import useUser from "#/src/hooks/useUser";
+import { useChatStore } from "#/stores/chatStore";
 import {
   sendChatbotMessage,
   type ChatbotMessage,
@@ -113,9 +115,9 @@ function TourMiniCard({ tour }: { tour: TourCard }) {
 
 export default function SmartChatBot() {
   const { user, isAuthenticated } = useUser();
+  const { isOpen, tourContext, openChat, closeChat, clearTourContext } = useChatStore();
 
   // Widget state
-  const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [mode, setMode] = useState<Mode>("ai");
 
@@ -187,11 +189,18 @@ export default function SmartChatBot() {
   const handleSendAI = async (e?: React.FormEvent) => {
     e?.preventDefault();
     const text = input.trim();
-    if (!text || loading) return;
+    if (!text && !tourContext) return;
+    if (loading) return;
+
+    let finalContent = text;
+    if (tourContext) {
+      finalContent = `[Quan tâm Tour: ${tourContext.title} - ${tourContext.price} - ID: ${tourContext.id}]\n${text || "Tôi muốn tư vấn về tour này"}`;
+      clearTourContext();
+    }
 
     setInput("");
 
-    const userMsg: ChatbotMessage = { role: "user", content: text };
+    const userMsg: ChatbotMessage = { role: "user", content: finalContent };
     const newHistory = [...aiHistory, userMsg];
     setAiHistory(newHistory);
 
@@ -200,7 +209,7 @@ export default function SmartChatBot() {
       {
         id: genId(),
         role: "user",
-        content: text,
+        content: finalContent,
         timestamp: new Date().toISOString(),
       },
     ]);
@@ -263,13 +272,19 @@ export default function SmartChatBot() {
   const handleSendHuman = async (e?: React.FormEvent) => {
     e?.preventDefault();
     const text = input.trim();
-    if (!text || humanSending || !supportId) return;
+    if ((!text && !tourContext) || humanSending || !supportId) return;
+
+    let finalContent = text;
+    if (tourContext) {
+      finalContent = `[Quan tâm Tour: ${tourContext.title} - ${tourContext.price} - ID: ${tourContext.id}]\n${text || "Tôi muốn tư vấn về tour này"}`;
+      clearTourContext();
+    }
 
     setInput("");
     setHumanSending(true);
     try {
       await sendSupportMessage(supportId, {
-        content: text,
+        content: finalContent,
         name: user?.fullName || guestName,
         email: user?.email || guestEmail,
       });
@@ -293,7 +308,7 @@ export default function SmartChatBot() {
     try {
       const lastUserMsg =
         [...aiHistory].reverse().find((m) => m.role === "user")?.content ||
-        "Yêu cầu hỗ trợ từ chatbot";
+        "[System] Manual Escalate";
       const res = await startSupportChat({
         name: user?.fullName || guestName || "Khách",
         email: user?.email || guestEmail || "",
@@ -318,16 +333,16 @@ export default function SmartChatBot() {
     setAiHistory([]);
     setDisplayMessages([]);
     setInput("");
-    setIsOpen(false);
+    closeChat();
   };
 
   const handleClose = () => {
-    setIsOpen(false);
+    closeChat();
     setIsMinimized(false);
   };
 
   const handleOpen = () => {
-    setIsOpen(true);
+    openChat();
     setIsMinimized(false);
   };
 
@@ -365,15 +380,10 @@ export default function SmartChatBot() {
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.97 }}
-            animate={
-              isMinimized
-                ? { opacity: 1, y: 0, scale: 1, height: "auto" }
-                : { opacity: 1, y: 0, scale: 1 }
-            }
+            animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.97 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex w-[calc(100vw-2rem)] max-w-[360px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl shadow-slate-900/20 border border-slate-100"
-            style={{ maxHeight: isMinimized ? "auto" : "min(560px, calc(100dvh - 120px))" }}
+            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex h-[520px] max-h-[calc(100dvh-120px)] w-[calc(100vw-2rem)] max-w-[360px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl shadow-slate-900/20 border border-slate-100"
           >
             {/* Header */}
             <div
@@ -403,7 +413,7 @@ export default function SmartChatBot() {
               <div className="flex items-center gap-1">
                 {mode === "ai" && (
                   <button
-                    onClick={handleEscalateManual}
+                    onClick={(e) => { e.stopPropagation(); handleEscalateManual(); }}
                     disabled={isConnecting}
                     title="Kết nối hỗ trợ viên"
                     className="rounded-lg p-1.5 text-white/70 hover:bg-white/15 hover:text-white transition-colors disabled:cursor-not-allowed"
@@ -416,13 +426,10 @@ export default function SmartChatBot() {
                   </button>
                 )}
                 <button
-                  onClick={() => setIsMinimized((v) => !v)}
-                  className="rounded-lg p-1.5 text-white/70 hover:bg-white/15 hover:text-white transition-colors"
-                >
-                  <Minimize2 size={15} />
-                </button>
-                <button
-                  onClick={handleClose}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleClose();
+                  }}
                   className="rounded-lg p-1.5 text-white/70 hover:bg-white/15 hover:text-white transition-colors"
                 >
                   <X size={15} />
@@ -430,10 +437,8 @@ export default function SmartChatBot() {
               </div>
             </div>
 
-            {!isMinimized && (
-              <>
-                {/* Messages */}
-                <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-slate-50/50 min-h-0 max-h-[400px]">
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-slate-50/50 min-h-0 max-h-[400px]">
                   {/* ── AI mode messages ── */}
                   {mode === "ai" &&
                     displayMessages.map((msg) => {
@@ -469,7 +474,7 @@ export default function SmartChatBot() {
                               }`}
                             >
                               {isUser ? (
-                                <p className="whitespace-pre-wrap">{msg.content}</p>
+                                <p className="whitespace-pre-wrap">{msg.content.replace(/^\[Quan tâm Tour:[^\]]*\]\n?/g, "")}</p>
                               ) : (
                                 <ReactMarkdown
                                   remarkPlugins={[remarkGfm]}
@@ -530,6 +535,19 @@ export default function SmartChatBot() {
                   {/* ── Human mode messages ── */}
                   {mode === "human" &&
                     humanMessages.map((msg, idx) => {
+                      if (msg.content === "Yêu cầu hỗ trợ từ chatbot" || msg.content === "[System] Manual Escalate") return null;
+
+                      const isFirstSummary = idx === 0 && (msg.fromRole === "user" || msg.fromRole === "guest");
+                      if (msg.isSystem || isFirstSummary) {
+                        return (
+                          <div key={msg._id || idx} className="flex justify-center my-3 w-full">
+                            <span className="rounded-full bg-slate-100 text-slate-500 text-[10px] px-3 py-1 text-center shadow-sm max-w-[90%] break-words">
+                              {msg.content}
+                            </span>
+                          </div>
+                        );
+                      }
+
                       const isMe =
                         msg.fromRole === "user" || msg.fromRole === "guest";
                       const isSupport = isStaffRole(msg.fromRole);
@@ -559,7 +577,7 @@ export default function SmartChatBot() {
                                   : "rounded-tl-none bg-gradient-to-r from-blue-600 to-blue-700 text-white"
                               }`}
                             >
-                              <p className="whitespace-pre-wrap">{msg.content}</p>
+                              <p className="whitespace-pre-wrap">{msg.content.replace(/^\[Quan tâm Tour:[^\]]*\]\n?/g, "")}</p>
                             </div>
                             <span className="mt-1 px-1 text-[9px] text-slate-400">
                               {formatTime(msg.createdAt)}
@@ -583,7 +601,36 @@ export default function SmartChatBot() {
                 </div>
 
                 {/* Input footer */}
-                <div className="border-t border-slate-100 bg-white p-3 z-10">
+                <div className="border-t border-slate-100 bg-white p-3 z-10 flex flex-col">
+                  {tourContext && (
+                    <div className="bg-white p-2 rounded-xl shadow-sm border border-orange-200 flex gap-3 mb-3 relative animate-in slide-in-from-bottom-2">
+                      <div className="relative w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden border border-slate-100">
+                        <img
+                          src={tourContext.image}
+                          alt={tourContext.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        <p className="text-[9px] text-orange-500 font-bold uppercase tracking-wider">
+                          Đang quan tâm
+                        </p>
+                        <h4 className="text-xs font-bold text-slate-800 line-clamp-1">
+                          {tourContext.title}
+                        </h4>
+                        <p className="text-[10px] text-slate-500 font-medium line-clamp-1">
+                          {tourContext.price}
+                        </p>
+                      </div>
+                      <button
+                        onClick={clearTourContext}
+                        className="text-slate-400 hover:text-red-500 self-start p-1 bg-slate-50 rounded-full transition-colors"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  )}
+
                   <form
                     onSubmit={mode === "ai" ? handleSendAI : handleSendHuman}
                     className="flex items-end gap-2 rounded-2xl bg-slate-50 px-3 py-2 ring-1 ring-slate-200 focus-within:ring-2 focus-within:ring-orange-400 transition-all"
@@ -603,7 +650,7 @@ export default function SmartChatBot() {
                     />
                     <button
                       type="submit"
-                      disabled={!input.trim() || isSending}
+                      disabled={(!input.trim() && !tourContext) || isSending}
                       className={`mb-1 rounded-full p-2 text-white active:scale-95 transition-all disabled:bg-slate-300 ${
                         mode === "human"
                           ? "bg-blue-600 hover:bg-blue-700"
@@ -704,8 +751,6 @@ export default function SmartChatBot() {
                     </>
                   )}
                 </AnimatePresence>
-              </>
-            )}
           </motion.div>
         )}
       </AnimatePresence>

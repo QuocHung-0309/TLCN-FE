@@ -1,5 +1,6 @@
 // /lib/checkout/checkoutApi.ts
 import axiosInstance from "@/lib/axiosInstance";
+import type { PassengerInput } from '@/types/passenger';
 
 /* ================= Types ================= */
 export type PaymentMethod =
@@ -22,8 +23,9 @@ export type CreateBookingBody = {
   pricing: { priceAdult: number; priceChild: number; total?: number };
   couponCode?: string | null;
   paymentMethod: PaymentMethod;
-  paymentType: "full" | "deposit" | "office";
+  paymentType: 'full' | 'deposit' | 'office';
   note?: string;
+  passengers?: PassengerInput[];
 };
 
 // Backend format (internal use)
@@ -86,6 +88,13 @@ export type MyBookingItem = {
   bookingStatus: "pending" | "confirmed" | "completed" | "cancelled";
   createdAt?: string;
   updatedAt?: string;
+  passengers?: Array<{
+    fullName: string;
+    dateOfBirth?: string;
+    gender?: string;
+    idNumber?: string | null;
+    type: 'adult' | 'child';
+  }>;
 };
 
 export type MyBookingList = {
@@ -275,6 +284,7 @@ export async function getBookingByCode(code: string): Promise<MyBookingItem> {
     })() as MyBookingItem["bookingStatus"],
     createdAt: bookingData.createdAt,
     updatedAt: bookingData.updatedAt,
+    passengers: Array.isArray(bookingData.passengers) ? bookingData.passengers : [],
   };
 }
 
@@ -323,5 +333,20 @@ export async function initSepayPayment(
     { code: bookingCode, amount },
     { headers: { "Content-Type": "application/json" } }
   );
+  return data;
+}
+
+/* ================= Admin: Get Passengers (Full CCCD) ================= */
+export async function getAdminBookingPassengers(bookingId: string): Promise<{
+  code: string;
+  passengers: Array<{
+    fullName: string;
+    dateOfBirth?: string;
+    gender?: string;
+    idNumber?: string | null;
+    type: 'adult' | 'child';
+  }>;
+}> {
+  const { data } = await axiosInstance.get(`/admin/bookings/${bookingId}/passengers`);
   return data;
 }

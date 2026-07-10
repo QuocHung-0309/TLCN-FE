@@ -23,6 +23,7 @@ import {
   ExternalLink,
   FileText,
   Calendar,
+  Users,
 } from "lucide-react";
 
 import { useGetTourById, useGetDepartureById } from "#/hooks/tours-hook/useTourDetail";
@@ -31,6 +32,9 @@ import {
   initBookingPayment,
 } from "@/lib/checkout/checkoutApi";
 import type { CreateBookingBody } from "@/lib/checkout/checkoutApi";
+
+import { computeAge, getPassengerType, requiresCCCD, createBlankPassenger, validateCCCD } from '@/types/passenger';
+import type { PassengerFormState } from '@/types/passenger';
 
 import { authApi } from "@/lib/auth/authApi";
 import { useAuthStore } from "#/stores/auth";
@@ -127,6 +131,9 @@ function CheckoutContent() {
   });
   const [adults, setAdults] = React.useState(initAdults);
   const [children, setChildren] = React.useState(initChildren);
+
+  const [passengers, setPassengers] = React.useState<PassengerFormState[]>([]);
+  const [passengerErrors, setPassengerErrors] = React.useState<Record<string, string>>({});
 
   const [paymentType, setPaymentType] = React.useState<PaymentType>("full");
   const [paymentMethod, setPaymentMethod] =
@@ -262,6 +269,17 @@ function CheckoutContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listed]);
 
+  React.useEffect(() => {
+    const total = adults + children;
+    setPassengers((prev) => {
+      const next = Array.from({ length: total }, (_, i) => {
+        if (prev[i]) return prev[i];
+        return createBlankPassenger();
+      });
+      return next;
+    });
+  }, [adults, children]);
+
   /* ---------- Validation ---------- */
   const validateField = (name: keyof typeof formData, value: string) => {
     if (name !== "address" && name !== "note" && !value.trim()) return "Vui lòng không để trống.";
@@ -333,6 +351,37 @@ function CheckoutContent() {
       return;
     }
 
+    const pErrors: Record<string, string> = {};
+    let hasPError = false;
+    passengers.forEach((p, i) => {
+      const isAdultSlot = i < adults;
+      if (!p.fullName.trim()) { pErrors[`${i}_fullName`] = 'Vui lòng nhập họ tên'; hasPError = true; }
+      if (!p.dateOfBirth) { pErrors[`${i}_dateOfBirth`] = 'Vui lòng nhập ngày sinh'; hasPError = true; }
+      if (p.dateOfBirth) {
+        const age = computeAge(p.dateOfBirth);
+        if (isAdultSlot && age < 12) {
+          pErrors[`${i}_dateOfBirth`] = 'Độ tuổi không hợp lệ cho Người lớn (phải >= 12 tuổi)'; hasPError = true;
+        } else if (!isAdultSlot && age >= 12) {
+          pErrors[`${i}_dateOfBirth`] = 'Độ tuổi không hợp lệ cho Trẻ em (phải < 12 tuổi)'; hasPError = true;
+        }
+        
+        if (requiresCCCD(age)) {
+          if (!p.idNumber.trim()) {
+            pErrors[`${i}_idNumber`] = 'Vui lòng nhập CCCD (bắt buộc với người từ 14 tuổi)';
+            hasPError = true;
+          } else {
+            const cccdError = validateCCCD(p.idNumber.trim(), p.dateOfBirth, p.gender as any);
+            if (cccdError) {
+              pErrors[`${i}_idNumber`] = cccdError;
+              hasPError = true;
+            }
+          }
+        }
+      }
+    });
+    if (hasPError) { setPassengerErrors(pErrors); return; }
+    setPassengerErrors({});
+
     const total = Number(totalDisplay) || 0;
 
     const payload: CreateBookingBody = {
@@ -355,6 +404,16 @@ function CheckoutContent() {
         ? "office"
         : paymentType) as CreateBookingBody["paymentType"],
       note: formData.note?.trim() || undefined,
+      passengers: passengers.map((p) => {
+        const age = computeAge(p.dateOfBirth);
+        return {
+          fullName: p.fullName.trim(),
+          dateOfBirth: p.dateOfBirth,
+          gender: p.gender || undefined,
+          idNumber: requiresCCCD(age) ? p.idNumber.trim() || undefined : undefined,
+          type: getPassengerType(age),
+        };
+      }),
     };
 
     try {
@@ -427,6 +486,11 @@ function CheckoutContent() {
         Không tìm thấy tour.
       </div>
     );
+
+  const updatePassenger = (idx: number, field: keyof PassengerFormState, value: string) => {
+    setPassengers((prev) => prev.map((p, i) => i === idx ? { ...p, [field]: value } : p));
+    setPassengerErrors((prev) => { const n = { ...prev }; delete n[`${idx}_${field}`]; return n; });
+  };
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -594,6 +658,89 @@ function CheckoutContent() {
                 />
               </div>
             </Card>
+
+            {/* 2.5 Passenger Information */}
+            {passengers.length > 0 && (
+              <Card
+                title="Thông tin từng hành khách"
+                icon={<Users size={18} className="text-violet-600" />}
+              >
+                <div className="space-y-6">
+                  {passengers.map((p, idx) => {
+                    const isAdultSlot = idx < adults;
+                    const slotLabel = isAdultSlot
+                      ? `Người lớn ${idx + 1}`
+                      : `Trẻ em ${idx - adults + 1}`;
+                    const age = p.dateOfBirth ? computeAge(p.dateOfBirth) : null;
+                    const needId = age !== null && requiresCCCD(age);
+                    return (
+                      <div key={idx} className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4">
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-100 text-xs font-bold text-violet-700">{idx + 1}</span>
+                          <span className="text-sm font-semibold text-slate-700">{slotLabel}</span>
+                          {age !== null && (
+                            <span className={`ml-auto text-xs font-semibold px-2 py-0.5 rounded-full ${
+                              getPassengerType(age) === 'child' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {age < 12 ? 'Trẻ em' : 'Người lớn'} · {age} tuổi
+                            </span>
+                          )}
+                        </div>
+                        <div className="grid gap-3 md:grid-cols-2">
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-600 mb-1">Họ và tên <span className="text-red-500">*</span></label>
+                            <input
+                              value={p.fullName}
+                              onChange={(e) => updatePassenger(idx, 'fullName', e.target.value)}
+                              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20"
+                              placeholder="Họ và tên đầy đủ"
+                            />
+                            {passengerErrors[`${idx}_fullName`] && <p className="mt-1 text-xs text-red-500">{passengerErrors[`${idx}_fullName`]}</p>}
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-600 mb-1">Ngày sinh <span className="text-red-500">*</span></label>
+                            <input
+                              type="date"
+                              value={p.dateOfBirth}
+                              max={new Date().toISOString().split('T')[0]}
+                              onChange={(e) => updatePassenger(idx, 'dateOfBirth', e.target.value)}
+                              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20"
+                            />
+                            {passengerErrors[`${idx}_dateOfBirth`] && <p className="mt-1 text-xs text-red-500">{passengerErrors[`${idx}_dateOfBirth`]}</p>}
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-600 mb-1">Giới tính</label>
+                            <select
+                              value={p.gender}
+                              onChange={(e) => updatePassenger(idx, 'gender', e.target.value)}
+                              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20"
+                            >
+                              <option value="">-- Chọn giới tính --</option>
+                              <option value="male">Nam</option>
+                              <option value="female">Nữ</option>
+                              <option value="other">Khác</option>
+                            </select>
+                          </div>
+                          {needId && (
+                            <div>
+                              <label className="block text-xs font-semibold text-slate-600 mb-1">Số CCCD <span className="text-red-500">*</span></label>
+                              <input
+                                value={p.idNumber}
+                                onChange={(e) => updatePassenger(idx, 'idNumber', e.target.value)}
+                                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20"
+                                placeholder="Nhập số CCCD (12 chữ số)"
+                                maxLength={12}
+                              />
+                              {passengerErrors[`${idx}_idNumber`] && <p className="mt-1 text-xs text-red-500">{passengerErrors[`${idx}_idNumber`]}</p>}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            )}
 
             {/* 3. Payment Method */}
             <Card

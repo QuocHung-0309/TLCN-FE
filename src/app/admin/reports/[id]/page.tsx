@@ -38,6 +38,16 @@ export default function AdminReportDetailPage() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"report" | "timeline" | "expenses" | "passengers">("report");
+  const [expandedPassengers, setExpandedPassengers] = useState<Set<string>>(new Set());
+
+  const toggleExpandPassengers = (bookingId: string) => {
+    setExpandedPassengers(prev => {
+      const next = new Set(prev);
+      if (next.has(bookingId)) next.delete(bookingId);
+      else next.add(bookingId);
+      return next;
+    });
+  };
 
   const { data: tour, isLoading } = useQuery({
     queryKey: ["adminReportDetail", id],
@@ -285,29 +295,78 @@ export default function AdminReportDetailPage() {
                     {passengers.map((pax: any) => {
                       // Kiểm tra xem đơn này có bị report no-show không
                       const isNoShow = report?.noShowBookingIds?.includes(pax._id);
+                      const isExpanded = expandedPassengers.has(pax._id);
                       return (
-                        <tr key={pax._id} className="hover:bg-slate-50 transition">
-                          <td className="px-6 py-4 font-mono text-xs text-slate-500">{pax._id.slice(-6).toUpperCase()}</td>
-                          <td className="px-6 py-4 font-semibold text-slate-800">{pax.fullName}</td>
-                          <td className="px-6 py-4 text-sm text-slate-600">
-                            <div>{pax.phoneNumber}</div>
-                            <div className="text-xs text-slate-400">{pax.email}</div>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-slate-700">
-                            {(pax.numAdults || 0) + (pax.numChildren || 0)} khách
-                          </td>
-                          <td className="px-6 py-4">
-                            {pax.bookingStatus === "cancelled" ? (
-                              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full">Đã hủy</span>
-                            ) : isNoShow ? (
-                              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 bg-red-100 text-red-700 rounded-full">Vắng mặt (No-show)</span>
-                            ) : tour.status === "completed" || tour.status === "closed" ? (
-                              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full">Đã tham gia</span>
-                            ) : (
-                              <span className="text-xs text-slate-400 italic">Chưa chốt</span>
-                            )}
-                          </td>
-                        </tr>
+                        <React.Fragment key={pax._id}>
+                          <tr className="hover:bg-slate-50 transition">
+                            <td className="px-6 py-4 font-mono text-xs text-slate-500">
+                              {pax._id.slice(-6).toUpperCase()}
+                              {pax.passengers && pax.passengers.length > 0 && (
+                                <button
+                                  onClick={() => toggleExpandPassengers(pax._id as string)}
+                                  className="mt-2 inline-flex items-center justify-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded border border-indigo-100 text-[10px] font-bold uppercase tracking-wider transition-all shadow-sm"
+                                >
+                                  <Users className="w-3 h-3" />
+                                  {isExpanded ? "Đóng" : "Xem KH"}
+                                </button>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 font-semibold text-slate-800">{pax.fullName}</td>
+                            <td className="px-6 py-4 text-sm text-slate-600">
+                              <div>{pax.phoneNumber}</div>
+                              <div className="text-xs text-slate-400">{pax.email}</div>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-slate-700">
+                              {(pax.numAdults || 0) + (pax.numChildren || 0)} khách
+                            </td>
+                            <td className="px-6 py-4">
+                              {pax.bookingStatus === "cancelled" ? (
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full">Đã hủy</span>
+                              ) : isNoShow ? (
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 bg-red-100 text-red-700 rounded-full">Vắng mặt (No-show)</span>
+                              ) : tour.status === "completed" || tour.status === "closed" ? (
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full">Đã tham gia</span>
+                              ) : (
+                                <span className="text-xs text-slate-400 italic">Chưa chốt</span>
+                              )}
+                            </td>
+                          </tr>
+                          {isExpanded && pax.passengers && (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-3 bg-slate-50 border-t border-slate-100">
+                                <div className="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm">
+                                  <table className="w-full text-xs">
+                                    <thead className="bg-slate-100/50">
+                                      <tr>
+                                        <th className="px-3 py-2 text-left font-semibold text-slate-500">Họ tên</th>
+                                        <th className="px-3 py-2 text-left font-semibold text-slate-500">Ngày sinh</th>
+                                        <th className="px-3 py-2 text-left font-semibold text-slate-500">Loại</th>
+                                        <th className="px-3 py-2 text-center font-semibold text-slate-500">Tham gia</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                      {pax.passengers.map((sp: any, pIdx: number) => {
+                                        const isAttended = pax.attendedPassengerIds?.includes(sp._id || pIdx.toString()) || false;
+                                        return (
+                                          <tr key={pIdx}>
+                                            <td className="px-3 py-2 font-medium text-slate-700">{sp.fullName}</td>
+                                            <td className="px-3 py-2 text-slate-500">{sp.dateOfBirth ? new Date(sp.dateOfBirth).toLocaleDateString("vi-VN") : "—"}</td>
+                                            <td className="px-3 py-2"><span className={`px-2 py-0.5 rounded-full ${sp.type === "child" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>{sp.type === "child" ? "Trẻ em" : "Người lớn"}</span></td>
+                                            <td className="px-3 py-2 text-center">
+                                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold ${isAttended ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+                                                {isAttended ? "CÓ MẶT" : "VẮNG MẶT"}
+                                              </span>
+                                            </td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
                       )
                     })}
                   </tbody>

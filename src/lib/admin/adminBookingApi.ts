@@ -200,6 +200,7 @@ export const adminCreateBooking = async (
     numChildren: number;
     paymentMethod: string;
     paidAmount: number;
+    passengers?: any[];
   }
 ): Promise<{ message: string; booking: BookingData }> => {
   try {

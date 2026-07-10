@@ -180,7 +180,7 @@ const SideBar = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {categoryOrder.map((category) => {
           const links = groupedLinks[category];
           if (!links) return null;

@@ -148,7 +148,9 @@ export interface Passenger {
   depositPaid: boolean;
   createdAt: string;
   note?: string;
+  passengers?: any[];
   isPresent?: boolean;
+  attendedPassengerIds?: string[];
 }
 
 // ======= CHAT API =======
@@ -249,11 +251,9 @@ export const leaderToursApi = {
     return res.data as { total: number; data: Passenger[] };
   },
 
-  // Điểm danh
-  updateBookingCheckin: async (departureId: string, bookingId: string, isPresent: boolean) => {
-    const res = await leaderAxios.patch(`/leader/departures/${departureId}/bookings/${bookingId}/checkin`, { isPresent });
-    return res.data;
-  },
+  // 3b. Điểm danh
+  updateBookingCheckin: (id: string, bookingId: string, isPresent: boolean, attendedPassengerIds?: string[]) =>
+    leaderAxios.patch(`/leader/departures/${id}/bookings/${bookingId}/checkin`, { isPresent, attendedPassengerIds }).then(res => res.data),
 
   // Thêm sự kiện timeline
   addTimeline: async (
