@@ -1,6 +1,4 @@
-# 🏙️ AHH TRAVEL
-
-# 🏙️ AHH TRAVEL – Ứng dụng du lịch tại Việt Nam
+# 🏙️ AHH TRAVEL – Website du lịch tại Việt Nam
 
 Website đặt tour và khám phá địa điểm du lịch của **AHH Travel**, xây dựng với **Next.js + TypeScript + Supabase + MongoDB + Node.js**.  
 Hệ thống gồm **Frontend (Next.js)** và **Backend (API riêng)** có phân quyền **Admin / User** rõ ràng.
@@ -13,6 +11,7 @@ Hệ thống gồm **Frontend (Next.js)** và **Backend (API riêng)** có phân
 - **Backend:** Node.js + Express + MongoDB + JWT Authentication  
 - **Database:** MongoDB Atlas  
 - **Deploy:** Netlify / Vercel (FE) + Render / Railway (BE)
+- **AI:** Recommendation (Hybrid + DeepFM) and Smart Tour Assistant(Chat)
 
 Hệ thống bao gồm 2 phần giao diện chính:
 1. **User Site:** Đặt tour, xem lịch sử đặt chỗ, quản lý tài khoản.
